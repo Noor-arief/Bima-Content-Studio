@@ -12,9 +12,58 @@
   const result=document.getElementById('publishingResult');
   const selected=document.getElementById('publishingSelected');
   const badge=document.getElementById('publishingReadyBadge');
-  if (!stepper || !hint || buttons.length !== 3 || !publishingPanel || !sendButton || !approveServerButton || !nextButton || !selected || !badge || !result || typeof getSelected !== 'function') return;
+  const ownerBadge=document.getElementById('publishingOwnerStatus');
+  const ownerSignIn=document.getElementById('publishingSignIn');
+  if (!stepper || !hint || buttons.length !== 3 || !publishingPanel || !sendButton || !approveServerButton || !nextButton || !selected || !badge || !result || !ownerBadge || !ownerSignIn || typeof getSelected !== 'function') return;
 
   let serverItems = [];
+  let ownerReady=false;
+  let ownerCheckPending=false;
+  const sessionKey='bima_content_server_session';
+  function ownerUI(text,ready){
+    ownerReady=ready;
+    ownerBadge.textContent=text;
+    ownerBadge.style.color=ready?'#9deecb':'#ffdcad';
+    ownerSignIn.hidden=ready;
+    updateSteps();
+  }
+  async function checkOwner(){
+    if(ownerCheckPending)return ownerReady;
+    const token=sessionStorage.getItem(sessionKey);
+    if(!token){
+      ownerUI('Owner sign-in required · Railway still connected',false);
+      return false;
+    }
+    const endpoint=document.getElementById('apiEndpoint')?.value.trim().replace(/\/$/,'')||'';
+    if(!/^https:\/\/[a-zA-Z0-9.-]+\.up\.railway\.app$/.test(endpoint)){
+      ownerUI('Railway URL needs attention',false);
+      return false;
+    }
+    ownerCheckPending=true;
+    ownerBadge.textContent='Checking owner session…';
+    try{
+      const r=await fetch(endpoint+'/api/status',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+      if(r.status===401){
+        sessionStorage.removeItem(sessionKey);
+        ownerUI('Owner session expired · Sign in again',false);
+        return false;
+      }
+      if(!r.ok){
+        ownerUI('Could not check session (HTTP '+r.status+')',false);
+        return false;
+      }
+      ownerUI('Owner session active · Ready to send MP4',true);
+      return true;
+    }catch(e){
+      ownerUI('Session check unavailable · Check Backend',false);
+      return false;
+    }finally{ownerCheckPending=false;}
+  }
+  ownerSignIn.addEventListener('click',()=>{
+    if(ownerReady)return;
+    result.textContent='Opening Google owner sign-in. After returning to BIMA, you can resume with the same approved video; nothing is uploaded automatically.';
+    document.getElementById('apiGoogle')?.click();
+  });
   let lastSelectedId = null;
   function currentServerItem(id) {
     return serverItems.find(item => item.id === id) || null;
@@ -28,8 +77,8 @@
     const server = currentServerItem(id);
     const uploaded = !!server && ['private_uploaded', 'scheduled', 'published'].includes(server.status);
     nextButton.hidden=!approved;
-    sendButton.disabled=!approved||!!server&&['private_uploaded','scheduled','published','uploading','needs_review'].includes(server.status);
-    approveServerButton.disabled=!approved||server?.status!=='draft_with_video'; 
+    sendButton.disabled=!ownerReady||!approved||!!server&&['private_uploaded','scheduled','published','uploading','needs_review'].includes(server.status);
+    approveServerButton.disabled=!ownerReady||!approved||server?.status!=='draft_with_video'; 
     approveServerButton.textContent=server?.status==='approved'?'✓ Server approved':'2 · Approve server-side schedule';
     badge.textContent=server?.status==='approved'?'Server approved':server?.status==='draft_with_video'?'Video on Railway':approved?'Approved · Local only':'Awaiting local approval';
     badge.style.color=approved?'#9deecb':'#ffdcad';
@@ -72,6 +121,7 @@
     document.querySelector('.menu-item[data-go="publishing"]')?.click();
     // The Publishing action panel is now the first visible element in that view.
     updateSteps();
+    void checkOwner();
   }
   nextButton.addEventListener('click',goPublishing);
   sendButton.addEventListener('click',()=>{
@@ -113,6 +163,10 @@
     updateSteps();
   }));
 
+  document.addEventListener('bima:owner-session', e=>{
+    if(!e.detail?.signedIn)ownerUI('Owner sign-in required · Railway still connected',false);
+    else void checkOwner();
+  });
   document.addEventListener('bima:render-status', updateSteps);
   document.addEventListener('bima:server-state', event => {
     const data = event.detail || {};
@@ -122,4 +176,5 @@
     updateSteps();
   });
   updateSteps();
+  void checkOwner();
 })();
