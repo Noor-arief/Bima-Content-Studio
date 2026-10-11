@@ -388,6 +388,14 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 .publishing-manual{padding:12px 14px;margin:14px 0;background:rgba(255,195,99,.065);border:1px solid rgba(255,195,99,.23);border-radius:10px}
 .publishing-manual p{color:#ffdcad;font-size:12.5px;line-height:1.6}
 .publishing-manual button{margin:5px 8px 5px 0}
+
+/* Display actual YouTube publishing result in the first Publishing viewport */
+#youtubeVerificationCard:not([hidden]){display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:center;padding:18px 20px;margin:16px 0;background:rgba(32,153,107,.12);border:1px solid rgba(78,212,161,.55);border-radius:14px}
+#youtubeVerificationCard strong{color:#aff3d5;font-size:16px;font-weight:800}
+#youtubeVerificationCard p{color:#c0ddcf;font-size:13px;line-height:1.7;margin:7px 0 0}
+#youtubeVerificationCard .actions{margin:0}
+#youtubeVerificationCard [hidden]{display:none!important}
+#youtubeVerificationCard a.btn{display:inline-flex;align-items:center;text-decoration:none;color:#fff}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -413,12 +421,16 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
  <div class="line"><div><h2 id="publishingQuickHeading">Next: Send approved video to Railway</h2><p class="sub" style="margin-bottom:0">Tahap 3 · Kirim MP4 ke server BIMA dan konfirmasi jadwal; ini bukan upload YouTube.</p></div><span class="chip" id="publishingReadyBadge">Checking draft…</span></div>
  <p id="publishingSelected" class="publishing-selected" role="status" aria-live="polite">Checking selected draft…</p>
+ <div class="yt-verified" id="youtubeVerificationCard" role="status" aria-live="polite" hidden>
+   <div><strong id="youtubeVerificationTitle">Checking YouTube…</strong><p id="youtubeVerificationDetails">Loading video details…</p></div>
+   <div class="actions"><a class="btn primary" id="openUploadedVideo" href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer" hidden>Open uploaded video in Studio ↗</a><button class="btn" id="verifyFromPublishing" type="button">Verify on YouTube</button></div>
+ </div>
  <p id="serverApprovalConfirmed" role="status" aria-live="polite" hidden></p>
  <div class="actions" style="align-items:center"><span class="chip" id="publishingOwnerStatus" role="status" aria-live="polite">Checking owner session…</span><button class="btn" id="publishingSignIn" type="button" hidden>Sign in as YouTube owner</button></div>
  <div class="actions"><button class="btn primary" id="publishingSend" type="button">1 · Save selected video to server</button><button class="btn" id="publishingApprove" type="button">2 · Approve server-side schedule</button></div>
  <p class="hint" id="publishingResult" role="status" aria-live="polite">Click Step 1 after local approval. No YouTube upload will happen.</p>
- <div class="publishing-manual"><p id="publishingManualNotice">Server approval does not publish video automatically.</p><button class="btn" type="button" id="openYouTubeStudio">Open YouTube Studio ↗</button><button class="btn ghost" type="button" id="manualDownloadMp4">Download final MP4</button></div>
- <p class="hint">Server approval requires a publish time at least 15 minutes in the future. Private upload remains disabled until explicitly enabled for testing.</p>
+ <div class="publishing-manual"><p id="publishingManualNotice">BIMA manages YouTube uploads and scheduling. Do not upload duplicate videos.</p><button class="btn" type="button" id="openYouTubeStudio">Check in YouTube Studio ↗</button></div>
+ <p class="hint">Upload by BIMA is a separate step from server approval. The YouTube status above is the source of truth; publishing occurs only after YouTube confirms Public.</p>
 </section>
 <div class="content-grid">
  <section class="panel" data-panel="kalender"><div class="line"><div><h2>YouTube content calendar</h2><p class="sub">Pilih tanggal untuk mengelola konten YouTube. Draft disimpan di perangkat ini; kirim video ke server setelah selesai direview.</p></div><div class="controls"><button class="btn ghost" id="prev" aria-label="Previous month">‹</button><span class="month-title" id="monthLabel"></span><button class="btn ghost" id="next" aria-label="Next month">›</button><button class="btn primary" id="newContent">+ New Short</button></div></div>
@@ -576,7 +588,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  }
  let serverHealth=null;
  document.addEventListener("bima:render-status",paintServerStatus);
- async function refreshStatus(){serverStatus=await call("/api/status");paintServerStatus();document.dispatchEvent(new CustomEvent("bima:server-state",{detail:{items:(serverStatus.items||[]).map(({id,status})=>({id,status}))}}));return serverStatus;}
+ async function refreshStatus(){serverStatus=await call("/api/status");paintServerStatus();document.dispatchEvent(new CustomEvent("bima:server-state",{detail:{items:(serverStatus.items||[]).map(({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus}))}}));return serverStatus;}
  const endpointKey="bima_content_server_url";
  let session=sessionStorage.getItem(tokenKey)||"";
  const hash=new URLSearchParams(location.hash.replace(/^#/,""));
@@ -743,5 +755,5 @@ render();
 })();
 </script>
 <script src="shorts-ui.js?v=20261011-fullscreen-crop3" defer></script>
-<script src="production-steps.js?v=20261011-approval-confirm6" defer></script>
+<script src="production-steps.js?v=20261011-youtube-status7" defer></script>
 </body></html>
