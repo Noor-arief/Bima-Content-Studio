@@ -5,7 +5,7 @@
   if (!actions || !$('apiEndpoint') || typeof getSelected !== 'function' || typeof mediaDB !== 'function') return;
 
   const style = document.createElement('style');
-  style.textContent = '.shorts-mode{max-width:190px;min-height:34px;padding:6px 9px;background:#111b3d;color:#e6edff;border:1px solid #344372;border-radius:8px;font-size:12px}.shorts-note{font-size:11.5px;line-height:1.55;color:#b9c9f5;display:block;margin-top:8px}.media-actions .shorts-convert{background:linear-gradient(135deg,#7766ef,#597cff);color:#fff;font-weight:700}.media-actions .shorts-convert:disabled{opacity:.5;cursor:wait}#restoreOriginal[hidden]{display:none!important}';
+  style.textContent = '.shorts-mode{max-width:190px;min-height:34px;padding:6px 9px;background:#111b3d;color:#e6edff;border:1px solid #344372;border-radius:8px;font-size:12px}.shorts-note{font-size:11.5px;line-height:1.55;color:#b9c9f5;display:block;margin-top:8px}.media-actions .shorts-convert{background:linear-gradient(135deg,#7766ef,#597cff);color:#fff;font-weight:700}.media-actions .shorts-convert:disabled{opacity:.5;cursor:wait}#restoreOriginal[hidden],#shortsOwnerLogin[hidden]{display:none!important}.shorts-auth-pill{display:inline-flex;align-items:center;border:1px solid #344372;border-radius:999px;padding:6px 10px;color:#b9c9f5;font-size:11.5px;background:#141d3b}.media-preview-wrap video.is-shorts-portrait{display:block!important;width:min(100%,260px)!important;max-height:480px!important;aspect-ratio:9/16;object-fit:contain;margin:0 auto}';
   document.head.append(style);
 
   const convert = document.createElement('button');
@@ -18,10 +18,41 @@
   restore.type='button'; restore.id='restoreOriginal'; restore.className='btn ghost';restore.textContent='Restore original';restore.hidden=true;
   const download = document.createElement('button');
   download.type='button';download.className='btn ghost';download.textContent='Download MP4';
+  const signin = document.createElement('button');
+  signin.type='button';signin.id='shortsOwnerLogin';signin.className='btn ghost';signin.textContent='Sign in to convert';
+  signin.addEventListener('click',()=>{ $('apiGoogle')?.click(); });
+  const sessionBadge=document.createElement('span');
+  sessionBadge.className='shorts-auth-pill';sessionBadge.id='shortsAuthStatus';
+  sessionBadge.textContent='Checking owner session…';
   const note = document.createElement('small');
   note.className='shorts-note';note.id='shortsConversionMessage';note.setAttribute('role','status');note.setAttribute('aria-live','polite');
   note.textContent='Auto Convert uses your private Railway server (up to 30 MB / 65 seconds). It does not publish or upload to YouTube.';
-  actions.prepend(convert,mode,restore,download);actions.after(note);
+  actions.prepend(convert,mode,signin,restore,download,sessionBadge);actions.after(note);
+  const preview=$('videoPreview');
+  const updatePortraitPreview=()=>{if(preview)preview.classList.toggle('is-shorts-portrait',preview.videoWidth>0&&preview.videoHeight>preview.videoWidth);};
+  preview?.addEventListener('loadedmetadata',updatePortraitPreview);
+  updatePortraitPreview();
+  const sessionKey='bima_content_server_session';
+  const authState=active=>{
+    signin.hidden=active;
+    sessionBadge.textContent=active?'Owner session active · Convert ready':'Channel connected · Owner sign-in needed';
+    sessionBadge.style.color=active?'#9deecb':'#ffdcad';
+  };
+  // Connected = Railway has verified channel; owner session is separate and tab-scoped.
+  // Confirm authorization without transmitting any private video.
+  async function checkOwnerSession(){
+    const token=sessionStorage.getItem(sessionKey);
+    if(!token){authState(false);return false;}
+    try{
+      const response=await fetch(server()+'/api/status',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+      if(response.ok){authState(true);return true;}
+      if(response.status===401){sessionStorage.removeItem(sessionKey);authState(false);return false;}
+      authState(false);status('Cannot verify owner login (HTTP '+response.status+'). Try Check Backend, then sign in.');
+      return false;
+    }catch(e){authState(false);status('Cannot check owner session: '+e.message);return false;}
+  }
+  authState(!!sessionStorage.getItem(sessionKey));
+  void checkOwnerSession();
 
   const wasConverted = item => !!item?.mediaName && /-Shorts-9x16\.mp4$/i.test(item.mediaName);
   const syncButtons = () => { const item=getSelected();restore.hidden=!wasConverted(item);download.disabled=!item?.mediaName; };
@@ -42,8 +73,13 @@
     try{
       const item=getSelected();if(!item?.mediaName)throw Error('Choose a saved Gemini video first.');
       const itemId=item.id;
-      const session=sessionStorage.getItem('bima_content_server_session');
-      if(!session)throw Error('Use Sign in as YouTube owner (Google) first. The conversion endpoint is private.');
+      const validSession=await checkOwnerSession();
+      if(!validSession){
+        status('The YouTube channel is connected, but this browser tab is not signed in as its owner. Click Sign in to convert, then retry. No file was sent.');
+        signin.focus();
+        return;
+      }
+      const session=sessionStorage.getItem(sessionKey);
       const saved=await mediaDB('get',itemId);
       if(!saved)throw Error('Saved MP4 is missing from this browser. Attach the Gemini export again.');
       const backup=wasConverted(item)?await mediaDB('get',backupKey(itemId)).catch(()=>null):null;
@@ -56,7 +92,15 @@
       const response=await fetch(server()+'/api/convert-shorts?mode='+encodeURIComponent(choice),{
         method:'POST',headers:{Authorization:'Bearer '+session,'Content-Type':'video/mp4'},body:source
       });
-      if(!response.ok){const err=await response.json().catch(()=>({}));throw Error(err.error||('HTTP '+response.status));}
+      if(!response.ok){
+        const err=await response.json().catch(()=>({}));
+        if(response.status===401){
+          sessionStorage.removeItem(sessionKey);
+          authState(false);
+          throw Error('Owner session expired. Click Sign in to convert and retry.');
+        }
+        throw Error(err.error||('HTTP '+response.status));
+      }
       const blob=await response.blob();
       if(blob.size<1000 || blob.type!=='video/mp4')throw Error('Railway did not return a valid converted MP4.');
       if(getSelected()?.id!==itemId)throw Error('The selected draft changed. Select the original draft and convert again.');
@@ -65,7 +109,7 @@
       await storeSelectedVideo(new File([blob],newName,{type:'video/mp4'}));
       status('Done — 1080×1920, '+choice+', '+humanSize(blob.size)+'. Original preserved in this browser. Preview and Mark Approved before private upload.');
       syncButtons();
-    }catch(e){status('Conversion failed: '+(e.message||e)+'. Original video remains saved; nothing was uploaded to YouTube.');}
+    }catch(e){status('Conversion did not complete: '+(e.message||e)+'. Your original video is safe; YouTube was not touched.');}
     finally{convert.disabled=false;}
   });
   restore.addEventListener('click',async()=>{
