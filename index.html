@@ -406,6 +406,7 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
  <div class="line"><div><h2 id="publishingQuickHeading">Next: Send approved video to Railway</h2><p class="sub" style="margin-bottom:0">Tahap 3 · Kirim MP4 ke server BIMA dan konfirmasi jadwal; ini bukan upload YouTube.</p></div><span class="chip" id="publishingReadyBadge">Checking draft…</span></div>
  <p id="publishingSelected" class="publishing-selected" role="status" aria-live="polite">Checking selected draft…</p>
+ <div class="actions" style="align-items:center"><span class="chip" id="publishingOwnerStatus" role="status" aria-live="polite">Checking owner session…</span><button class="btn" id="publishingSignIn" type="button" hidden>Sign in as YouTube owner</button></div>
  <div class="actions"><button class="btn primary" id="publishingSend" type="button">1 · Save selected video to server</button><button class="btn" id="publishingApprove" type="button">2 · Approve server-side schedule</button></div>
  <p class="hint" id="publishingResult" role="status" aria-live="polite">Click Step 1 after local approval. No YouTube upload will happen.</p>
  <p class="hint">Server approval requires a publish time at least 15 minutes in the future. Private upload remains disabled until explicitly enabled for testing.</p>
@@ -577,21 +578,43 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  }
  urlEl.value=localStorage.getItem(endpointKey)||"https://content-studio-api-production-3fe2.up.railway.app";
  const say=(s,good=false)=>{message.textContent=s;chip.textContent=good?"Server connected":"Needs attention";};
+ const syncOwnerSession=()=>{
+   session=sessionStorage.getItem(tokenKey)||"";
+   document.dispatchEvent(new CustomEvent("bima:owner-session",{detail:{signedIn:!!session}}));
+   return session;
+ };
  const base=()=>{
    const input=urlEl.value.trim().replace(/\/$/,"");
    if(!/^https:\/\/[a-zA-Z0-9.-]+\.up\.railway\.app$/.test(input))throw Error("Enter the full HTTPS Railway service URL (up.railway.app), not GitHub Pages.");
    localStorage.setItem(endpointKey,input);return input;
  };
  async function call(path,method="GET",body=null,mime="application/json"){
-   if(!session)throw Error("Connect Google before using secure API.");
-   const headers={Authorization:"Bearer "+session};
+   const currentToken=syncOwnerSession();
+   if(!currentToken)throw Error("owner_session_required");
+   const headers={Authorization:"Bearer "+currentToken};
    if(body!==null)headers["Content-Type"]=mime;
    const r=await fetch(base()+path,{method,headers,body:body===null?undefined:body});
    let data;try{data=await r.json();}catch{throw Error("Invalid server response ("+r.status+").");}
+   if(r.status===401){
+     sessionStorage.removeItem(tokenKey);syncOwnerSession();
+     throw Error("owner_session_expired");
+   }
    if(!r.ok)throw Error(data.error||"HTTP "+r.status);
    return data;
  }
- const safeRun=fn=>async(event)=>{const button=event?.currentTarget;if(button?.disabled)return;if(button)button.disabled=true;try{await fn();}catch(e){say("Action blocked: "+(e.message||e));}finally{if(button)button.disabled=false;}};
+ const safeRun=fn=>async(event)=>{
+   const button=event?.currentTarget;if(button?.disabled)return;
+   if(button)button.disabled=true;
+   try{await fn();}
+   catch(e){
+     const code=String(e?.message||e);
+     if(code==="owner_session_required"||code==="owner_session_expired"){
+       message.textContent="Owner session needed. Use Sign in as YouTube owner at the top of Publishing, then retry. The approved MP4 remains stored in this browser.";
+       chip.textContent=serverHealth?.status==="online"?"Server connected":"Needs attention";
+       document.dispatchEvent(new CustomEvent("bima:owner-session",{detail:{signedIn:false}}));
+     }else say("Action blocked: "+code);
+   }finally{if(button)button.disabled=false;}
+ };
  byId("apiCheck").addEventListener("click",safeRun(async()=>{
     const r=await fetch(base()+"/health");const data=await r.json();
     serverHealth=data;paintServerStatus();
@@ -666,7 +689,11 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  }).catch(()=>{if(!session)byId("connectionDetail").textContent="Cannot reach Railway. Try Check Backend.";chip.textContent="Needs attention";});
  if(session){
    refreshStatus().then(r=>{const connected=!!r.channel?.verified; const channel=r.channel; paintServerStatus(); const pub=document.getElementById("publishedCount");if(pub)pub.textContent=(r.items||[]).filter(x=>x.status==="published").length; say("Google authorized: "+(channel?.name||"owner")+" · Channel ID: "+(channel?.id||"pending")+" · "+(connected?"verified target":"set EXPECTED_YOUTUBE_CHANNEL_ID in Railway after checking this is Orbit & Ocean")+".",connected);})
-     .catch(()=>{session="";sessionStorage.removeItem(tokenKey);say("Sign in again to reconnect.");});
+     .catch(e=>{
+       const msg=String(e?.message||e);
+       if(msg==="owner_session_expired"){sessionStorage.removeItem(tokenKey);syncOwnerSession();say("Owner session expired. Sign in again to continue.");}
+       else {say("Could not verify owner session: "+msg+". Check Backend and try again.");}
+     });
  }
 })();
 
