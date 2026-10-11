@@ -49,7 +49,10 @@ panel.innerHTML='<div class="ew-row"><div><h3>Episode Workflow</h3><p class="ew-
 '<p class="ew-muted">Generate clips in Gemini or Flow, combine into ONE final portrait MP4 and add the continuous voice-over; only then upload to BIMA. Automatic clip stitching is not enabled yet. Do not submit individual scenes to YouTube.</p>'+
 '<p class="ew-muted" id="ewPromptExplanation">Satu workflow aktif: gunakan prompt <strong>Scene 1 / Scene 2 / Scene 3</strong> secara berurutan di Gemini. Tombol Copy full brief untuk arsip produksi BIMA, bukan prompt tambahan yang perlu di-generate.</p>'+
 '<p id="ewMessage" class="ew-status" role="status" aria-live="polite"></p>';
-field.insertAdjacentElement('beforebegin',panel);
+document.getElementById('stepperHint').insertAdjacentElement('afterend',panel);
+const planStep=document.createElement('button');planStep.type='button';planStep.className='step-pill';planStep.textContent='Storyboard';
+planStep.addEventListener('click',()=>{panel.scrollIntoView({behavior:'smooth',block:'start'});$('ewBrief').focus({preventScroll:true});});
+$('productionStepper').prepend(planStep);
 const STYLE='Orbit & Ocean animated science short. Bright, charming premium stylized 3D cartoon with rounded characters, expressive eyes and clear playful movement. Never photorealistic; no exposed anatomy, blood, x-rays, surgery or visible internal organs. Any science explanation uses glowing icons, simple arrows or diagrams OUTSIDE the animal. Compose portrait 9:16 and center important objects within the middle 60% of frame. Keep the same character colors, size, lighting and background in every clip. No onscreen text, watermark, captions or dialogue.';
 const CUSTOM={
 'yt-octopus-001':{
@@ -125,6 +128,7 @@ function brief(item,plan){
  '\nFINAL QC: visually consistent cartoon style, correct science, portrait 9:16, one uninterrupted narration, all sentences finished and a gentle visual/audio end. Do not upload single scenes to YouTube.';
 }
 let active='',plan=null,dirty=false;
+document.addEventListener('bima:before-navigate',e=>{if(dirty)e.preventDefault()});
 function show(text,isError=false){$('ewMessage').textContent=text;$('ewMessage').style.color=isError?'#ffb0ba':'#9feccf';}
 function copyLegacy(value){
  // Fallback starts in a genuine button-click handler, never automatically.

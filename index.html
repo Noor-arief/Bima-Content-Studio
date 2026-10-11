@@ -402,6 +402,79 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 .content .side-status .metric small{margin-top:4px;padding-top:0;line-height:1.5}
 .content .side-status #scheduledInfo{color:#9fc5ee;overflow-wrap:anywhere}
 .content .side-status #connectionDetail{overflow-wrap:anywhere}
+
+/* Workspace UI: consistent scrolling, readable controls, compact mobile navigation. */
+[hidden]{display:none!important}
+.workspace-bar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 20px}
+.workspace-bar h1{font-size:24px;line-height:1.3;margin:5px 0 0;letter-spacing:-.035em}
+.workspace-bar h1:focus{outline:none}
+.draft-picker{display:grid;gap:5px;color:var(--muted);font-size:11px;min-width:0;width:min(440px,50%)}
+.draft-picker select{width:100%;min-width:0;text-overflow:ellipsis}
+.workspace-bar.future-channel .draft-picker{display:none}
+body[data-channel]:not([data-channel="youtube"]) #serverAutomation{display:none!important}
+body[data-view="ringkasan"] .content{display:block;height:auto;overflow:visible}
+body[data-view="ringkasan"] #ytWorkspace{display:block}
+body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]{display:block}
+body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]>.queue{max-height:65vh;overflow:auto}
+body[data-view="desk"] .content-grid,body[data-view="publishing"] .content-grid,#publishingQuickActions,body[data-view="publishing"] #serverAutomation{max-width:none!important}
+.content-grid>.stack:has(>[data-panel="desk"]){min-width:0}
+body[data-view="ringkasan"] .content-grid{display:none}
+.panel{min-width:0}
+.queue-open{display:block;width:100%;border:0;padding:5px 0;background:none;color:#d9d4ff;font:inherit;font-weight:650;text-align:left;cursor:pointer;line-height:1.5}
+.queue-open:hover{text-decoration:underline;color:#fff}
+.queue th{position:sticky;top:0;background:#111a38;z-index:1}
+.queue tbody tr:hover{background:rgba(139,123,255,.07)}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid #bdb4ff;outline-offset:3px}
+button,.btn{touch-action:manipulation}
+.day{min-height:82px}
+.day.selected{box-shadow:inset 0 0 0 1px #b0a2ff}
+#dayList{scroll-margin-top:24px}
+#episodeWorkflow,#dropzone,#fTitle{scroll-margin-top:24px}
+#publishingQuickActions>.btn:first-child{margin-bottom:16px}
+body[data-view="desk"] .actions{gap:9px}
+#delete{margin-left:auto;color:#ffb6c4}
+@media(max-width:900px){
+ .sidebar{position:relative;gap:10px;padding:12px}
+ .sidebar .brand{display:none}
+ .menu{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible;gap:4px}
+ .menu-item{justify-content:center;white-space:normal;text-align:center;font-size:11px;padding:10px 3px;min-height:48px;gap:4px}
+ .menu-item .ico{display:none}
+ .sidebar .channel{min-width:130px;padding:6px 8px}
+ .sidebar .channel .tag{font-size:8px}
+ .workspace-bar{gap:12px;margin-bottom:16px}
+ .workspace-bar h1{font-size:21px}
+ .content{padding:18px 12px 36px}
+ .content .head{grid-template-columns:1fr}
+ .content .side-status{display:grid;grid-template-columns:1fr 1fr}
+ .content .metric{max-width:none;padding:14px}
+}
+@media(max-width:600px){
+ .workspace-bar{align-items:stretch;flex-direction:column}
+ .draft-picker{width:100%}
+ .panel{padding:16px 12px;border-radius:14px}
+ .line{align-items:flex-start;gap:12px;flex-wrap:wrap}
+ .controls{flex-wrap:wrap;gap:7px;width:100%}
+ .controls .btn{min-height:40px}
+ .month-title{min-width:100px;font-size:12px}
+ #newContent{margin-left:auto}
+ .day{min-height:66px;padding:5px 3px}
+ .day .count{font-size:8px}
+ .day .event{font-size:8px;padding:3px 2px}
+ .stepbar{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ .stepbar button.step-pill{font-size:10px;padding:8px 4px;min-height:45px}
+ input,textarea,select{font-size:16px}
+ .content .hero{padding:16px}
+ .content .hero h1{font-size:20px}
+ .queue table{min-width:660px}
+ .actions .btn{min-height:44px}
+ #episodeWorkflow .ew-row{align-items:flex-start}
+ #episodeWorkflow .ew-control{max-width:100%}
+ #delete{margin-left:0}
+}
+
+.no-selected-draft [data-panel="desk"]>.fields,.no-selected-draft [data-panel="desk"]>.actions,.no-selected-draft #productionStepper,.no-selected-draft #stepperHint{display:none!important}
+#productionStepper{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:600px){#productionStepper{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -553,7 +626,7 @@ function human(d){return new Date(d+'T12:00:00').toLocaleDateString('id-ID',{day
 function gotoChannel(ch){state.active=ch;render();try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){}}
 function renderChannels(){const bar=$('channelBar');bar.replaceChildren();for(const ch of CHANNEL_ORDER){const cfg=PLATFORM_COPY[ch],b=document.createElement('button');b.className='channel'+(state.active===ch?' active':'');b.type='button';b.dataset.channel=ch;const img=document.createElement('img');img.src=ASSETS[ch];img.alt='';const name=document.createElement('span');name.innerHTML=`<strong>${cfg.name}</strong><small>${ch==='youtube'?'Faceless Shorts':ch==='tiktok'?'Affiliate · yellow basket':'Not active yet'}</small>`;const badge=document.createElement('span');badge.className='tag';badge.textContent=cfg.label;b.append(img,name,badge);b.addEventListener('click',()=>gotoChannel(ch));bar.appendChild(b)}}
 function items(){return state.items.youtube;}
-function renderCalendar(){const [y,m]=state.month.split('-').map(Number);const label=new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'});$('monthLabel').textContent=label;const grid=$('calendar');grid.replaceChildren();const dow=new Date(y,m-1,1).getDay(),total=new Date(y,m,0).getDate();for(let n=0;n<42;n++){const d=n-dow+1;const inMonth=d>=1&&d<=total;const actual=new Date(y,m-1,d);const date=dateStr(actual.getFullYear(),actual.getMonth()+1,actual.getDate());const list=items().filter(i=>i.date===date);const el=document.createElement('button');el.className='day'+(!inMonth?' muted':'')+(date===state.selected?' selected':'')+(date===today()?' today':'');el.type='button';const day=document.createElement('span');day.className='date';day.textContent=String(actual.getDate());const count=document.createElement('span');count.className='count';count.textContent=list.length?list.length+' video planned':'';el.append(day,count);for(const i of list.slice(0,2)){const bubble=document.createElement('span');bubble.className='event';bubble.textContent=i.title;el.append(bubble)}el.addEventListener('click',()=>{state.selected=date;const first=items().find(i=>i.date===date);state.selectedItem=first?.id||'';persist()});grid.appendChild(el)}}
+function renderCalendar(){const [y,m]=state.month.split('-').map(Number);const label=new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'});$('monthLabel').textContent=label;const grid=$('calendar');grid.replaceChildren();const dow=new Date(y,m-1,1).getDay(),total=new Date(y,m,0).getDate();for(let n=0;n<42;n++){const d=n-dow+1;const inMonth=d>=1&&d<=total;const actual=new Date(y,m-1,d);const date=dateStr(actual.getFullYear(),actual.getMonth()+1,actual.getDate());const list=items().filter(i=>i.date===date);const el=document.createElement('button');el.className='day'+(!inMonth?' muted':'')+(date===state.selected?' selected':'')+(date===today()?' today':'');el.type='button';el.setAttribute('aria-label',human(date)+(list.length?' · '+list.length+' konten':''));el.setAttribute('aria-pressed',String(date===state.selected));const day=document.createElement('span');day.className='date';day.textContent=String(actual.getDate());const count=document.createElement('span');count.className='count';count.textContent=list.length?list.length+' video planned':'';el.append(day,count);for(const i of list.slice(0,2)){const bubble=document.createElement('span');bubble.className='event';bubble.textContent=i.title;el.append(bubble)}el.addEventListener('click',()=>{state.selected=date;state.month=date.slice(0,7);const first=items().find(i=>i.date===date);state.selectedItem=first?.id||'';persist()});grid.appendChild(el)}}
 function renderDay(){const dayItems=items().filter(i=>i.date===state.selected);$('selectedLabel').textContent=human(state.selected);const list=$('dayList');list.replaceChildren();if(!dayItems.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Belum ada konten YouTube untuk tanggal ini. Klik + New Short untuk membuat draft.';list.appendChild(empty);return}for(const i of dayItems){const btn=document.createElement('button');btn.type='button';btn.className='item'+(i.id===state.selectedItem?' active':'');btn.innerHTML=`<div class="item-title">${escapeHTML(i.title)}</div><div class="item-meta">${escapeHTML(i.format)} · ${escapeHTML(i.time)} WIB</div><div class="chips"><span class="chip">${escapeHTML(i.status)}</span><span class="chip ${i.approved?'green':''}">${i.approved?'Approved':'Awaiting approval'}</span></div>`;btn.addEventListener('click',()=>{state.selectedItem=i.id;render()});list.appendChild(btn)}}
 function getSelected(){return items().find(i=>i.id===state.selectedItem)||null}
 function renderEditor(){const i=getSelected();$('draftStatus').textContent=i?.status||'No draft';$('fTitle').value=i?.title||'';$('fDate').value=i?.date||state.selected;$('fTime').value=i?.time||state.channels.youtube.defaultTime;$('fFormat').value=i?.format||'Shorts · 10s';$('fStatus').value=i?.status==='Approved'?'QA Pass':(i?.status||'Draft');$('fPrompt').value=i?.prompt||'';$('fCaption').value=i?.caption||'';$('fNotes').value=i?.notes||'';const approval=$('approvalState');if(approval){approval.textContent=i?.approved?'Approved · Saved locally':'Awaiting approval';approval.style.color=i?.approved?'#9deecb':'#ffdcad';}const approvalButton=$('approve');if(approvalButton&&!approvalButton.disabled)approvalButton.textContent=i?.approved?'✓ Approved':'Mark Approved';loadVideoForSelection();document.dispatchEvent(new CustomEvent('bima:episode-selected',{detail:{id:i?.id||null}}))}
@@ -576,9 +649,10 @@ function renderQueue(){
      :remoteStatus==='draft'?'Railway draft'
      :i.mediaName?'Local MP4 · Upload status not yet verified':'No MP4';
    const tr=document.createElement('tr');
-   for(const value of [i.date+' '+i.time,i.title,remoteStatus==='published'?'Published':i.status,i.approved?'Approved':'Not approved',statusText]){
+   for(const value of [i.date+' '+i.time,i.title,remoteStatus==='published'?'Published':i.status,remoteStatus==='published'?'Published':remoteStatus==='scheduled'?'Scheduled':i.approved?'Approved':'Awaiting review',statusText]){
      const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
    }
+   const titleCell=tr.children[1];titleCell.replaceChildren();const open=document.createElement('button');open.type='button';open.className='queue-open';open.dataset.openItem=i.id;open.textContent=i.title;open.setAttribute('aria-label','Buka konten: '+i.title);titleCell.append(open);
    if(remote?.youtubeId){
      const link=document.createElement('a');
      link.href='https://studio.youtube.com/video/'+encodeURIComponent(remote.youtubeId)+'/edit';
@@ -806,42 +880,98 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
 render();
 </script>
 <script>
-/* Sidebar view switcher — UI only, no app logic touched */
+/* Unified navigation: URLs, back/forward and draft selection share one route. */
 (function(){
-  var KEY='bimaView',VIEWS=['ringkasan','kalender','desk','publishing'];
-  function setView(v,top){
-    if(VIEWS.indexOf(v)<0)v='ringkasan';
-    document.body.setAttribute('data-view',v);
-    document.querySelectorAll('.menu-item[data-go]').forEach(function(b){
-      var on=b.getAttribute('data-go')===v;
-      b.classList.toggle('active',on);
-      if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
-    });
-    try{sessionStorage.setItem(KEY,v)}catch(e){}
-    if(top)window.scrollTo({top:0,behavior:'smooth'});
-  }
-  document.querySelectorAll('[data-go]').forEach(function(b){
-    b.addEventListener('click',function(){
-      try{if(state.active!=='youtube')gotoChannel('youtube')}catch(e){}
-      setView(b.getAttribute('data-go'),true);
-    });
-  });
-  var list=document.getElementById('dayList');
-  if(list)list.addEventListener('click',function(e){if(e.target.closest('.item'))setView('desk',true)});
-  var cal=document.getElementById('calendar');
-  if(cal)cal.addEventListener('click',function(e){if(e.target.closest('.day'))setView('desk',true)});
-  var sel=document.getElementById('selectedLabel'),dd=document.getElementById('deskDate');
-  function syncDate(){if(sel&&dd)dd.textContent=sel.textContent||'—'}
-  if(sel&&dd){syncDate();new MutationObserver(syncDate).observe(sel,{childList:true,characterData:true,subtree:true})}
-  var nw=document.getElementById('newContent');
-  if(nw)nw.addEventListener('click',function(){setView('desk',true)});
-  var saved=null;try{saved=sessionStorage.getItem(KEY)}catch(e){}
-  setView(saved||'ringkasan',false);
+ const VIEWS=['ringkasan','kalender','desk','publishing'];
+ const labels={ringkasan:'Ringkasan',kalender:'Kalender',desk:'Production Desk',publishing:'Publishing'};
+ const content=document.querySelector('.content');
+ const bar=document.createElement('div');bar.className='workspace-bar';
+ bar.innerHTML='<div><span class="overline">ORBIT &amp; OCEAN</span><h1 id="workspaceTitle" tabindex="-1"></h1></div><label class="draft-picker">Konten aktif<select id="activeDraft" aria-label="Pilih konten aktif"></select></label>';
+ content.prepend(bar);
+ const picker=document.getElementById('activeDraft');
+ let dirty=false;
+ document.addEventListener('input',e=>{if(e.target.matches('#fTitle,#fDate,#fTime,#fFormat,#fStatus,#fCaption,#fNotes'))dirty=true});
+ document.addEventListener('bima:episode-selected',()=>{dirty=false});
+ function mayLeave(){
+   const event=new CustomEvent('bima:before-navigate',{cancelable:true});document.dispatchEvent(event);
+   if(!dirty&&!event.defaultPrevented)return true;
+   return confirm('Ada perubahan yang belum disimpan. Klik Cancel untuk menyimpan draft / Use workflow in draft, atau OK untuk meninggalkan perubahan.');
+ }
+ document.addEventListener('click',e=>{
+   if(!e.target.closest('[data-go],[data-open-item],#calendar .day,#dayList .item,#channelBar .channel,#prev,#next,#newContent,#backToYoutube'))return;
+   if(!mayLeave()){e.preventDefault();e.stopImmediatePropagation();}
+ },true);
+ window.addEventListener('beforeunload',e=>{const event=new CustomEvent('bima:before-navigate',{cancelable:true});document.dispatchEvent(event);if(dirty||event.defaultPrevented){e.preventDefault();e.returnValue=''}});
+ const empty=document.createElement('div');empty.className='empty';empty.id='deskEmpty';
+ empty.innerHTML='<strong>Belum ada konten dipilih</strong><p>Pilih konten di atas, atau buka Kalender untuk membuat Short baru.</p><button class="btn primary" type="button" data-go="kalender">Buka Kalender</button>';
+ document.querySelector('[data-panel="desk"] .editor-head').after(empty);
+
+ function sync(){
+   const id=getSelected()?.id||'';
+   const values=[...items()].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+   picker.replaceChildren(new Option('Pilih konten…',''));
+   for(const i of values)picker.add(new Option(i.date+' · '+i.title,i.id));
+   picker.value=id;
+   empty.hidden=!!id;document.body.classList.toggle('no-selected-draft',!id);
+   bar.classList.toggle('future-channel',state.active!=='youtube');
+   document.body.dataset.channel=state.active;
+   const dd=document.getElementById('deskDate');if(dd)dd.textContent=human(state.selected);
+ }
+ function route(v,replace=false){
+   const params=new URLSearchParams({view:v});
+   if(getSelected())params.set('item',getSelected().id);
+   const hash='#'+params.toString();
+   if(location.hash!==hash)history[replace?'replaceState':'pushState'](null,'',hash);
+ }
+ function setView(v,top=true,write=true){
+   if(!VIEWS.includes(v))v='ringkasan';
+   if(state.active!=='youtube')gotoChannel('youtube');
+   document.body.dataset.view=v;
+   document.querySelectorAll('.menu-item[data-go]').forEach(b=>{
+     const on=b.dataset.go===v;b.classList.toggle('active',on);
+     if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+   });
+   document.getElementById('workspaceTitle').textContent=labels[v];
+   picker.closest('label').hidden=!['desk','publishing'].includes(v);
+   sync();
+   if(write)route(v);
+   try{sessionStorage.setItem('bimaView',v)}catch(_){}
+   if(top){window.scrollTo({top:0,behavior:'auto'});content.scrollTop=0;document.getElementById('workspaceTitle').focus({preventScroll:true});}
+ }
+ window.BIMA_NAVIGATE=setView;
+ function openItem(id,v='desk'){
+   const i=items().find(i=>i.id===id);if(!i)return;
+   state.active='youtube';state.selectedItem=id;state.selected=i.date;state.month=i.date.slice(0,7);
+   persist();setView(v);
+ }
+ picker.addEventListener('change',()=>{if(!mayLeave()){picker.value=getSelected()?.id||'';return}if(picker.value)openItem(picker.value,document.body.dataset.view)});
+ document.addEventListener('click',e=>{
+   const b=e.target.closest('[data-go]');if(b)setView(b.dataset.go);
+ });
+ document.getElementById('dayList').addEventListener('click',e=>{if(e.target.closest('.item'))setView('desk')});
+ document.getElementById('newContent').addEventListener('click',()=>setView('desk'));
+ const todayButton=document.createElement('button');todayButton.type='button';todayButton.className='btn ghost';todayButton.textContent='Hari ini';
+ document.getElementById('next').after(todayButton);
+ todayButton.addEventListener('click',()=>{if(!mayLeave())return;state.selected=today();state.month=state.selected.slice(0,7);state.selectedItem=items().find(i=>i.date===state.selected)?.id||'';persist();route('kalender')});
+ document.getElementById('queueBody').addEventListener('click',e=>{const b=e.target.closest('[data-open-item]');if(b)openItem(b.dataset.openItem)});
+ const back=document.createElement('button');back.type='button';back.className='btn ghost';back.dataset.go='desk';back.textContent='‹ Kembali ke Production Desk';document.getElementById('publishingQuickActions').prepend(back);
+ const create=document.createElement('button');create.type='button';create.className='btn primary';create.textContent='+ Buat konten';document.querySelector('[data-panel="ringkasan"] .controls').prepend(create);
+ create.addEventListener('click',()=>{if(!mayLeave())return;state.selected=today();newDraft();setView('desk')});
+ document.addEventListener('bima:episode-selected',sync);
+ document.getElementById('channelBar').addEventListener('click',sync);
+ document.getElementById('backToYoutube').addEventListener('click',()=>setView('ringkasan'));
+ function restore(){
+   const params=new URLSearchParams(location.hash.slice(1)),id=params.get('item');
+   if(id&&items().some(i=>i.id===id)){const i=items().find(i=>i.id===id);state.selectedItem=id;state.selected=i.date;state.month=i.date.slice(0,7);render();}
+   setView(params.get('view')||'ringkasan',false,false);
+ }
+ window.addEventListener('popstate',()=>{if(mayLeave())restore();else route(document.body.dataset.view,true)});
+ if(location.hash.startsWith('#view='))restore();else{let saved;try{saved=sessionStorage.getItem('bimaView')}catch(_){}setView(saved||'ringkasan',false,false);route(document.body.dataset.view,true)}
 })();
 </script>
 <script src="shorts-ui.js?v=20261011-fullscreen-crop3" defer></script>
 <script src="production-steps.js?v=20261011-youtube-status7" defer></script>
 <script src="bima-one-click-publish.js?v=20261011-upload-count4" defer></script>
 <script src="bima-public-status.js?v=20261011-upload-count1" defer></script>
-<script src="episode-workflow.js?v=20261011-clipboard-fix5" defer></script>
+<script src="episode-workflow.js?v=20261011-navigation6" defer></script>
 </body></html>
