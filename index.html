@@ -916,6 +916,10 @@ render();
    empty.hidden=!!id;document.body.classList.toggle('no-selected-draft',!id);
    bar.classList.toggle('future-channel',state.active!=='youtube');
    document.body.dataset.channel=state.active;
+   const isYouTube=state.active==='youtube';
+   bar.querySelector('.overline').textContent=isYouTube?'ORBIT & OCEAN':'CHANNEL WORKSPACE';
+   document.getElementById('workspaceTitle').textContent=isYouTube?labels[document.body.dataset.view]:PLATFORM_COPY[state.active].name;
+   document.querySelectorAll('.menu-item[data-go]').forEach(b=>{const on=isYouTube&&b.dataset.go===document.body.dataset.view;b.classList.toggle('active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
    const dd=document.getElementById('deskDate');if(dd)dd.textContent=human(state.selected);
  }
  function route(v,replace=false){
