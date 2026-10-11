@@ -5,7 +5,14 @@
   const stepper = document.getElementById('productionStepper');
   const hint = document.getElementById('stepperHint');
   const buttons = stepper ? [...stepper.querySelectorAll('button[data-production-step]')] : [];
-  if (!stepper || !hint || buttons.length !== 3 || typeof getSelected !== 'function') return;
+  const nextButton=document.getElementById('continuePublishing');
+  const publishingPanel=document.getElementById('publishingQuickActions');
+  const sendButton=document.getElementById('publishingSend');
+  const approveServerButton=document.getElementById('publishingApprove');
+  const result=document.getElementById('publishingResult');
+  const selected=document.getElementById('publishingSelected');
+  const badge=document.getElementById('publishingReadyBadge');
+  if (!stepper || !hint || buttons.length !== 3 || !publishingPanel || !sendButton || !approveServerButton || !nextButton || !selected || !badge || !result || typeof getSelected !== 'function') return;
 
   let serverItems = [];
   let lastSelectedId = null;
@@ -20,6 +27,15 @@
     const approved = !!item?.approved;
     const server = currentServerItem(id);
     const uploaded = !!server && ['private_uploaded', 'scheduled', 'published'].includes(server.status);
+    nextButton.hidden=!approved;
+    sendButton.disabled=!approved||!!server&&['private_uploaded','scheduled','published','uploading','needs_review'].includes(server.status);
+    approveServerButton.disabled=!approved||server?.status!=='draft_with_video'; 
+    approveServerButton.textContent=server?.status==='approved'?'✓ Server approved':'2 · Approve server-side schedule';
+    badge.textContent=server?.status==='approved'?'Server approved':server?.status==='draft_with_video'?'Video on Railway':approved?'Approved · Local only':'Awaiting local approval';
+    badge.style.color=approved?'#9deecb':'#ffdcad';
+    selected.textContent= item
+      ? ('Selected: '+item.title+' · '+(item.mediaName?'MP4 attached':'No MP4')+' · '+(approved?'Approved locally':'Not approved')+(server?' · Railway: '+server.status:' · Not stored on Railway'))
+      : 'No YouTube draft is selected. Open Kalender and select a draft first.';
     const stage = !media ? 1 : !approved ? 2 : 3;
     const messages = {
       1:'Tahap 1: pilih dan simpan MP4 final di browser, lalu review videonya.',
@@ -52,6 +68,34 @@
     const node = document.getElementById(id);
     if (node) node.scrollIntoView({behavior:'smooth',block:'start'});
   }
+  function goPublishing(){
+    document.querySelector('.menu-item[data-go="publishing"]')?.click();
+    // The Publishing action panel is now the first visible element in that view.
+    updateSteps();
+  }
+  nextButton.addEventListener('click',goPublishing);
+  sendButton.addEventListener('click',()=>{
+    const item=getSelected();if(!item?.approved){result.textContent='Review MP4 and click Mark Approved before sending to Railway.';return;}
+    const original=document.getElementById('apiSend');
+    if(!original){result.textContent='Secure Backend action unavailable. Reload dashboard.';return;}
+    result.textContent='Requesting secure transfer to Railway… wait for server confirmation. No YouTube upload.';
+    original.click(); // Forward only this explicit user click to existing secured action.
+  });
+  approveServerButton.addEventListener('click',()=>{
+    const item=getSelected(),entry=currentServerItem(item?.id);
+    if(!item?.approved||entry?.status!=='draft_with_video'){
+      result.textContent='Save the approved MP4 to Railway first, then use Approve server-side schedule.';return;
+    }
+    const original=document.getElementById('apiApprove');
+    if(!original){result.textContent='Server approval control unavailable. Reload dashboard.';return;}
+    result.textContent='Requesting server-side approval…';
+    original.click(); // Never touches Upload Private / Schedule.
+  });
+  const serverMessage=document.getElementById('apiServerMessage');
+  if(serverMessage){
+    const mirror=()=>{if(serverMessage.textContent?.trim())result.textContent=serverMessage.textContent.trim();};
+    new MutationObserver(mirror).observe(serverMessage,{childList:true,subtree:true,characterData:true});
+  }
   buttons.forEach(button => button.addEventListener('click', () => {
     const step = Number(button.dataset.productionStep);
     if (step === 1) {
@@ -64,7 +108,7 @@
       if (banner) banner.textContent = item?.approved ?
         'Approved lokal ✓. Berikutnya Save selected video to server → Approve server-side schedule. Jangan upload ke YouTube sebelum Private Upload diaktifkan untuk pengujian.' :
         'Langkah sebelumnya belum selesai: pilih MP4 dan klik Mark Approved di Production Desk. Jangan upload sebelum disetujui.';
-      document.querySelector('.menu-item[data-go="publishing"]')?.click();
+      goPublishing();
     }
     updateSteps();
   }));
