@@ -7,7 +7,7 @@ const field=$('fPrompt').closest('.field');
 if(!field)return;
 const css=document.createElement('style');
 css.textContent=[
-'#episodeWorkflow{border:1px solid rgba(139,123,255,.35);border-radius:14px;background:rgba(114,106,227,.07);padding:16px;margin:5px 0 18px}',
+'#episodeWorkflow{grid-column:1/-1;width:100%;min-width:0;border:1px solid rgba(139,123,255,.35);border-radius:14px;background:rgba(114,106,227,.07);padding:16px;margin:5px 0 18px}',
 '#episodeWorkflow h3{font-size:17px;margin:0 0 5px;color:#f5f6ff}',
 '#episodeWorkflow p{line-height:1.6}',
 '#episodeWorkflow .ew-muted{color:#aab8dc;font-size:12px}',
