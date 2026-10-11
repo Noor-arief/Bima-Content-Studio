@@ -365,6 +365,14 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
   .content .side-status{grid-template-columns:1fr;gap:10px}
 }
 #copyMsg:not(:empty){display:block;margin-top:10px;padding:12px 14px;border:1px solid rgba(139,123,255,.38);border-radius:10px;color:#dbe5ff;background:rgba(100,117,242,.09);font-weight:600;line-height:1.55}#copyMsg[data-result="success"]{border-color:rgba(71,204,151,.65);color:#a5f4d6;background:rgba(42,163,116,.12)}#copyMsg[data-result="error"]{border-color:rgba(255,139,154,.65);color:#ffc0c7;background:rgba(250,73,114,.10)}#copyMsg[data-result="pending"]{border-color:rgba(255,201,120,.45);color:#ffdcad}#approve:disabled{opacity:.65;cursor:wait}#approvalState{align-self:center}
+
+/* Actionable production stages */
+.stepbar button.step-pill{appearance:none;font:inherit;font-size:11px;font-weight:650;color:var(--soft);cursor:pointer;min-width:0;min-height:38px;border-radius:9px;transition:background .15s,border-color .15s,color .15s}
+.stepbar button.step-pill:hover{color:#fff;border-color:rgba(139,123,255,.55);background:rgba(139,123,255,.12)}
+.stepbar button.step-pill.active{background:var(--accent-soft);color:#fff;border-color:rgba(139,123,255,.6)}
+.stepbar button.step-pill.done{background:rgba(50,161,115,.09);color:#9deecb;border-color:rgba(50,161,115,.3)}
+.stepbar button.step-pill:focus-visible{outline:2px solid #b8adff;outline-offset:2px}
+.stepper-hint{color:#b6c6ea;font-size:11.5px;line-height:1.6;margin:-4px 0 14px;padding:8px 10px;border-left:2px solid rgba(139,123,255,.5)}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -393,7 +401,7 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
   <div class="section-top"><h3>Content on <span id="selectedLabel"></span></h3><p id="dayDescription">Choose a draft to edit or create a new one.</p></div><div class="list" id="dayList"></div>
  </section>
  <section class="stack"><div class="panel" data-panel="desk"><div class="desk-bar"><button type="button" class="btn ghost" data-go="kalender">‹ Kalender</button><span>Konten untuk <strong id="deskDate">—</strong></span></div><div class="editor-head"><div><h2>Shorts Production Desk</h2><p class="sub" style="margin-bottom:0">Channel: Orbit &amp; Ocean · English / Science &amp; Nature</p></div><span class="chip" id="draftStatus">Draft</span></div>
-  <div class="stepbar"><span class="step-pill active">01 · Upload MP4</span><span class="step-pill">02 · Review & approve</span><span class="step-pill">03 · Schedule on YouTube</span></div>
+  <nav class="stepbar" id="productionStepper" aria-label="Tahap produksi Shorts"><button type="button" class="step-pill active" data-production-step="1">01 · Upload MP4</button><button type="button" class="step-pill" data-production-step="2">02 · Review & approve</button><button type="button" class="step-pill" data-production-step="3">03 · Publishing</button></nav><p class="stepper-hint" id="stepperHint" role="status" aria-live="polite">Memeriksa progres produksi…</p>
   <div class="fields" style="margin-top:17px">
     <div class="upload-card">
       <div class="upload-head"><span class="upload-symbol">↑</span><div><strong>Upload video yang akan dipublikasikan</strong><small>Gemini raw export / final edit • YouTube Short</small></div></div>
@@ -543,7 +551,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  }
  let serverHealth=null;
  document.addEventListener("bima:render-status",paintServerStatus);
- async function refreshStatus(){serverStatus=await call("/api/status");paintServerStatus();return serverStatus;}
+ async function refreshStatus(){serverStatus=await call("/api/status");paintServerStatus();document.dispatchEvent(new CustomEvent("bima:server-state",{detail:{items:(serverStatus.items||[]).map(({id,status})=>({id,status}))}}));return serverStatus;}
  const endpointKey="bima_content_server_url";
  let session=sessionStorage.getItem(tokenKey)||"";
  const hash=new URLSearchParams(location.hash.replace(/^#/,""));
@@ -613,13 +621,13 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
     }));
     say("Sending "+item.mediaName+" to private Railway storage (not YouTube)…");
     const b=await call("/api/content/"+encodeURIComponent(item.id)+"/media","POST",localFile,"video/mp4");
-    say("Stored on Railway: "+((b.item.mediaSize/1048576)||0).toFixed(1)+" MB · server draft ready.",true);
+    say("Stored on Railway: "+((b.item.mediaSize/1048576)||0).toFixed(1)+" MB · server draft ready.",true);await refreshStatus();
  }));
  byId("apiApprove").addEventListener("click",safeRun(async()=>{
     const i=getSelected();if(!i)throw Error("Select a draft.");
     if(!i.approved)throw Error("First mark Approved in the local editor after completing video QA.");
     const r=await call("/api/content/"+encodeURIComponent(i.id)+"/approve","POST","{}");
-    say("Server approved "+r.item.title+" for "+new Date(r.item.publishAt).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"})+" WIB.",true);
+    say("Server approved "+r.item.title+" for "+new Date(r.item.publishAt).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"})+" WIB.",true);await refreshStatus();
  }));
  byId("apiSubmit").addEventListener("click",safeRun(async()=>{
     const i=getSelected();if(!i)throw Error("Select a draft.");
@@ -684,4 +692,5 @@ render();
 })();
 </script>
 <script src="shorts-ui.js?v=20261011-fullscreen-crop3" defer></script>
+<script src="production-steps.js?v=20261011-stages1" defer></script>
 </body></html>
