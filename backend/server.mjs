@@ -22,6 +22,7 @@ const ENABLE_PUBLIC_SCHEDULING = process.env.ENABLE_PUBLIC_SCHEDULING === "true"
 const EXPECTED_CHANNEL_ID = process.env.EXPECTED_YOUTUBE_CHANNEL_ID || "";
 const ACCESS_SCOPE = "openid email https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
 const sha = x => createHash("sha256").update(x).digest("hex");
+async function fileSha256(filepath){const h=createHash("sha256");for await(const chunk of createReadStream(filepath))h.update(chunk);return h.digest("hex");}
 const random = () => randomBytes(32).toString("base64url");
 let db = {oauth:null,oauthStates:{},sessions:{},content:{},events:[]};
 let pendingWrite = Promise.resolve();
@@ -41,6 +42,14 @@ async function init(){
   if(existsSync(STATE_PATH)){
     const old=JSON.parse(await fs.readFile(STATE_PATH,"utf8"));
     db={...db,...old};
+    let repaired=false;
+    for(const item of Object.values(db.content)){
+      if(item.status==="uploading"){
+        item.status="needs_review";item.lastError="Server restarted during upload. Reconcile in YouTube before any retry.";
+        logEvent("upload_requires_reconciliation",item.id);repaired=true;
+      }
+    }
+    if(repaired)await persist();
   } else await persist();
 }
 function seal(value){
@@ -73,7 +82,7 @@ function access(req){
 }
 function envOK(){return HAVE_OAUTH&&Boolean(EXPECTED_CHANNEL_ID);}
 function validateId(id){return /^[a-zA-Z0-9_-]{3,80}$/.test(id);}
-function publicEntry(item){const {filePath, ...safe}=item;return safe;}
+function publicEntry(item){const {filePath,youtubeResumableSession, ...safe}=item;return safe;}
 function activeOauth(){return Boolean(db.oauth?.refreshToken&&db.oauth?.email===OWNER);}
 async function tokenExchange(params){
   const response=await fetch("https://oauth2.googleapis.com/token",{
@@ -136,7 +145,7 @@ async function uploadToYoutube(item){
     if(!done.ok||!response.id)throw Error("youtube_upload_unconfirmed_"+done.status+":"+(response.error?.message||"unknown"));
     item.youtubeId=response.id;
     item.youtubeChannelId=response.snippet?.channelId||ch.id;
-    item.status=schedule?"scheduled":"private_uploaded";
+    item.status=(schedule && response.status?.publishAt)?"scheduled":"private_uploaded";
     item.youtubeResumableSession=null;
     item.lastError=null;logEvent("youtube_upload_confirmed",item.id,{youtubeId:item.youtubeId,status:item.status});
     await persist();
@@ -256,7 +265,7 @@ async function handler(req,res){
       await fs.rename(temp,final);
       if(item.filePath)await fs.unlink(item.filePath).catch(()=>{});
       item.filePath=final;item.mediaSize=count;item.status="draft_with_video";
-      item.mediaHash=sha(await fs.readFile(final));item.updatedAt=new Date().toISOString();
+      item.mediaHash=await fileSha256(final);item.updatedAt=new Date().toISOString();
       logEvent("media_stored",id,{size:count});await persist();
       return respond(res,201,{item:publicEntry(item)});
     }catch(e){await fs.unlink(temp).catch(()=>{});return error(res,400,String(e.message||e).slice(0,100));}
@@ -284,6 +293,16 @@ async function handler(req,res){
   return error(res,405,"method_not_allowed");
 }
 await init();
+let pollBusy=false;
+setInterval(async ()=>{
+  if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
+  pollBusy=true;
+  try{
+    for(const item of Object.values(db.content).filter(x=>x.status==="scheduled"&&x.youtubeId).slice(0,10)){
+      try{await inspectVideo(item);}catch(e){console.warn("youtube_status_poll_failed",item.id,String(e.message||e).slice(0,80));}
+    }
+  }finally{pollBusy=false;}
+},15*60*1000).unref();
 http.createServer((req,res)=>{handler(req,res).catch(e=>{
   console.error("request_failed",String(e?.message||e).slice(0,150));
   if(!res.headersSent)error(res,500,"internal_error");
