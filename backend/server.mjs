@@ -26,6 +26,7 @@ async function fileSha256(filepath){const h=createHash("sha256");for await(const
 const random = () => randomBytes(32).toString("base64url");
 let db = {oauth:null,oauthStates:{},sessions:{},content:{},events:[]};
 let pendingWrite = Promise.resolve();
+const submitting = new Set();
 
 const logEvent=(action,id,extra={})=>{
   db.events.push({at:new Date().toISOString(),action,id,...extra});
@@ -185,7 +186,7 @@ async function handler(req,res){
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING
   });
   if(req.method==="GET"&&u.pathname==="/ready")return respond(res,envOK()&&activeOauth()?200:503,{
-    ready:envOK()&&activeOauth(),reason:envOK()?"awaiting_owner_youtube_oauth":"awaiting_railway_configuration"
+    ready:envOK()&&activeOauth(),reason:envOK()&&activeOauth()?"ready":envOK()?"awaiting_owner_youtube_oauth":"awaiting_railway_configuration"
   });
   if(req.method==="GET"&&u.pathname==="/auth/google/start"){
     if(!HAVE_OAUTH)return error(res,503,"oauth_not_configured");
@@ -250,7 +251,7 @@ async function handler(req,res){
   const item=db.content[id];if(!item)return error(res,404,"content_not_found");
   if(req.method==="GET"&&!action)return respond(res,200,{item:publicEntry(item)});
   if(req.method==="POST"&&action==="media"){
-    if(item.youtubeId||["uploading","scheduled","published","private_uploaded"].includes(item.status))return error(res,409,"media_locked");
+    if(item.youtubeId||["uploading","scheduled","published","private_uploaded","needs_review"].includes(item.status))return error(res,409,"media_locked");
     if(req.headers["content-type"]!=="video/mp4")return error(res,415,"mp4_only");
     const len=Number(req.headers["content-length"]||0);
     if(!Number.isSafeInteger(len)||len<1024||len>150_000_000)return error(res,413,"video_size_unsupported");
@@ -279,10 +280,12 @@ async function handler(req,res){
     return respond(res,200,{item:publicEntry(item)});
   }
   if(req.method==="POST"&&action==="submit"){
+    if(submitting.has(id))return error(res,409,"upload_already_in_progress");
     if(item.status!=="approved"||item.mediaHash!==item.approvedMediaHash)return error(res,409,"owner_approval_required");
     if(!ENABLE_UPLOADS)return error(res,409,"uploads_disabled");
     // intentionally single-fire. No automatic retry after any network ambiguity.
-    void uploadToYoutube(item).catch(async e=>{item.status="needs_review";item.lastError=String(e.message||e);await persist();});
+    submitting.add(id);
+    void uploadToYoutube(item).catch(async e=>{item.status="needs_review";item.lastError=String(e.message||e);await persist();}).finally(()=>submitting.delete(id));
     return respond(res,202,{status:"upload_started",id});
   }
   if(req.method==="POST"&&action==="verify"){

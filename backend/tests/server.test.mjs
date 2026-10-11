@@ -1,18 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { setTimeout as wait } from "node:timers/promises";
 
 test("backend is healthy but blocks OAuth, uploads and private API until configured",async t=>{
   const tmp=await mkdtemp(path.join(os.tmpdir(),"bima-content-test-"));
+  const owner="owner@example.com",session="testsession";
+  await writeFile(path.join(tmp,"state.json"),JSON.stringify({sessions:{[createHash("sha256").update(session).digest("hex")]:{email:owner,expires:Date.now()+60000}},content:{"review-job":{id:"review-job",status:"needs_review"}}}));
   const port=44000+Math.floor(Math.random()*10000);
   const child=spawn(process.execPath,["server.mjs"],{
     cwd:path.resolve(import.meta.dirname,".."),
     env:{...process.env,PORT:String(port),DATA_DIR:tmp,
-      GOOGLE_CLIENT_ID:"",GOOGLE_CLIENT_SECRET:"",OWNER_EMAIL:"",
+      GOOGLE_CLIENT_ID:"",GOOGLE_CLIENT_SECRET:"",OWNER_EMAIL:owner,
       ENABLE_UPLOADS:"false",ENABLE_PUBLIC_SCHEDULING:"false"},
     stdio:["ignore","pipe","pipe"]
   });
@@ -25,6 +28,9 @@ test("backend is healthy but blocks OAuth, uploads and private API until configu
   }
   assert.equal(started,true,"health endpoint becomes ready");
   const health=await (await fetch(url+"/health")).json();
+  const locked=await fetch(url+"/api/content/review-job/media",{method:"POST",headers:{Authorization:"Bearer "+session,"Content-Type":"video/mp4"},body:Buffer.alloc(1024)});
+  assert.equal(locked.status,409,"uncertain upload must not be reset by replacing media");
+  assert.equal((await locked.json()).error,"media_locked");
   assert.equal(health.uploadsEnabled,false);
   assert.equal(health.publicSchedulingEnabled,false);
   assert.equal(health.youtubeConnected,false);
