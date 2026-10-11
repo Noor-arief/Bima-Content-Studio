@@ -137,6 +137,13 @@
     updateSteps();
     void checkOwner();
   }
+  document.getElementById('openYouTubeStudio')?.addEventListener('click',()=>window.open('https://studio.youtube.com/','_blank','noopener,noreferrer'));
+  document.getElementById('manualDownloadMp4')?.addEventListener('click',()=>{
+    const download=[...document.querySelectorAll('.media-actions button')].find(button=>button.textContent?.trim()==='Download MP4');
+    if(!download){result.textContent='Open Production Desk and click Download MP4 under the video preview.';return;}
+    download.click();
+    result.textContent='Saving MP4 to your computer; open YouTube Studio to schedule it manually. This does not send a YouTube API upload.';
+  });
   nextButton.addEventListener('click',goPublishing);
   sendButton.addEventListener('click',()=>{
     const item=getSelected();if(!item?.approved){result.textContent='Review MP4 and click Mark Approved before sending to Railway.';return;}
