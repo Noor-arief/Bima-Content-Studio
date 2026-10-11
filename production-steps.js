@@ -81,9 +81,21 @@
     nextButton.hidden=!approved;
     sendButton.disabled=!ownerReady||!approved||!!server&&['private_uploaded','scheduled','published','uploading','needs_review'].includes(server.status);
     approveServerButton.disabled=!ownerReady||!approved||server?.status!=='draft_with_video'; 
-    approveServerButton.textContent=server?.status==='approved'?'✓ Server approved':'2 · Approve server-side schedule';
-    badge.textContent=server?.status==='approved'?'Server approved':server?.status==='draft_with_video'?'Video on Railway':approved?'Approved · Local only':'Awaiting local approval';
-    badge.style.color=approved?'#9deecb':'#ffdcad';
+    approveServerButton.textContent=server?.status==='approved'?'✓ Server Approved — Completed':'2 · Approve server-side schedule';
+    badge.textContent=server?.status==='approved'?'✓ Server Approved':server?.status==='draft_with_video'?'Video on Railway':approved?'Approved · Local only':'Awaiting local approval';
+    badge.style.color=server?.status==='approved'||approved?'#9deecb':'#ffdcad';
+    const confirmed=document.getElementById('serverApprovalConfirmed');
+    if(confirmed){
+      const ok=server?.status==='approved';
+      confirmed.hidden=!ok;
+      confirmed.textContent=ok
+        ? '✓ SERVER APPROVAL CONFIRMED · '+(item?.title||'Selected video')+' · Video stored on Railway. This is NOT a YouTube upload or public schedule.'
+        : '';
+    }
+    const manual=document.getElementById('publishingManualNotice');
+    if(manual)manual.textContent=server?.status==='approved'
+      ? 'Public auto-scheduling is still disabled. To publish at 20:30 WIB today, download the approved MP4 and use YouTube Studio → Upload videos → Visibility → Schedule. Do not assume BIMA has published it.'
+      : 'BIMA server approval does not publish the video. Use YouTube Studio for a guaranteed manual scheduling path while automation is disabled.';
     selected.textContent= item
       ? ('Selected: '+item.title+' · '+(item.mediaName?'MP4 attached':'No MP4')+' · '+(approved?'Approved locally':'Not approved')+(server?' · Railway: '+server.status:' · Not stored on Railway'))
       : 'No YouTube draft is selected. Open Kalender and select a draft first.';
