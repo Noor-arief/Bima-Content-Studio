@@ -64,11 +64,11 @@
       window.BIMA_REMOTE_STALE=true;
       if(typeof renderQueue==='function')renderQueue();
       const count=el('publishedCount'),scheduled=el('scheduledInfo');
-      if(count)count.textContent=String(saved.items.filter(i=>i.status==='published').length);
+      if(count)count.textContent=String(saved.items.filter(i=>typeof i.youtubeId==='string'&&i.youtubeId.length>0).length);
       if(scheduled){
         const queued=saved.items.filter(i=>i.status==='scheduled');
         const stamp=new Date(saved.at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'});
-        scheduled.textContent=queued.length+' Scheduled · Last verified '+stamp+' WIB · Sign in to refresh';
+        scheduled.textContent='Scheduled: '+queued.length+' · Public: '+saved.items.filter(i=>i.status==='published').length+' · Last verified '+stamp+' WIB';
       }
     }catch(_){}
   }
