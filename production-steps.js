@@ -52,6 +52,8 @@
         ownerUI('Could not check session (HTTP '+r.status+')',false);
         return false;
       }
+      const payload=await r.json();
+      serverItems=Array.isArray(payload?.items)?payload.items.filter(item=>item&&typeof item.id==='string'&&typeof item.status==='string').map(({id,status})=>({id,status})):[];
       ownerUI('Owner session active · Ready to send MP4',true);
       return true;
     }catch(e){
