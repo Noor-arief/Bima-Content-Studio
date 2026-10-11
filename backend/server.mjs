@@ -183,6 +183,7 @@ async function handler(req,res){
   if(req.method==="GET"&&u.pathname==="/health")return respond(res,200,{
     service:"bima-content-studio-api",status:"online",oauthConfigured:HAVE_OAUTH,
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
+    channelVerified:activeOauth()&&Boolean(EXPECTED_CHANNEL_ID)&&db.oauth.channelId===EXPECTED_CHANNEL_ID,
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING
   });
   if(req.method==="GET"&&u.pathname==="/ready")return respond(res,envOK()&&activeOauth()?200:503,{
