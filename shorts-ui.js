@@ -13,7 +13,7 @@
   convert.textContent='Auto Convert 9:16';
   const mode = document.createElement('select');
   mode.className='shorts-mode'; mode.id='shortsMode'; mode.setAttribute('aria-label','Shorts conversion mode');
-  mode.innerHTML='<option value="blur">Blur background (safe)</option><option value="crop">Crop to fill</option>';
+  mode.innerHTML='<option value="crop" selected>Full-screen 9:16 (crop)</option><option value="blur">Keep full landscape (blur)</option>';
   const restore = document.createElement('button');
   restore.type='button'; restore.id='restoreOriginal'; restore.className='btn ghost';restore.textContent='Restore original';restore.hidden=true;
   const download = document.createElement('button');
@@ -26,7 +26,7 @@
   sessionBadge.textContent='Checking owner session…';
   const note = document.createElement('small');
   note.className='shorts-note';note.id='shortsConversionMessage';note.setAttribute('role','status');note.setAttribute('aria-live','polite');
-  note.textContent='Auto Convert uses your private Railway server (up to 30 MB / 65 seconds). It does not publish or upload to YouTube.';
+  note.textContent='Default Full-screen 9:16 fills the phone screen by cropping the left and right edges. Blur mode keeps the complete landscape image with blurred borders. Nothing is published to YouTube.';
   actions.prepend(convert,mode,signin,restore,download,sessionBadge);actions.after(note);
   const preview=$('videoPreview');
   const updatePortraitPreview=()=>{if(preview)preview.classList.toggle('is-shorts-portrait',preview.videoWidth>0&&preview.videoHeight>preview.videoWidth);};
@@ -82,13 +82,16 @@
       const session=sessionStorage.getItem(sessionKey);
       const saved=await mediaDB('get',itemId);
       if(!saved)throw Error('Saved MP4 is missing from this browser. Attach the Gemini export again.');
-      const backup=wasConverted(item)?await mediaDB('get',backupKey(itemId)).catch(()=>null):null;
+      const isConverted=wasConverted(item);
+      const backup=isConverted?await mediaDB('get',backupKey(itemId)).catch(()=>null):null;
+      // Never crop the already letterboxed 9:16 version: we must go back to Gemini's source video.
+      if(isConverted&&!backup)throw Error('Original Gemini MP4 backup was not found. Select the original landscape MP4 again before converting.');
       const source=backup||saved;
       const filename=source.name||item.mediaName;
       if(!/\.mp4$/i.test(filename))throw Error('Only MP4 is supported. Please export Gemini video as MP4.');
       if(source.size>30*1024*1024)throw Error('Video exceeds the 30 MB conversion limit.');
       const choice=mode.value;
-      status('Converting to portrait 1080×1920 on Railway. Keep this tab open. No YouTube upload is happening.');
+      status((choice==='crop'?'Producing full-screen portrait 9:16 (cropping sides)':'Producing 9:16 with blurred borders')+' on Railway… Keep this tab open. YouTube upload stays disabled.');
       const response=await fetch(server()+'/api/convert-shorts?mode='+encodeURIComponent(choice),{
         method:'POST',headers:{Authorization:'Bearer '+session,'Content-Type':'video/mp4'},body:source
       });
@@ -103,11 +106,24 @@
       }
       const blob=await response.blob();
       if(blob.size<1000 || blob.type!=='video/mp4')throw Error('Railway did not return a valid converted MP4.');
+      // Prevent replacing the saved source unless the final output truly has a 9:16 frame.
+      const validationUrl=URL.createObjectURL(blob);
+      try{
+        const dimensions=await new Promise((resolve,reject)=>{
+          const video=document.createElement('video');
+          video.preload='metadata';video.muted=true;
+          const timeout=setTimeout(()=>{video.removeAttribute('src');video.load();reject(Error('Converted video preview timed out.'));},15000);
+          video.onloadedmetadata=()=>{clearTimeout(timeout);const data={width:video.videoWidth,height:video.videoHeight};video.removeAttribute('src');video.load();resolve(data);};
+          video.onerror=()=>{clearTimeout(timeout);reject(Error('Converted video cannot be played by this browser.'));};
+          video.src=validationUrl;
+        });
+        if(dimensions.width!==1080||dimensions.height!==1920)throw Error('Converted video resolution is '+dimensions.width+'×'+dimensions.height+'; expected 1080×1920.');
+      }finally{URL.revokeObjectURL(validationUrl);}
       if(getSelected()?.id!==itemId)throw Error('The selected draft changed. Select the original draft and convert again.');
       if(!backup)await mediaDB('put',backupKey(itemId),saved);
       const newName=filename.replace(/\.mp4$/i,'')+'-Shorts-9x16.mp4';
       await storeSelectedVideo(new File([blob],newName,{type:'video/mp4'}));
-      status('Done — 1080×1920, '+choice+', '+humanSize(blob.size)+'. Original preserved in this browser. Preview and Mark Approved before private upload.');
+      status((choice==='crop'?'Full-screen 9:16 ready':'Blur-border 9:16 ready')+' — verified 1080×1920, '+humanSize(blob.size)+'. Re-watch the entire video before Mark Approved. Original Gemini MP4 is safely preserved in this browser.');
       syncButtons();
     }catch(e){status('Conversion did not complete: '+(e.message||e)+'. Your original video is safe; YouTube was not touched.');}
     finally{convert.disabled=false;}
