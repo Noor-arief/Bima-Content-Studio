@@ -117,7 +117,7 @@
     main.disabled=busy||!!terminal||!ready&&!authenticated;
     editorButton.disabled=busy||!!terminal||!ready&&!authenticated;
     editorButton.hidden=!ready;
-    if(!busy)say(detailFor(item),entry?.status==='scheduled'||entry?.status==='published'?'success':entry?.status==='needs_review'?'error':'info');
+    if(!busy && message.dataset.kind!=='error')say(detailFor(item),entry?.status==='scheduled'||entry?.status==='published'?'success':entry?.status==='needs_review'?'error':'info');
   }
   async function action(){
     if(busy)return;
@@ -126,7 +126,7 @@
       const item=getSelected();
       if(!item?.approved)throw Error('Video belum Approved. Buka Production Desk → Mark Approved.');
       if(!token()){
-        say('Login pemilik satu kali diperlukan. Setelah Google kembali ke BIMA, klik Publish with BIMA lagi.');
+        say('Login pemilik satu kali diperlukan. Setelah Google kembali ke BIMA, klik Publish with BIMA lagi.','error');
         el('apiGoogle')?.click();return;
       }
       say('Memeriksa status Railway & YouTube…');
