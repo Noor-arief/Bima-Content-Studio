@@ -566,6 +566,9 @@ function renderQueue(){
      link.target='_blank';link.rel='noopener noreferrer';link.textContent=' · Open in Studio ↗';
      tr.lastElementChild.append(link);
    }
+   if(remoteStatus&&window.BIMA_REMOTE_STALE){
+     tr.lastElementChild.append(document.createTextNode(' · Last verified'));
+   }
    body.appendChild(tr);
  }
  document.dispatchEvent(new Event('bima:render-status'));
@@ -647,6 +650,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  async function refreshStatus(){
  serverStatus=await call("/api/status");
  window.BIMA_REMOTE_CONTENT=Object.fromEntries((serverStatus.items||[]).map(item=>[item.id,item]));
+ window.BIMA_REMOTE_STALE=false;
  renderQueue();paintServerStatus();
  document.dispatchEvent(new CustomEvent("bima:server-state",{detail:{items:(serverStatus.items||[]).map(({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus}))}}));
  return serverStatus;
@@ -818,5 +822,5 @@ render();
 </script>
 <script src="shorts-ui.js?v=20261011-fullscreen-crop3" defer></script>
 <script src="production-steps.js?v=20261011-youtube-status7" defer></script>
-<script src="bima-one-click-publish.js?v=20261011-simple-flow1" defer></script>
+<script src="bima-one-click-publish.js?v=20261011-simple-flow2" defer></script>
 </body></html>
