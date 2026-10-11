@@ -415,7 +415,7 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 <div class="content">
 <header class="head" data-panel="ringkasan">
  <section class="hero"><div class="hero-body"><span class="overline">BIMA ECOSYSTEM / CONTENT OPS</span><h1>Content operations, in one place.</h1><p>Editorial calendar, compact Gemini prompts, approvals, and YouTube scheduling. Each platform is managed independently.</p><span class="pill"><i class="dot"></i> YouTube Faceless — active pilot</span></div></section>
- <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Published by BIMA</span><strong id="publishedCount">0</strong><small>Actual publishes only</small></div></section>
+ <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Published by BIMA</span><strong id="publishedCount">0</strong><small>Actual public videos only</small><small id="scheduledInfo" role="status" aria-live="polite">Checking scheduled videos…</small></div></section>
 </header>
 <main id="ytWorkspace">
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
@@ -584,7 +584,22 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
    if(footer)footer.textContent="BIMA Content Studio · "+(verified?"YouTube channel verified":googleAuthorized?"Google authorized · Channel verification pending":"YouTube not authorized")+" · "+(uploadsEnabled?"Private upload enabled":"Private upload disabled");
    const loginButton=byId("apiGoogle");
    if(loginButton)loginButton.textContent=googleAuthorized?"Sign in as YouTube owner (Google)":"Connect YouTube (Google OAuth)";
-   if(serverStatus)byId("publishedCount").textContent=String((serverStatus.items||[]).filter(i=>i.status==="published").length);
+   if(serverStatus){
+     const all=serverStatus.items||[];
+     byId("publishedCount").textContent=String(all.filter(i=>i.status==="published").length);
+     const queued=all.filter(i=>i.status==="scheduled");
+     const upcoming=queued.map(i=>i.publishAt).filter(Boolean).sort()[0];
+     const publishWib=upcoming&&!Number.isNaN(Date.parse(upcoming))
+       ? new Date(upcoming).toLocaleString("id-ID",{timeZone:"Asia/Jakarta",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:false})+" WIB"
+       : "";
+     const scheduledInfo=byId("scheduledInfo");
+     if(scheduledInfo){
+       scheduledInfo.textContent=queued.length
+         ? "✓ "+queued.length+" scheduled by BIMA"+(publishWib?" · "+publishWib:"")+" · Awaiting publication"
+         : "No scheduled videos pending";
+       scheduledInfo.style.color=queued.length?"#9deecb":"#a6b3d9";
+     }
+   }
  }
  let serverHealth=null;
  document.addEventListener("bima:render-status",paintServerStatus);
