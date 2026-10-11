@@ -1,0 +1,24 @@
+name: Content Studio backend checks
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+  push:
+    branches:
+      - feature/content-studio-backend-foundation
+    paths:
+      - 'backend/**'
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax check
+        run: node --check backend/server.mjs
+      - name: Server security smoke tests
+        working-directory: backend
+        run: npm test
