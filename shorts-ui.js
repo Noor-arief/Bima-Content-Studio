@@ -52,7 +52,6 @@
     }catch(e){authState(false);status('Cannot check owner session: '+e.message);return false;}
   }
   authState(!!sessionStorage.getItem(sessionKey));
-  void checkOwnerSession();
 
   const wasConverted = item => !!item?.mediaName && /-Shorts-9x16\.mp4$/i.test(item.mediaName);
   const syncButtons = () => { const item=getSelected();restore.hidden=!wasConverted(item);download.disabled=!item?.mediaName; };
@@ -66,6 +65,7 @@
     return value;
   }
   const backupKey = id => id+'::original';
+  void checkOwnerSession();
 
   convert.addEventListener('click',async()=>{
     if(convert.disabled)return;
