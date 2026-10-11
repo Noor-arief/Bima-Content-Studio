@@ -32,6 +32,9 @@ css.textContent=[
 '#episodeWorkflow .ew-scene-input{width:100%;min-height:124px;resize:vertical;color:#c5d3f0;background:rgba(8,15,36,.7);border:1px solid rgba(148,163,255,.2);border-radius:8px;padding:8px;font:12px/1.55 ui-sans-serif,system-ui}',
 '#episodeWorkflow .ew-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}',
 '#episodeWorkflow .ew-status{font-size:12px;color:#9fefcf;min-height:18px;margin:8px 0}',
+'#episodeWorkflow .ew-copy-status{display:block;margin:8px 0 0;font-size:11px;color:#9feccf;line-height:1.5;min-height:16px}',
+'#episodeWorkflow .ew-copy-fallback{display:block;width:100%;min-height:110px;resize:vertical;background:#0b1531;color:#e3edff;border:1px solid #8b7bff;border-radius:8px;padding:9px;font:11px/1.5 ui-monospace,monospace;margin-top:7px}',
+'#episodeWorkflow .ew-copy-fallback[hidden]{display:none!important}',
 '@media(max-width:780px){#episodeWorkflow{padding:12px}#episodeWorkflow .ew-grid{grid-template-columns:1fr}}'
 ].join('\n');
 document.head.append(css);
@@ -123,9 +126,54 @@ function brief(item,plan){
 }
 let active='',plan=null,dirty=false;
 function show(text,isError=false){$('ewMessage').textContent=text;$('ewMessage').style.color=isError?'#ffb0ba':'#9feccf';}
-async function copy(value,success){
- try{await navigator.clipboard.writeText(value);show(success);}
- catch(e){show('Clipboard blocked. Copy the voice text directly from the field.',true);}
+function copyLegacy(value){
+ // Fallback starts in a genuine button-click handler, never automatically.
+ const textarea=document.createElement('textarea');
+ textarea.value=value;textarea.setAttribute('readonly','');
+ textarea.style.position='fixed';textarea.style.left='-9999px';textarea.style.top='0';textarea.style.opacity='0';
+ document.body.appendChild(textarea);
+ textarea.focus();textarea.select();
+ let ok=false;
+ try{ok=!!document.execCommand('copy');}catch(_){}
+ textarea.remove();
+ return ok;
+}
+async function copy(value,success,button=null,card=null){
+ if(!value||!value.trim()){show('Gemini prompt is empty.',true);return false;}
+ const status=card?.querySelector('.ew-copy-status');
+ const notice=(msg,failed=false)=>{
+   if(status){status.textContent=msg;status.style.color=failed?'#ffb0ba':'#9feccf';}
+   show(msg,failed);
+ };
+ let ok=false;
+ try{
+   if(navigator.clipboard&&typeof navigator.clipboard.writeText==='function'){
+     await navigator.clipboard.writeText(value);ok=true;
+   }else{ok=copyLegacy(value);}
+ }catch(_){ok=copyLegacy(value);}
+ if(ok){
+   if(button)button.textContent='✓ Copied to clipboard';
+   notice(success);
+   const fallback=card?.querySelector('.ew-copy-fallback');
+   if(fallback)fallback.hidden=true;
+   return true;
+ }
+ if(card){
+   // Browser clipboard permissions may be blocked. Expose the COMPLETE prompt,
+   // not only the short scene storyboard, and preselect it for Ctrl+C.
+   let preview=card.querySelector('.ew-copy-fallback');
+   if(!preview){
+     preview=document.createElement('textarea');preview.className='ew-copy-fallback';
+     preview.readOnly=true;preview.setAttribute('aria-label','Full Gemini prompt — press Ctrl+C to copy');
+     card.appendChild(preview);
+   }
+   preview.value=value;preview.hidden=false;
+   preview.focus();preview.select();
+   notice('Browser blocked automatic copy. Full prompt selected below — press Ctrl+C.',true);
+ }else{
+   notice('Browser blocked automatic copy. Select text in the voice-over field and press Ctrl+C.',true);
+ }
+ return false;
 }
 function populateScenes(item){
  const area=$('ewScenes');area.replaceChildren();if(!plan)return;
@@ -136,8 +184,10 @@ function populateScenes(item){
   const p=document.createElement('textarea');p.className='ew-scene-input';p.setAttribute('aria-label','Scene '+(index+1)+' visual storyboard');p.value=content;const protect=locked(item);p.readOnly=protect;
   p.addEventListener('input',()=>{if(!plan||locked(item))return;plan.overrides||={};plan.overrides[plan.duration]||={};plan.overrides[plan.duration][index]=p.value;dirty=true;show('Scene '+(index+1)+' edited. Apply to save.');});
   const b=document.createElement('button');b.className='ew-btn';b.type='button';b.textContent='Copy Gemini prompt';
-  b.addEventListener('click',()=>void copy(clip(item,plan,index),'Scene '+(index+1)+' prompt copied.'));
-  div.append(title,sub,p,b);area.append(div);
+  const status=document.createElement('small');status.className='ew-copy-status';
+  status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  b.addEventListener('click',()=>void copy(clip(item,plan,index),'Scene '+(index+1)+' copied. Paste it into Gemini.',b,div));
+  div.append(title,sub,p,b,status);area.append(div);
  });
 }
 function locked(item){
