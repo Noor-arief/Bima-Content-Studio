@@ -396,6 +396,12 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 #youtubeVerificationCard .actions{margin:0}
 #youtubeVerificationCard [hidden]{display:none!important}
 #youtubeVerificationCard a.btn{display:inline-flex;align-items:center;text-decoration:none;color:#fff}
+
+/* Status card polish — only spacing, keep the approved baseline palette and layout. */
+.content .side-status .metric{justify-content:flex-start;gap:8px}
+.content .side-status .metric small{margin-top:4px;padding-top:0;line-height:1.5}
+.content .side-status #scheduledInfo{color:#9fc5ee;overflow-wrap:anywhere}
+.content .side-status #connectionDetail{overflow-wrap:anywhere}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -464,14 +470,14 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
   </div><div class="actions"><button class="btn primary" id="save">Save Draft</button><button class="btn" id="copy">Copy Gemini Prompt</button><button class="btn" id="approve" type="button">Mark Approved</button><span id="approvalState" class="chip" role="status" aria-live="polite">Awaiting approval</span><button class="btn primary" id="continuePublishing" type="button" hidden>Continue to Publishing →</button><button class="btn ghost" id="delete">Delete Draft</button></div><p id="copyMsg" class="hint" role="status" aria-live="polite"></p>
  </div>
  <div class="panel" data-panel="publishing"><div class="line"><div><h2>YouTube Publishing Setup</h2><p class="sub" style="margin-bottom:0">Prepare automated posting, safely.</p></div><span class="chip" id="legacyYoutubeStatus" style="color:#ffdcad">Checking connection…</span></div>
-  <div class="note warn" style="margin-top:14px"><strong>Auto-post is NOT active.</strong> File video in this browser + an approved draft do not trigger publishing. BIMA needs OAuth, server-side durable media storage, an upload worker and a verified YouTube scheduling job. Only verified YouTube status counts as published.</div>
+  <div class="note warn" style="margin-top:14px"><strong>BIMA publishing workflow:</strong> Review final MP4, click Publish with BIMA once, and follow its actual YouTube status. Advanced settings are optional. A Google account connection by itself does not publish a video.</div>
   <div class="fields" style="margin-top:12px"><div class="field"><label>Default publish time · WIB</label><input type="time" id="defaultTime" value="19:30"/></div><div class="field"><label>Timezone</label><input type="text" value="Asia/Jakarta (UTC+7)" disabled/></div></div>
   <div class="actions"><a class="api-link" href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">Open Google Cloud ↗</a><a class="api-link" href="https://developers.google.com/youtube/v3/guides/auth/server-side-web-apps" target="_blank" rel="noopener noreferrer">OAuth setup guide ↗</a><a class="api-link" href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">YouTube Studio ↗</a></div>
-  <p class="hint">Future production flow: Owner Approves → Upload as Private → Set publishAt → YouTube publishes automatically → Check status / save URL. We will never store client secrets in this HTML file.</p>
+  <p class="hint">BIMA uses OAuth and secure Railway storage to submit and schedule the approved video. Keep production credentials on Railway, not inside this HTML file.</p>
  </div></section>
 </div>
 <section class="panel" data-panel="ringkasan" style="margin-top:16px"><div class="line"><div><h2>YouTube Publishing Queue</h2><p class="sub">Only YouTube content appears here; TikTok affiliate has its own future workflow.</p></div><div class="controls"><button class="btn" id="export">Export JSON Backup</button><button class="btn" id="import">Import Backup</button><input type="file" id="importFile" hidden accept="application/json"/></div></div>
-<div class="queue"><table><thead><tr><th>Date (WIB)</th><th>Content</th><th>Production</th><th>Approval</th><th>YouTube upload</th></tr></thead><tbody id="queueBody"></tbody></table></div><div class="hint">Publish automation remains blocked until OAuth and secure server integration are completed. No fake Connected or Published statuses.</div></section>
+<div class="queue"><table><thead><tr><th>Date (WIB)</th><th>Content</th><th>Production</th><th>Approval</th><th>YouTube upload</th></tr></thead><tbody id="queueBody"></tbody></table></div><div class="hint">YouTube status is checked against the Railway backend after owner sign-in. “Scheduled” and “Published” are tracked separately; BIMA prevents duplicate uploads.</div></section>
 </main>
 <section class="panel coming hidden" id="futureWorkspace"><h2 id="futureTitle"></h2><p id="futureText"></p><div class="roadmap" id="futurePlan"></div><p><button class="btn primary" id="backToYoutube">Return to YouTube Faceless</button></p></section>
 
@@ -604,7 +610,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
    status.dataset.state=verified?"connected":googleAuthorized?"pending":"disconnected";
    const legacy=byId("legacyYoutubeStatus");
    if(legacy){legacy.textContent=verified?(uploadsEnabled?"Channel verified · Private upload enabled":"Channel verified · Private upload disabled"):googleAuthorized?(serverHealth?.channelLocked?"Google authorized · Verify locked channel":"Google authorized · Verify channel"):"Google not authorized";legacy.style.color=verified?"#9deecb":"#ffdcad";}
-   detail.textContent=verified?(channel?.name||"Orbit & Ocean")+" · Channel verified"+(session?" · Owner session active":" · Publishing login required"):
+   detail.textContent=verified?(channel?.name||"Orbit & Ocean")+" · Verified on Railway":
      channel?(channel.name||"YouTube")+" · The authorized Channel ID does not match the expected Railway channel.":
      googleAuthorized?(serverHealth?.channelLocked?"Google authorized and channel locked on Railway. Sign in as owner to verify the match.":"Google authorized on Railway. Sign in to verify your YouTube channel.") :
      serverHealth?.oauthConfigured?"Google OAuth available. Connect YouTube to authorize channel.":
