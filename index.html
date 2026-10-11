@@ -313,9 +313,9 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
   <button class="btn" id="apiVerify" type="button">Verify on YouTube</button>
  </div>
  <p class="note warn" style="margin-top:14px"><strong>Approval safeguard:</strong> Select and save a final MP4 in Shorts Production Desk. Then send it to Railway, approve that exact file, and upload after OAuth setup. Until Google’s API audit and permission checks pass, BIMA may be able to upload Private but cannot promise public scheduling. No action here uploads without a click.</p>
- <p class="hint" id="apiServerMessage" role="status" aria-live="polite">Google OAuth and server storage not yet connected. Existing calendar drafts remain local until explicitly sent.</p>
+ <p class="hint" id="apiServerMessage" role="status" aria-live="polite">Checking Railway connection. Calendar drafts stay local until explicitly sent.</p>
 </section>
-<footer class="footer">BIMA Content Studio · Prototype V4 · Local video vault · YouTube automation not yet connected</footer>
+<footer class="footer" id="connectionFooter">BIMA Content Studio · Checking YouTube connection…</footer>
 </div>
 <script>
 'use strict';
@@ -386,15 +386,23 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  function paintServerStatus(){
    const channel=serverStatus?.channel, status=byId("connectionStatus"),detail=byId("connectionDetail");
    const googleAuthorized=!!(channel||serverHealth?.youtubeConnected);
-   const verified=!!channel?.verified;
+   // Owner-only /api/status and public /health may reach this page independently.
+   // The backend only exposes channelVerified after comparing the stored Google channel ID to the Railway allowlist.
+   const verified=!!(channel?.verified||serverHealth?.channelVerified);
+   const uploadsEnabled=!!serverHealth?.uploadsEnabled;
    status.textContent=verified?"Connected":googleAuthorized?"Google authorized":"Not connected";
    status.dataset.state=verified?"connected":googleAuthorized?"pending":"disconnected";
-   const legacy=byId("legacyYoutubeStatus"); if(legacy){legacy.textContent=verified?(serverHealth?.uploadsEnabled?"Channel verified · Private upload enabled":"Channel verified · Upload disabled"):googleAuthorized?"Google authorized · Verify channel":"Google not authorized"; legacy.style.color=verified?"#9deecb":"#ffdcad";}
-   detail.textContent=verified?(channel.name||"YouTube")+" · Target channel verified":
-     channel?(channel.name||"YouTube")+" · Confirm this Channel ID in Railway before upload":
-     googleAuthorized?"Google authorization is saved on Railway. Sign in to verify channel ID.":
+   const legacy=byId("legacyYoutubeStatus");
+   if(legacy){legacy.textContent=verified?(uploadsEnabled?"Channel verified · Private upload enabled":"Channel verified · Private upload disabled"):googleAuthorized?(serverHealth?.channelLocked?"Google authorized · Verify locked channel":"Google authorized · Verify channel"):"Google not authorized";legacy.style.color=verified?"#9deecb":"#ffdcad";}
+   detail.textContent=verified?(channel?.name||"Orbit & Ocean")+" · Verified on Railway. "+(session?"Owner controls available.":"Sign in as owner to manage uploads."):
+     channel?(channel.name||"YouTube")+" · The authorized Channel ID does not match the expected Railway channel.":
+     googleAuthorized?(serverHealth?.channelLocked?"Google authorized and channel locked on Railway. Sign in as owner to verify the match.":"Google authorized on Railway. Sign in to verify your YouTube channel.") :
      serverHealth?.oauthConfigured?"Google OAuth available. Connect YouTube to authorize channel.":
      "Hubungkan akun Google untuk memulai.";
+   const footer=byId("connectionFooter");
+   if(footer)footer.textContent="BIMA Content Studio · "+(verified?"YouTube channel verified":googleAuthorized?"Google authorized · Channel verification pending":"YouTube not authorized")+" · "+(uploadsEnabled?"Private upload enabled":"Private upload disabled");
+   const loginButton=byId("apiGoogle");
+   if(loginButton)loginButton.textContent=googleAuthorized?"Sign in as YouTube owner (Google)":"Connect YouTube (Google OAuth)";
    if(serverStatus)byId("publishedCount").textContent=String((serverStatus.items||[]).filter(i=>i.status==="published").length);
  }
  let serverHealth=null;
@@ -429,7 +437,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
     const r=await fetch(base()+"/health");const data=await r.json();
     serverHealth=data;paintServerStatus();
     say("Backend "+data.status+" · Google "+(data.youtubeConnected?"authorized":"not authorized")+
-      " · Channel "+(data.channelLocked?"locked":"not verified")+
+      " · Channel "+(data.channelVerified?"verified":data.channelLocked?"locked, awaiting verification":"not verified")+
       " · Upload "+(data.uploadsEnabled?"enabled":"disabled"),data.status==="online");
     if(session)await refreshStatus();
  }));
@@ -482,7 +490,11 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  fetch(base()+"/health").then(async r=>{
    if(!r.ok)throw Error("Backend HTTP "+r.status);
    serverHealth=await r.json();paintServerStatus();
- }).catch(()=>{if(!session)byId("connectionDetail").textContent="Cannot reach Railway. Try Check Backend.";});
+   if(serverHealth.status==="online"){
+     chip.textContent="Server connected";
+     message.textContent="Railway online · Google "+(serverHealth.youtubeConnected?"authorized":"not authorized")+" · YouTube "+(serverHealth.channelVerified?"verified":serverHealth.channelLocked?"locked (owner verification needed)":"not verified")+" · Private upload "+(serverHealth.uploadsEnabled?"enabled":"disabled")+".";
+   }
+ }).catch(()=>{if(!session)byId("connectionDetail").textContent="Cannot reach Railway. Try Check Backend.";chip.textContent="Needs attention";});
  if(session){
    refreshStatus().then(r=>{const connected=!!r.channel?.verified; const channel=r.channel; paintServerStatus(); const pub=document.getElementById("publishedCount");if(pub)pub.textContent=(r.items||[]).filter(x=>x.status==="published").length; say("Google authorized: "+(channel?.name||"owner")+" · Channel ID: "+(channel?.id||"pending")+" · "+(connected?"verified target":"set EXPECTED_YOUTUBE_CHANNEL_ID in Railway after checking this is Orbit & Ocean")+".",connected);})
      .catch(()=>{session="";sessionStorage.removeItem(tokenKey);say("Sign in again to reconnect.");});
