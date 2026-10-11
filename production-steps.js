@@ -53,7 +53,7 @@
         return false;
       }
       const payload=await r.json();
-      serverItems=Array.isArray(payload?.items)?payload.items.filter(item=>item&&typeof item.id==='string'&&typeof item.status==='string').map(({id,status})=>({id,status})):[];
+      serverItems=Array.isArray(payload?.items)?payload.items.filter(item=>item&&typeof item.id==='string'&&typeof item.status==='string').map(({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})):[];
       ownerUI('Owner session active · Ready to send MP4',true);
       return true;
     }catch(e){
@@ -92,10 +92,28 @@
         ? '✓ SERVER APPROVAL CONFIRMED · '+(item?.title||'Selected video')+' · Video stored on Railway. This is NOT a YouTube upload or public schedule.'
         : '';
     }
+    const doneStatus=['scheduled','private_uploaded','published'].includes(server?.status);
+    const ytCard=document.getElementById('youtubeVerificationCard');
+    const ytTitle=document.getElementById('youtubeVerificationTitle');
+    const ytMeta=document.getElementById('youtubeVerificationDetails');
+    const ytLink=document.getElementById('openUploadedVideo');
+    const verifiedTime=server?.publishAt&&!Number.isNaN(Date.parse(server.publishAt))
+      ? new Date(server.publishAt).toLocaleString('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' WIB'
+      : 'Not confirmed';
+    if(ytCard)ytCard.hidden=!doneStatus;
+    if(doneStatus){
+      if(ytTitle)ytTitle.textContent=server.status==='published'?'✓ PUBLISHED ON YOUTUBE':server.status==='scheduled'?'✓ BIMA UPLOAD SUCCESS — SCHEDULED':'✓ BIMA UPLOAD SUCCESS — PRIVATE';
+      if(ytMeta)ytMeta.textContent='Video ID: '+(server.youtubeId||'unavailable')+' · Target: '+verifiedTime+
+        (server.youtubePrivacyStatus?' · YouTube visibility: '+server.youtubePrivacyStatus:'')+
+        (server.youtubeUploadStatus?' · Upload: '+server.youtubeUploadStatus:'')+
+        (server.status==='scheduled'?' · Awaiting publication confirmation.':'');
+      if(ytLink){ytLink.hidden=!server.youtubeId;if(server.youtubeId)ytLink.href='https://studio.youtube.com/video/'+encodeURIComponent(server.youtubeId)+'/edit';}
+    }
     const manual=document.getElementById('publishingManualNotice');
-    if(manual)manual.textContent=server?.status==='approved'
-      ? 'Public auto-scheduling is still disabled. To publish at 20:30 WIB today, download the approved MP4 and use YouTube Studio → Upload videos → Visibility → Schedule. Do not assume BIMA has published it.'
-      : 'BIMA server approval does not publish the video. Use YouTube Studio for a guaranteed manual scheduling path while automation is disabled.';
+    if(manual)manual.textContent=doneStatus
+      ? 'BIMA handled the YouTube upload. Do NOT upload this MP4 again. Use Verify on YouTube to check whether the video has become Public at its scheduled time.'
+      : server?.status==='approved'?'Server approved; next step is one Upload Private / Schedule action via BIMA, not a manual upload.':
+        'Upload and scheduling are managed by BIMA. Complete local and Railway approval first.';
     selected.textContent= item
       ? ('Selected: '+item.title+' · '+(item.mediaName?'MP4 attached':'No MP4')+' · '+(approved?'Approved locally':'Not approved')+(server?' · Railway: '+server.status:' · Not stored on Railway'))
       : 'No YouTube draft is selected. Open Kalender and select a draft first.';
@@ -109,7 +127,7 @@
     if (server?.status === 'draft_with_video') message = 'Video sudah tersimpan di Railway. Lanjutkan Approve server-side schedule pada menu Publishing.';
     if (server?.status === 'approved') message = 'Server-side approval selesai. Private upload tetap harus diaktifkan dan dijalankan secara terpisah oleh pemilik.';
     if (server?.status === 'private_uploaded') message = 'Video sudah ter-upload sebagai Private. Periksa hasilnya di YouTube Studio.';
-    if (server?.status === 'scheduled') message = 'Jadwal tersimpan di server. Verifikasi status sesungguhnya di YouTube Studio.';
+    if (server?.status === 'scheduled') message = 'BIMA berhasil upload. YouTube API mengembalikan status Scheduled untuk '+verifiedTime+'. Tunggu jam tayang lalu klik Verify on YouTube; jangan upload ulang.';
     if (server?.status === 'published') message = 'Video terkonfirmasi Published oleh backend YouTube.';
     if (server?.status === 'needs_review') message = 'Perlu pemeriksaan manual di YouTube Studio sebelum mencoba upload apa pun lagi.';
     hint.textContent = message;
@@ -138,6 +156,12 @@
     void checkOwner();
   }
   document.getElementById('openYouTubeStudio')?.addEventListener('click',()=>window.open('https://studio.youtube.com/','_blank','noopener,noreferrer'));
+  document.getElementById('verifyFromPublishing')?.addEventListener('click',()=>{
+    const item=getSelected(),entry=currentServerItem(item?.id);
+    if(!item||!entry?.youtubeId){result.textContent='No YouTube video ID yet. This action cannot verify the upload.';return;}
+    const verify=document.getElementById('apiVerify');
+    if(verify){result.textContent='Checking real YouTube status via BIMA…';verify.click();}
+  });
   document.getElementById('manualDownloadMp4')?.addEventListener('click',()=>{
     const download=[...document.querySelectorAll('.media-actions button')].find(button=>button.textContent?.trim()==='Download MP4');
     if(!download){result.textContent='Open Production Desk and click Download MP4 under the video preview.';return;}
