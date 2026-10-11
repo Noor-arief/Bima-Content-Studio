@@ -415,7 +415,7 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 <div class="content">
 <header class="head" data-panel="ringkasan">
  <section class="hero"><div class="hero-body"><span class="overline">BIMA ECOSYSTEM / CONTENT OPS</span><h1>Content operations, in one place.</h1><p>Editorial calendar, compact Gemini prompts, approvals, and YouTube scheduling. Each platform is managed independently.</p><span class="pill"><i class="dot"></i> YouTube Faceless — active pilot</span></div></section>
- <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Published by BIMA</span><strong id="publishedCount">0</strong><small>Actual public videos only</small><small id="scheduledInfo" role="status" aria-live="polite">Checking scheduled videos…</small></div></section>
+ <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Published by BIMA</span><strong id="publishedCount">0</strong><small>Actual public videos only</small><small id="scheduledInfo" role="status" aria-live="polite">Sign in once to check scheduled videos</small></div></section>
 </header>
 <main id="ytWorkspace">
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
@@ -534,7 +534,36 @@ function renderCalendar(){const [y,m]=state.month.split('-').map(Number);const l
 function renderDay(){const dayItems=items().filter(i=>i.date===state.selected);$('selectedLabel').textContent=human(state.selected);const list=$('dayList');list.replaceChildren();if(!dayItems.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Belum ada konten YouTube untuk tanggal ini. Klik + New Short untuk membuat draft.';list.appendChild(empty);return}for(const i of dayItems){const btn=document.createElement('button');btn.type='button';btn.className='item'+(i.id===state.selectedItem?' active':'');btn.innerHTML=`<div class="item-title">${escapeHTML(i.title)}</div><div class="item-meta">${escapeHTML(i.format)} · ${escapeHTML(i.time)} WIB</div><div class="chips"><span class="chip">${escapeHTML(i.status)}</span><span class="chip ${i.approved?'green':''}">${i.approved?'Approved':'Awaiting approval'}</span></div>`;btn.addEventListener('click',()=>{state.selectedItem=i.id;render()});list.appendChild(btn)}}
 function getSelected(){return items().find(i=>i.id===state.selectedItem)||null}
 function renderEditor(){const i=getSelected();$('draftStatus').textContent=i?.status||'No draft';$('fTitle').value=i?.title||'';$('fDate').value=i?.date||state.selected;$('fTime').value=i?.time||state.channels.youtube.defaultTime;$('fFormat').value=i?.format||'Shorts · 10s';$('fStatus').value=i?.status==='Approved'?'QA Pass':(i?.status||'Draft');$('fPrompt').value=i?.prompt||'';$('fCaption').value=i?.caption||'';$('fNotes').value=i?.notes||'';const approval=$('approvalState');if(approval){approval.textContent=i?.approved?'Approved · Saved locally':'Awaiting approval';approval.style.color=i?.approved?'#9deecb':'#ffdcad';}const approvalButton=$('approve');if(approvalButton&&!approvalButton.disabled)approvalButton.textContent=i?.approved?'✓ Approved':'Mark Approved';loadVideoForSelection()}
-function renderQueue(){const body=$('queueBody');body.replaceChildren();const rows=[...items()].sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));if(!rows.length){const tr=document.createElement('tr');tr.innerHTML='<td colspan="5">No YouTube draft yet.</td>';body.append(tr)}for(const i of rows){const tr=document.createElement('tr');for(const value of [i.date+' '+i.time, i.title, i.status, i.approved?'Approved':'Not approved',i.youtubeId?'On YouTube (verify ID)':(i.mediaName?'Video stored in browser · Not uploaded':'No video · Not uploaded')]){const td=document.createElement('td');td.textContent=value;tr.appendChild(td)}body.appendChild(tr)}$('publishedCount').textContent=String(items().filter(i=>i.status==='Published'&&i.youtubeId).length);document.dispatchEvent(new Event('bima:render-status'))}
+function renderQueue(){
+ const body=$('queueBody');body.replaceChildren();
+ const rows=[...items()].sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
+ if(!rows.length){const tr=document.createElement('tr');tr.innerHTML='<td colspan="5">No YouTube drafts yet.</td>';body.append(tr)}
+ for(const i of rows){
+   const remote=window.BIMA_REMOTE_CONTENT?.[i.id]||null;
+   const remoteStatus=remote?.status||null;
+   const statusText=remoteStatus==='published'?'Published · Public confirmed'
+     :remoteStatus==='scheduled'?'Uploaded by BIMA · Scheduled'
+     :remoteStatus==='private_uploaded'?'Uploaded by BIMA · Private'
+     :remoteStatus==='uploading'?'BIMA uploading…'
+     :remoteStatus==='needs_review'?'Requires review · Do not resubmit'
+     :remoteStatus==='approved'?'Approved on Railway · Not yet uploaded'
+     :remoteStatus==='draft_with_video'?'Saved on Railway · Awaiting server approval'
+     :remoteStatus==='draft'?'Railway draft'
+     :i.mediaName?'Local MP4 · Server not checked':'No MP4';
+   const tr=document.createElement('tr');
+   for(const value of [i.date+' '+i.time,i.title,remoteStatus==='published'?'Published':i.status,i.approved?'Approved':'Not approved',statusText]){
+     const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
+   }
+   if(remote?.youtubeId){
+     const link=document.createElement('a');
+     link.href='https://studio.youtube.com/video/'+encodeURIComponent(remote.youtubeId)+'/edit';
+     link.target='_blank';link.rel='noopener noreferrer';link.textContent=' · Open in Studio ↗';
+     tr.lastElementChild.append(link);
+   }
+   body.appendChild(tr);
+ }
+ document.dispatchEvent(new Event('bima:render-status'));
+}
 function renderFuture(){const isYT=state.active==='youtube';$('ytWorkspace').classList.toggle('hidden',!isYT);$('futureWorkspace').classList.toggle('hidden',isYT);if(isYT)return;const ch=state.active;if(ch==='tiktok'){$('futureTitle').textContent='TikTok Affiliate — Phase 2';$('futureText').textContent='A dedicated affiliate content calendar, different from YouTube Science & Nature. Every video should be tied to a real product and shop campaign.';$('futurePlan').innerHTML='<b>Planned fields:</b> Product ID / Showcase • commission rate • affiliate sample • product relevance • 9:16 prompt • shoppable video asset • yellow-basket review • affiliate sales tracking.<p class="muted-note">The yellow basket is not automatically enabled by the ordinary posting API. TikTok Shop creator eligibility and partner-approved shopping integration are separate requirements.</p>'}else{$('futureTitle').textContent=PLATFORM_COPY[ch].name+' — Later';$('futureText').textContent='This platform will get its own content library, calendar, prompt formats and publishing credentials once the YouTube workflow is proven.';$('futurePlan').innerHTML='<b>Current state:</b> not integrated. No shared YouTube drafts or fake social publishing activity.'}}
 function render(){renderChannels();renderFuture();if(state.active!=='youtube')return;renderCalendar();renderDay();renderEditor();renderQueue();$('defaultTime').value=state.channels.youtube.defaultTime}
 function newDraft(){const id='yt-'+Math.random().toString(36).slice(2,10);const i={id,platform:'youtube',date:state.selected,time:state.channels.youtube.defaultTime,title:'New YouTube Short',format:'Shorts · 10s',status:'Draft',caption:'',prompt:'',notes:'',approved:false,mediaName:'',youtubeId:''};items().push(i);state.selectedItem=id;persist();$('fTitle').focus()}
@@ -575,7 +604,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
    status.dataset.state=verified?"connected":googleAuthorized?"pending":"disconnected";
    const legacy=byId("legacyYoutubeStatus");
    if(legacy){legacy.textContent=verified?(uploadsEnabled?"Channel verified · Private upload enabled":"Channel verified · Private upload disabled"):googleAuthorized?(serverHealth?.channelLocked?"Google authorized · Verify locked channel":"Google authorized · Verify channel"):"Google not authorized";legacy.style.color=verified?"#9deecb":"#ffdcad";}
-   detail.textContent=verified?(channel?.name||"Orbit & Ocean")+" · Verified on Railway. "+(session?"Owner controls available.":"Sign in as owner to manage uploads."):
+   detail.textContent=verified?(channel?.name||"Orbit & Ocean")+" · Channel verified"+(session?" · Owner session active":" · Publishing login required"):
      channel?(channel.name||"YouTube")+" · The authorized Channel ID does not match the expected Railway channel.":
      googleAuthorized?(serverHealth?.channelLocked?"Google authorized and channel locked on Railway. Sign in as owner to verify the match.":"Google authorized on Railway. Sign in to verify your YouTube channel.") :
      serverHealth?.oauthConfigured?"Google OAuth available. Connect YouTube to authorize channel.":
@@ -603,7 +632,13 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  }
  let serverHealth=null;
  document.addEventListener("bima:render-status",paintServerStatus);
- async function refreshStatus(){serverStatus=await call("/api/status");paintServerStatus();document.dispatchEvent(new CustomEvent("bima:server-state",{detail:{items:(serverStatus.items||[]).map(({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus}))}}));return serverStatus;}
+ async function refreshStatus(){
+ serverStatus=await call("/api/status");
+ window.BIMA_REMOTE_CONTENT=Object.fromEntries((serverStatus.items||[]).map(item=>[item.id,item]));
+ renderQueue();paintServerStatus();
+ document.dispatchEvent(new CustomEvent("bima:server-state",{detail:{items:(serverStatus.items||[]).map(({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus}))}}));
+ return serverStatus;
+}
  const endpointKey="bima_content_server_url";
  let session=sessionStorage.getItem(tokenKey)||"";
  const hash=new URLSearchParams(location.hash.replace(/^#/,""));
