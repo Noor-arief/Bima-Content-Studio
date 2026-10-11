@@ -17,7 +17,7 @@
     '#bimaPublishStatus{font-size:12px;line-height:1.65;margin-top:10px;color:#b9c7e9;overflow-wrap:anywhere}',
     '#bimaPublishStatus[data-kind="success"]{color:#a1f1d1}',
     '#bimaPublishStatus[data-kind="error"]{color:#ffb7bd}',
-    '#bimaEditorPublish[hidden]{display:none!important}',
+    '#bimaEditorPublish[hidden],#continuePublishing{display:none!important}',
     '#bimaEditorPublish{margin-left:4px}',
     '#bimaAdvancedToggle{margin-left:10px;background:transparent;border:1px solid rgba(145,161,232,.35);border-radius:10px;color:#aebde3;padding:10px 14px;font-size:12px}',
     'body[data-view="publishing"]:not(.bima-show-advanced) #serverAutomation,body[data-view="publishing"]:not(.bima-show-advanced) .content-grid [data-panel="publishing"],body[data-view="publishing"]:not(.bima-show-advanced) .bima-legacy-publish-actions{display:none!important}',
@@ -45,6 +45,7 @@
   let latest=null;
   let currentItems={};
   let lastChecked=0;
+  const verifiedDue=new Map();
   const key='bima_content_server_session';
   const finalStatuses=['scheduled','published','private_uploaded','uploading','needs_review'];
   function say(text,kind='info'){message.textContent=text;message.dataset.kind=kind;editorStatus.textContent=text.length>94?text.slice(0,92)+'…':text;}
@@ -77,6 +78,22 @@
     syncUI();
   }
   async function refresh(){const status=await api('/api/status');updateRemote(status);return status;}
+  // At publish time, BIMA can verify visibility without requiring another manual button click.
+  // Never resubmit or modify a video here; /verify only reads YouTube status.
+  async function verifyDue(){
+    if(busy||!token())return;
+    const now=Date.now();
+    const targets=Object.values(currentItems).filter(item=>
+      item.status==='scheduled' && item.youtubeId && Date.parse(item.publishAt||'')<=now &&
+      now-(verifiedDue.get(item.id)||0)>60000).slice(0,2);
+    for(const item of targets){
+      verifiedDue.set(item.id,now);
+      try{
+        await api('/api/content/'+encodeURIComponent(item.id)+'/verify','POST','{}');
+        await refresh();
+      }catch(e){say('Unable to verify current Public status yet; BIMA will keep the scheduled record unchanged.','error');}
+    }
+  }
   function detailFor(item){
     if(!item)return 'Belum ada konten terpilih.';
     const entry=currentItems[item.id];
@@ -186,10 +203,14 @@
   });
   const checkWhenVisible=()=>{
     if(!token()){syncUI();return;}
-    if(!busy&&Date.now()-lastChecked>30000)void refresh().catch(()=>{say('Railway status unavailable; approval and videos remain unchanged.','error');});
+    if(!busy&&Date.now()-lastChecked>30000)void refresh()
+      .then(()=>verifyDue())
+      .catch(()=>{say('Railway status unavailable; approval and videos remain unchanged.','error');});
+    else void verifyDue();
   };
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkWhenVisible();});
   window.addEventListener('pageshow',checkWhenVisible);
   syncUI();
   checkWhenVisible();
+  setInterval(()=>{if(!document.hidden)checkWhenVisible();},60000);
 })();
