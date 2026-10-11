@@ -5,6 +5,13 @@ const $=id=>document.getElementById(id);
 if(!$('fPrompt')||typeof getSelected!=='function'||typeof saveDraft!=='function')return;
 const field=$('fPrompt').closest('.field');
 if(!field)return;
+// Keep fPrompt in the saved draft for compatibility with validation and publishing,
+// but never show the legacy 10-second prompt alongside the active scene workflow.
+const oldCopy=$('copy');
+field.hidden=true;
+field.style.display='none';
+field.setAttribute('aria-hidden','true');
+if(oldCopy){oldCopy.hidden=true;oldCopy.style.display='none';oldCopy.setAttribute('aria-hidden','true');}
 const css=document.createElement('style');
 css.textContent=[
 '#episodeWorkflow{grid-column:1/-1;width:100%;min-width:0;border:1px solid rgba(139,123,255,.35);border-radius:14px;background:rgba(114,106,227,.07);padding:16px;margin:5px 0 18px}',
@@ -37,6 +44,7 @@ panel.innerHTML='<div class="ew-row"><div><h3>Episode Workflow</h3><p class="ew-
 '<textarea id="ewVoice" class="ew-voice" spellcheck="true"></textarea>'+
 '<div class="ew-actions"><button class="ew-btn" type="button" id="ewCopyVoice">Copy voice-over</button><button class="ew-btn" type="button" id="ewCopyFull">Copy full brief</button><button class="ew-btn primary" type="button" id="ewApply">Use workflow in draft</button></div>'+
 '<p class="ew-muted">Generate clips in Gemini or Flow, combine into ONE final portrait MP4 and add the continuous voice-over; only then upload to BIMA. Automatic clip stitching is not enabled yet. Do not submit individual scenes to YouTube.</p>'+
+'<p class="ew-muted" id="ewPromptExplanation">Satu workflow aktif: gunakan prompt <strong>Scene 1 / Scene 2 / Scene 3</strong> secara berurutan di Gemini. Tombol Copy full brief untuk arsip produksi BIMA, bukan prompt tambahan yang perlu di-generate.</p>'+
 '<p id="ewMessage" class="ew-status" role="status" aria-live="polite"></p>';
 field.insertAdjacentElement('beforebegin',panel);
 const STYLE='Orbit & Ocean animated science short. Bright, charming premium stylized 3D cartoon with rounded characters, expressive eyes and clear playful movement. Never photorealistic; no exposed anatomy, blood, x-rays, surgery or visible internal organs. Any science explanation uses glowing icons, simple arrows or diagrams OUTSIDE the animal. Compose portrait 9:16 and center important objects within the middle 60% of frame. Keep the same character colors, size, lighting and background in every clip. No onscreen text, watermark, captions or dialogue.';
@@ -144,9 +152,12 @@ function render(){
  $('ewBrief').value=plan.objective;
  const protect=locked(item);
  $('ewDuration').disabled=protect;$('ewVoice').readOnly=protect;$('ewBrief').readOnly=protect;$('ewApply').disabled=protect;
- $('ewPhase').textContent=protect?'Approved/uploaded · protected':'Planning · needs final video review';
+ const applied=item.episodePlan?.version===1;
+ $('ewPhase').textContent=protect?'Approved/uploaded · protected':applied?'✓ '+plan.duration+'s workflow saved':'Preview '+plan.duration+'s · Save workflow first';
  populateScenes(item);
- show(protect?'Existing approved/uploaded video stays unchanged.':'Set a clear story, generate each scene, then apply workflow to draft.');
+ show(protect?'Existing approved/uploaded video stays unchanged.':
+  applied?'This saved workflow is the active Gemini production plan. Copy Scene prompts one at a time.':
+   'This is a new '+plan.duration+'s plan; click Use workflow in draft to replace the old 10-second prompt before generating.');
 }
 $('ewDuration').addEventListener('change',()=>{
  if(!plan)return;plan.duration=Number($('ewDuration').value);dirty=true;
