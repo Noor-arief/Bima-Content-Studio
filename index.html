@@ -582,8 +582,18 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  byId("apiSend").addEventListener("click",safeRun(async()=>{
     const item=getSelected();
     if(!item)throw Error("Select a YouTube calendar draft first.");
-    // Saves current editor before upload, but does not mark editorial approval.
-    saveDraft();
+    // Do not call saveDraft() here: that intentionally resets item.approved.
+    // Guard against unsaved editor changes instead, requiring explicit re-approval.
+    const unchanged=[
+      ["fDate","date"],["fTime","time"],["fTitle","title"],
+      ["fFormat","format"],["fPrompt","prompt"],["fCaption","caption"],["fNotes","notes"]
+    ].every(([field,key])=>{
+      const current=byId(field)?.value||"";
+      const saved=String(item[key]||"");
+      return field==="fTitle"?current.trim()===saved:current===saved;
+    });
+    if(!unchanged)throw Error("Draft has unsaved changes. Click Save Draft, then Mark Approved again before sending to Railway.");
+    if(!item.approved)throw Error("Review the final MP4, then click Mark Approved in Shorts Production Desk before sending to Railway.");
     if(!item.mediaName)throw Error("Attach the final MP4 through Shorts Production Desk first.");
     const localFile=await mediaDB("get",item.id);
     if(!(localFile instanceof Blob))throw Error("Video is missing from browser storage.");
