@@ -373,6 +373,14 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 .stepbar button.step-pill.done{background:rgba(50,161,115,.09);color:#9deecb;border-color:rgba(50,161,115,.3)}
 .stepbar button.step-pill:focus-visible{outline:2px solid #b8adff;outline-offset:2px}
 .stepper-hint{color:#b6c6ea;font-size:11.5px;line-height:1.6;margin:-4px 0 14px;padding:8px 10px;border-left:2px solid rgba(139,123,255,.5)}
+
+#continuePublishing[hidden]{display:none!important}
+#publishingQuickActions{max-width:980px;margin:0 auto 16px}
+#publishingQuickActions .publishing-selected{padding:11px 13px;border:1px solid var(--line2);border-radius:10px;background:rgba(110,160,255,.05);color:#c6d2f1;font-size:13px}
+#publishingQuickActions .actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+#publishingQuickActions button:disabled{opacity:.48;cursor:not-allowed}
+#publishingResult:not(:empty){margin:12px 0;color:#c6d2f1}
+@media(max-width:600px){#publishingQuickActions .actions button{flex:1 1 100%}}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -395,6 +403,13 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
  <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Published by BIMA</span><strong id="publishedCount">0</strong><small>Actual publishes only</small></div></section>
 </header>
 <main id="ytWorkspace">
+<section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
+ <div class="line"><div><h2 id="publishingQuickHeading">Next: Send approved video to Railway</h2><p class="sub" style="margin-bottom:0">Tahap 3 · Kirim MP4 ke server BIMA dan konfirmasi jadwal; ini bukan upload YouTube.</p></div><span class="chip" id="publishingReadyBadge">Checking draft…</span></div>
+ <p id="publishingSelected" class="publishing-selected" role="status" aria-live="polite">Checking selected draft…</p>
+ <div class="actions"><button class="btn primary" id="publishingSend" type="button">1 · Save selected video to server</button><button class="btn" id="publishingApprove" type="button">2 · Approve server-side schedule</button></div>
+ <p class="hint" id="publishingResult" role="status" aria-live="polite">Click Step 1 after local approval. No YouTube upload will happen.</p>
+ <p class="hint">Server approval requires a publish time at least 15 minutes in the future. Private upload remains disabled until explicitly enabled for testing.</p>
+</section>
 <div class="content-grid">
  <section class="panel" data-panel="kalender"><div class="line"><div><h2>YouTube content calendar</h2><p class="sub">Pilih tanggal untuk mengelola konten YouTube. Draft disimpan di perangkat ini; kirim video ke server setelah selesai direview.</p></div><div class="controls"><button class="btn ghost" id="prev" aria-label="Previous month">‹</button><span class="month-title" id="monthLabel"></span><button class="btn ghost" id="next" aria-label="Next month">›</button><button class="btn primary" id="newContent">+ New Short</button></div></div>
   <div class="cal-week"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div><div class="calendar" id="calendar"></div>
@@ -424,7 +439,7 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
    <div class="field full"><label for="fCaption">YouTube description / hashtags</label><textarea id="fCaption" placeholder="Short description and source"></textarea></div>
    <div class="field full"><label for="fNotes">Private editorial notes</label><textarea id="fNotes" placeholder="Fact check, thumbnail idea, QA notes"></textarea></div>
 
-  </div><div class="actions"><button class="btn primary" id="save">Save Draft</button><button class="btn" id="copy">Copy Gemini Prompt</button><button class="btn" id="approve" type="button">Mark Approved</button><span id="approvalState" class="chip" role="status" aria-live="polite">Awaiting approval</span><button class="btn ghost" id="delete">Delete Draft</button></div><p id="copyMsg" class="hint" role="status" aria-live="polite"></p>
+  </div><div class="actions"><button class="btn primary" id="save">Save Draft</button><button class="btn" id="copy">Copy Gemini Prompt</button><button class="btn" id="approve" type="button">Mark Approved</button><span id="approvalState" class="chip" role="status" aria-live="polite">Awaiting approval</span><button class="btn primary" id="continuePublishing" type="button" hidden>Continue to Publishing →</button><button class="btn ghost" id="delete">Delete Draft</button></div><p id="copyMsg" class="hint" role="status" aria-live="polite"></p>
  </div>
  <div class="panel" data-panel="publishing"><div class="line"><div><h2>YouTube Publishing Setup</h2><p class="sub" style="margin-bottom:0">Prepare automated posting, safely.</p></div><span class="chip" id="legacyYoutubeStatus" style="color:#ffdcad">Checking connection…</span></div>
   <div class="note warn" style="margin-top:14px"><strong>Auto-post is NOT active.</strong> File video in this browser + an approved draft do not trigger publishing. BIMA needs OAuth, server-side durable media storage, an upload worker and a verified YouTube scheduling job. Only verified YouTube status counts as published.</div>
@@ -692,5 +707,5 @@ render();
 })();
 </script>
 <script src="shorts-ui.js?v=20261011-fullscreen-crop3" defer></script>
-<script src="production-steps.js?v=20261011-stages1" defer></script>
+<script src="production-steps.js?v=20261011-publishing-next2" defer></script>
 </body></html>
