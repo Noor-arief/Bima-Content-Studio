@@ -47,6 +47,31 @@
   let lastChecked=0;
   const verifiedDue=new Map();
   const key='bima_content_server_session';
+  const cacheKey='bima_youtube_status_cache_v1';
+  function saveStatusCache(data){
+    try{
+      const items=(data.items||[]).filter(item=>typeof item.id==='string'&&typeof item.status==='string')
+        .map(({id,status,youtubeId,publishAt,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,youtubeId,publishAt,youtubePrivacyStatus,youtubeUploadStatus}));
+      localStorage.setItem(cacheKey,JSON.stringify({at:Date.now(),items}));
+    }catch(_){}
+  }
+  function restoreStatusCache(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(cacheKey)||'null');
+      if(!saved||!Number.isFinite(saved.at)||Date.now()-saved.at>7*86400000||!Array.isArray(saved.items))return;
+      currentItems=Object.fromEntries(saved.items.filter(i=>typeof i.id==='string'&&typeof i.status==='string').map(i=>[i.id,i]));
+      window.BIMA_REMOTE_CONTENT=currentItems;
+      window.BIMA_REMOTE_STALE=true;
+      if(typeof renderQueue==='function')renderQueue();
+      const count=el('publishedCount'),scheduled=el('scheduledInfo');
+      if(count)count.textContent=String(saved.items.filter(i=>i.status==='published').length);
+      if(scheduled){
+        const queued=saved.items.filter(i=>i.status==='scheduled');
+        const stamp=new Date(saved.at).toLocaleTimeString('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'});
+        scheduled.textContent=queued.length+' Scheduled · Last verified '+stamp+' WIB · Sign in to refresh';
+      }
+    }catch(_){}
+  }
   const finalStatuses=['scheduled','published','private_uploaded','uploading','needs_review'];
   function say(text,kind='info'){message.textContent=text;message.dataset.kind=kind;editorStatus.textContent=text.length>94?text.slice(0,92)+'…':text;}
   function backend(){
@@ -71,6 +96,8 @@
     latest=data;
     currentItems=Object.fromEntries((data.items||[]).map(item=>[item.id,item]));
     window.BIMA_REMOTE_CONTENT=currentItems;
+    window.BIMA_REMOTE_STALE=false;
+    saveStatusCache(data);
     document.dispatchEvent(new CustomEvent('bima:remote-status',{detail:data}));
     if(typeof renderQueue==='function')renderQueue();
     document.dispatchEvent(new CustomEvent('bima:server-state',{detail:{items:(data.items||[]).map(({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus}))}}));
@@ -210,6 +237,7 @@
   };
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkWhenVisible();});
   window.addEventListener('pageshow',checkWhenVisible);
+  restoreStatusCache();
   syncUI();
   checkWhenVisible();
   setInterval(()=>{if(!document.hidden)checkWhenVisible();},60000);
