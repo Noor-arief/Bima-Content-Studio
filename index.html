@@ -385,11 +385,18 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  let serverStatus=null;
  function paintServerStatus(){
    const channel=serverStatus?.channel, status=byId("connectionStatus"),detail=byId("connectionDetail");
-   status.textContent=channel?.verified?"Connected":channel?"Google terhubung":"Not connected";
-   status.dataset.state=channel?.verified?"connected":channel?"pending":"disconnected";
-   detail.textContent=channel?(channel.name||"YouTube")+" · "+(channel.verified?"Channel terverifikasi": "Verifikasi channel diperlukan sebelum upload") : "Hubungkan akun Google untuk memulai.";
+   const googleAuthorized=!!(channel||serverHealth?.youtubeConnected);
+   const verified=!!channel?.verified;
+   status.textContent=verified?"Connected":googleAuthorized?"Google authorized":"Not connected";
+   status.dataset.state=verified?"connected":googleAuthorized?"pending":"disconnected";
+   detail.textContent=verified?(channel.name||"YouTube")+" · Target channel verified":
+     channel?(channel.name||"YouTube")+" · Confirm this Channel ID in Railway before upload":
+     googleAuthorized?"Google authorization is saved on Railway. Sign in to verify channel ID.":
+     serverHealth?.oauthConfigured?"Google OAuth available. Connect YouTube to authorize channel.":
+     "Hubungkan akun Google untuk memulai.";
    if(serverStatus)byId("publishedCount").textContent=String((serverStatus.items||[]).filter(i=>i.status==="published").length);
  }
+ let serverHealth=null;
  document.addEventListener("bima:render-status",paintServerStatus);
  async function refreshStatus(){serverStatus=await call("/api/status");paintServerStatus();return serverStatus;}
  const endpointKey="bima_content_server_url";
@@ -419,8 +426,9 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  const safeRun=fn=>async(event)=>{const button=event?.currentTarget;if(button?.disabled)return;if(button)button.disabled=true;try{await fn();}catch(e){say("Action blocked: "+(e.message||e));}finally{if(button)button.disabled=false;}};
  byId("apiCheck").addEventListener("click",safeRun(async()=>{
     const r=await fetch(base()+"/health");const data=await r.json();
-    say("Backend "+data.status+" · OAuth config "+(data.oauthConfigured?"ready":"pending")+
-      " · YouTube "+(data.youtubeConnected?"consented":"not connected")+
+    serverHealth=data;paintServerStatus();
+    say("Backend "+data.status+" · Google "+(data.youtubeConnected?"authorized":"not authorized")+
+      " · Channel "+(data.channelLocked?"locked":"not verified")+
       " · Upload "+(data.uploadsEnabled?"enabled":"disabled"),data.status==="online");
     if(session)await refreshStatus();
  }));
@@ -470,6 +478,10 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
     await refreshStatus();
     say("YouTube verified: "+r.item.status+" · "+(r.item.youtubeId?"https://youtube.com/watch?v="+r.item.youtubeId:"No video ID"),true);
  }));
+ fetch(base()+"/health").then(async r=>{
+   if(!r.ok)throw Error("Backend HTTP "+r.status);
+   serverHealth=await r.json();paintServerStatus();
+ }).catch(()=>{if(!session)byId("connectionDetail").textContent="Cannot reach Railway. Try Check Backend.";});
  if(session){
    refreshStatus().then(r=>{const connected=!!r.channel?.verified; const channel=r.channel; paintServerStatus(); const pub=document.getElementById("publishedCount");if(pub)pub.textContent=(r.items||[]).filter(x=>x.status==="published").length; say("Google authorized: "+(channel?.name||"owner")+" · Channel ID: "+(channel?.id||"pending")+" · "+(connected?"verified target":"set EXPECTED_YOUTUBE_CHANNEL_ID in Railway after checking this is Orbit & Ocean")+".",connected);})
      .catch(()=>{session="";sessionStorage.removeItem(tokenKey);say("Sign in again to reconnect.");});
