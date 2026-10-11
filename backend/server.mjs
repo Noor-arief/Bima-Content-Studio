@@ -191,6 +191,22 @@ async function handler(req,res){
     channelVerified:activeOauth()&&Boolean(EXPECTED_CHANNEL_ID)&&db.oauth.channelId===EXPECTED_CHANNEL_ID,
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING
   });
+  // Public-safe YouTube counters for the channel dashboard.
+  // Expose no OAuth data, titles, descriptions, schedules, video IDs or draft metadata.
+  // Per-item indicators contain only the internal id and non-sensitive upload state.
+  if(req.method==="GET"&&u.pathname==="/public/stats"){
+    const records=Object.values(db.content);
+    const uploaded=records.filter(item=>typeof item.youtubeId==="string"&&item.youtubeId.length>0);
+    const summary={
+      uploaded:uploaded.length,
+      scheduled:uploaded.filter(item=>item.status==="scheduled").length,
+      published:uploaded.filter(item=>item.status==="published").length,
+      private:uploaded.filter(item=>item.status==="private_uploaded").length,
+      observedAt:new Date().toISOString(),
+      uploadIndicators:uploaded.map(item=>({id:item.id,status:item.status}))
+    };
+    return respond(res,200,summary);
+  }
   if(req.method==="GET"&&u.pathname==="/ready")return respond(res,envOK()&&activeOauth()?200:503,{
     ready:envOK()&&activeOauth(),reason:envOK()&&activeOauth()?"ready":envOK()?"awaiting_owner_youtube_oauth":"awaiting_railway_configuration"
   });
