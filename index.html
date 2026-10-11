@@ -421,7 +421,7 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 <div class="content">
 <header class="head" data-panel="ringkasan">
  <section class="hero"><div class="hero-body"><span class="overline">BIMA ECOSYSTEM / CONTENT OPS</span><h1>Content operations, in one place.</h1><p>Editorial calendar, compact Gemini prompts, approvals, and YouTube scheduling. Each platform is managed independently.</p><span class="pill"><i class="dot"></i> YouTube Faceless — active pilot</span></div></section>
- <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Published by BIMA</span><strong id="publishedCount">0</strong><small>Actual public videos only</small><small id="scheduledInfo" role="status" aria-live="polite">Sign in once to check scheduled videos</small></div></section>
+ <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Uploaded by BIMA</span><strong id="publishedCount">—</strong><small>Confirmed YouTube uploads</small><small id="scheduledInfo" role="status" aria-live="polite">Checking Railway upload status…</small></div></section>
 </header>
 <main id="ytWorkspace">
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
@@ -545,7 +545,9 @@ function renderQueue(){
  const rows=[...items()].sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
  if(!rows.length){const tr=document.createElement('tr');tr.innerHTML='<td colspan="5">No YouTube drafts yet.</td>';body.append(tr)}
  for(const i of rows){
-   const remote=window.BIMA_REMOTE_CONTENT?.[i.id]||null;
+   const fromOwner=window.BIMA_REMOTE_CONTENT?.[i.id]||null;
+   const fromPublic=window.BIMA_PUBLIC_UPLOADS?.[i.id]||null;
+   const remote=fromOwner||fromPublic?{...(fromOwner||{}),...(fromPublic||{})}:null;
    const remoteStatus=remote?.status||null;
    const statusText=remoteStatus==='published'?'Published · Public confirmed'
      :remoteStatus==='scheduled'?'Uploaded by BIMA · Scheduled'
@@ -555,7 +557,7 @@ function renderQueue(){
      :remoteStatus==='approved'?'Approved on Railway · Not yet uploaded'
      :remoteStatus==='draft_with_video'?'Saved on Railway · Awaiting server approval'
      :remoteStatus==='draft'?'Railway draft'
-     :i.mediaName?'Local MP4 · Server not checked':'No MP4';
+     :i.mediaName?'Local MP4 · Upload status not yet verified':'No MP4';
    const tr=document.createElement('tr');
    for(const value of [i.date+' '+i.time,i.title,remoteStatus==='published'?'Published':i.status,i.approved?'Approved':'Not approved',statusText]){
      const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
@@ -624,17 +626,17 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
    if(loginButton)loginButton.textContent=googleAuthorized?"Sign in as YouTube owner (Google)":"Connect YouTube (Google OAuth)";
    if(serverStatus){
      const all=serverStatus.items||[];
-     byId("publishedCount").textContent=String(all.filter(i=>i.status==="published").length);
-     const queued=all.filter(i=>i.status==="scheduled");
+     const uploads=all.filter(i=>!!i.youtubeId);
+     byId("publishedCount").textContent=String(uploads.length);
+     const queued=all.filter(i=>i.status==="scheduled"&&i.youtubeId);
+     const confirmedPublic=uploads.filter(i=>i.status==="published").length;
      const upcoming=queued.map(i=>i.publishAt).filter(Boolean).sort()[0];
      const publishWib=upcoming&&!Number.isNaN(Date.parse(upcoming))
        ? new Date(upcoming).toLocaleString("id-ID",{timeZone:"Asia/Jakarta",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:false})+" WIB"
        : "";
      const scheduledInfo=byId("scheduledInfo");
      if(scheduledInfo){
-       scheduledInfo.textContent=queued.length
-         ? "✓ "+queued.length+" scheduled by BIMA"+(publishWib?" · "+publishWib:"")+" · Awaiting publication"
-         : "No scheduled videos pending";
+       scheduledInfo.textContent="Scheduled: "+queued.length+" · Public: "+confirmedPublic+(queued.length&&publishWib?" · "+publishWib:"");
        scheduledInfo.style.color=queued.length?"#9deecb":"#a6b3d9";
      }
    }
@@ -775,7 +777,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
    }
  }).catch(()=>{if(!session)byId("connectionDetail").textContent="Cannot reach Railway. Try Check Backend.";chip.textContent="Needs attention";});
  if(session){
-   refreshStatus().then(r=>{const connected=!!r.channel?.verified; const channel=r.channel; paintServerStatus(); const pub=document.getElementById("publishedCount");if(pub)pub.textContent=(r.items||[]).filter(x=>x.status==="published").length; say("Google authorized: "+(channel?.name||"owner")+" · Channel ID: "+(channel?.id||"pending")+" · "+(connected?"verified target":"set EXPECTED_YOUTUBE_CHANNEL_ID in Railway after checking this is Orbit & Ocean")+".",connected);})
+   refreshStatus().then(r=>{const connected=!!r.channel?.verified; const channel=r.channel; paintServerStatus(); const pub=document.getElementById("publishedCount");if(pub)pub.textContent=(r.items||[]).filter(x=>!!x.youtubeId).length; say("Google authorized: "+(channel?.name||"owner")+" · Channel ID: "+(channel?.id||"pending")+" · "+(connected?"verified target":"set EXPECTED_YOUTUBE_CHANNEL_ID in Railway after checking this is Orbit & Ocean")+".",connected);})
      .catch(e=>{
        const msg=String(e?.message||e);
        if(msg==="owner_session_expired"){sessionStorage.removeItem(tokenKey);syncOwnerSession();say("Owner session expired. Sign in again to continue.");}
