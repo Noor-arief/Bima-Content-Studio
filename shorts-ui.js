@@ -5,7 +5,7 @@
   if (!actions || !$('apiEndpoint') || typeof getSelected !== 'function' || typeof mediaDB !== 'function') return;
 
   const style = document.createElement('style');
-  style.textContent = '.shorts-mode{max-width:190px;min-height:34px;padding:6px 9px;background:#111b3d;color:#e6edff;border:1px solid #344372;border-radius:8px;font-size:12px}.shorts-note{font-size:11.5px;line-height:1.55;color:#b9c9f5;display:block;margin-top:8px}.media-actions .shorts-convert{background:linear-gradient(135deg,#7766ef,#597cff);color:#fff;font-weight:700}.media-actions .shorts-convert:disabled{opacity:.5;cursor:wait}';
+  style.textContent = '.shorts-mode{max-width:190px;min-height:34px;padding:6px 9px;background:#111b3d;color:#e6edff;border:1px solid #344372;border-radius:8px;font-size:12px}.shorts-note{font-size:11.5px;line-height:1.55;color:#b9c9f5;display:block;margin-top:8px}.media-actions .shorts-convert{background:linear-gradient(135deg,#7766ef,#597cff);color:#fff;font-weight:700}.media-actions .shorts-convert:disabled{opacity:.5;cursor:wait}#restoreOriginal[hidden]{display:none!important}';
   document.head.append(style);
 
   const convert = document.createElement('button');
