@@ -124,8 +124,9 @@
   function detailFor(item){
     if(!item)return 'Belum ada konten terpilih.';
     const entry=currentItems[item.id];
-    if(entry?.status==='published')return '✓ Published on YouTube · '+(entry.youtubeId||'')+' · BIMA selesai.';
-    if(entry?.status==='scheduled')return '✓ BIMA sudah upload & schedule · '+wib(entry.publishAt)+' · Video ID '+(entry.youtubeId||'')+'. Menunggu konfirmasi Public.';
+    const stale=window.BIMA_REMOTE_STALE?' · Last verified state; sign in to refresh.':'';
+    if(entry?.status==='published')return '✓ Published on YouTube · '+(entry.youtubeId||'')+' · BIMA selesai.'+stale;
+    if(entry?.status==='scheduled')return '✓ BIMA sudah upload & schedule · '+wib(entry.publishAt)+' · Video ID '+(entry.youtubeId||'')+'. Menunggu konfirmasi Public.'+stale;
     if(entry?.status==='private_uploaded')return '✓ BIMA berhasil upload Private · '+(entry.youtubeId||'')+'. Publikasi Public belum terjadwal atau terkonfirmasi.';
     if(entry?.status==='uploading')return 'BIMA sedang upload… jangan klik ulang.';
     if(entry?.status==='needs_review')return 'Upload perlu investigasi; BIMA tidak akan mencoba ulang agar tidak menduplikasi video.';
