@@ -383,6 +383,11 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 @media(max-width:600px){#publishingQuickActions .actions button{flex:1 1 100%}}
 #publishingSignIn[hidden]{display:none!important}
 #publishingOwnerStatus{font-weight:700}
+
+#serverApprovalConfirmed:not([hidden]){display:block;padding:14px 16px;background:rgba(36,151,108,.12);border:1px solid rgba(65,217,154,.45);color:#9deecb;font-weight:750;border-radius:12px;margin:12px 0;line-height:1.6}
+.publishing-manual{padding:12px 14px;margin:14px 0;background:rgba(255,195,99,.065);border:1px solid rgba(255,195,99,.23);border-radius:10px}
+.publishing-manual p{color:#ffdcad;font-size:12.5px;line-height:1.6}
+.publishing-manual button{margin:5px 8px 5px 0}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -408,9 +413,11 @@ body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
  <div class="line"><div><h2 id="publishingQuickHeading">Next: Send approved video to Railway</h2><p class="sub" style="margin-bottom:0">Tahap 3 · Kirim MP4 ke server BIMA dan konfirmasi jadwal; ini bukan upload YouTube.</p></div><span class="chip" id="publishingReadyBadge">Checking draft…</span></div>
  <p id="publishingSelected" class="publishing-selected" role="status" aria-live="polite">Checking selected draft…</p>
+ <p id="serverApprovalConfirmed" role="status" aria-live="polite" hidden></p>
  <div class="actions" style="align-items:center"><span class="chip" id="publishingOwnerStatus" role="status" aria-live="polite">Checking owner session…</span><button class="btn" id="publishingSignIn" type="button" hidden>Sign in as YouTube owner</button></div>
  <div class="actions"><button class="btn primary" id="publishingSend" type="button">1 · Save selected video to server</button><button class="btn" id="publishingApprove" type="button">2 · Approve server-side schedule</button></div>
  <p class="hint" id="publishingResult" role="status" aria-live="polite">Click Step 1 after local approval. No YouTube upload will happen.</p>
+ <div class="publishing-manual"><p id="publishingManualNotice">Server approval does not publish video automatically.</p><button class="btn" type="button" id="openYouTubeStudio">Open YouTube Studio ↗</button><button class="btn ghost" type="button" id="manualDownloadMp4">Download final MP4</button></div>
  <p class="hint">Server approval requires a publish time at least 15 minutes in the future. Private upload remains disabled until explicitly enabled for testing.</p>
 </section>
 <div class="content-grid">
@@ -736,5 +743,5 @@ render();
 })();
 </script>
 <script src="shorts-ui.js?v=20261011-fullscreen-crop3" defer></script>
-<script src="production-steps.js?v=20261011-owner-session4" defer></script>
+<script src="production-steps.js?v=20261011-approval-confirm5" defer></script>
 </body></html>
