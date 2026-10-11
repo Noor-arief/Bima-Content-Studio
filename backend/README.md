@@ -31,6 +31,14 @@
 - `POST /api/content/:id/submit` — if `ENABLE_UPLOADS=true`, performs one resumable upload; marks ambiguous outcomes `needs_review` to prevent duplicates.
 - `POST /api/content/:id/verify` — checks YouTube status and target channel before marking Published.
 
+## Shorts Auto Convert (new, no YouTube publish)
+- Open a calendar draft with a saved Gemini MP4 in the Shorts Production Desk.
+- Sign in as the YouTube owner (secure Railway session), then press **Auto Convert 9:16**.
+- Default **Blur background** preserves the full 16:9 frame, or choose **Crop to fill**.
+- POST /api/convert-shorts?mode=blur|crop is owner-authenticated, MP4-only, max 30MB, max 65 seconds, serial (one at a time), and outputs H.264/AAC 1080x1920. Processing uses FFmpeg in temporary storage, with no persistent video upload or YouTube publish.
+- The converted MP4 replaces the local draft asset in IndexedDB only after conversion succeeds; the original stays in IndexedDB as a restore backup. **Download MP4** can save a local copy. This invalidates previous editorial approval, requiring another review.
+- This feature is separate from ENABLE_UPLOADS and ENABLE_PUBLIC_SCHEDULING, which remain false during private pilot.
+
 ## Security boundaries & known limitations
 - Current authentication is limited to the configured single Google owner email + short-lived session token (stored only in tab sessionStorage); owner must authenticate through Google.
 - OAuth refresh token encrypted using AES-256-GCM and key in Railway. Never expose client secret, refresh token or file bytes to Github Pages repo.
