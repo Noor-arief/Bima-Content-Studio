@@ -6,7 +6,7 @@
 - Persistent Railway volume: `/data` (1 GB); owner session hashes, encrypted Google refresh token, upload journal, private MP4 files. A single Railway replica only.
 - Railway URL: https://content-studio-api-production-3fe2.up.railway.app
 - Owner frontend: https://noor-arief.github.io/Bima-Content-Studio/
-- Current rollout: **OAuth NOT configured; video uploads OFF; public scheduling OFF.** A running backend is NOT a connected YouTube channel.
+- Status checkpoint (11 Oct 2026): **Google OAuth authorized; Orbit & Ocean expected channel ID configured; uploads OFF; public scheduling OFF.** A locked channel ID is not the same as a confirmed ID match. The public `/health.channelVerified` boolean reports the match safely without disclosing the channel ID; owner `/api/status` gives detailed verification after Google login.
 
 ## Setup remaining — OWNER-ONLY, NEVER COMMIT SECRETS
 1. On Google Cloud, open existing **BIMA Content Studio Backend / Web application** OAuth Client.
