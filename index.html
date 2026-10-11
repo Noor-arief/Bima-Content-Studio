@@ -292,6 +292,25 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 <div class="queue"><table><thead><tr><th>Date (WIB)</th><th>Content</th><th>Production</th><th>Approval</th><th>YouTube upload</th></tr></thead><tbody id="queueBody"></tbody></table></div><div class="hint">Publish automation remains blocked until OAuth and secure server integration are completed. No fake Connected or Published statuses.</div></section>
 </main>
 <section class="panel coming hidden" id="futureWorkspace"><h2 id="futureTitle"></h2><p id="futureText"></p><div class="roadmap" id="futurePlan"></div><p><button class="btn primary" id="backToYoutube">Return to YouTube Faceless</button></p></section>
+
+<section class="panel" id="serverAutomation" style="margin:18px auto;max-width:1480px">
+ <div class="line"><div><h2> BIMA YouTube Automation — Secure Backend </h2><p class="sub">Connect the Google account that owns Orbit & Ocean. Video uploads and Google authorization run on an isolated Railway server, never in this HTML file.</p></div><span class="chip" id="apiStatusChip">Backend not configured</span></div>
+ <div class="fields" style="margin-top:14px">
+  <div class="field full"><label for="apiEndpoint">Railway backend HTTPS URL</label><input id="apiEndpoint" type="url" placeholder="https://content-studio-api-xxxx.up.railway.app"></div>
+  <div class="field"><label for="apiMadeForKids">Audience classification</label><select id="apiMadeForKids"><option value="false">General audience / Not made for kids</option><option value="true">Made for kids</option></select></div>
+  <div class="field"><label><input id="apiSynthetic" type="checkbox"> Realistic synthetic scenes (requires YouTube disclosure)</label></div>
+ </div>
+ <div class="actions">
+  <button class="btn" id="apiCheck" type="button">Check Backend</button>
+  <button class="btn" id="apiGoogle" type="button">Connect YouTube (Google OAuth)</button>
+  <button class="btn" id="apiSend" type="button">Save selected video to server</button>
+  <button class="btn" id="apiApprove" type="button">Approve server-side schedule</button>
+  <button class="btn primary" id="apiSubmit" type="button">Upload Private / Schedule</button>
+  <button class="btn" id="apiVerify" type="button">Verify on YouTube</button>
+ </div>
+ <p class="note warn" style="margin-top:14px"><strong>Approval safeguard:</strong> Select and save a final MP4 in Shorts Production Desk. Then send it to Railway, approve that exact file, and upload after OAuth setup. Until Google’s API audit and permission checks pass, BIMA may be able to upload Private but cannot promise public scheduling. No action here uploads without a click.</p>
+ <p class="hint" id="apiServerMessage" role="status" aria-live="polite">Google OAuth and server storage not yet connected. Existing calendar drafts remain local until explicitly sent.</p>
+</section>
 <footer class="footer">BIMA Content Studio · Prototype V4 · Local video vault · YouTube automation not yet connected</footer>
 </div>
 <script>
@@ -351,5 +370,93 @@ $('dropzone').addEventListener('dragleave',e=>{e.currentTarget.classList.remove(
 $('dropzone').addEventListener('drop',e=>{e.preventDefault();e.currentTarget.classList.remove('dragover');const f=e.dataTransfer.files?.[0];if(f)storeSelectedVideo(f)});
 $('dropzone').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('videoFile').click()}});
 $('removeVideo').addEventListener('click',removeSelectedVideo);
+
+/* Secure Railway integration: no Google secrets or long-lived refresh tokens in browser. */
+(function initSecureAutomation(){
+ const byId=id=>document.getElementById(id);
+ const urlEl=byId("apiEndpoint"),message=byId("apiServerMessage"),chip=byId("apiStatusChip");
+ const tokenKey="bima_content_server_session";
+ const endpointKey="bima_content_server_url";
+ let session=sessionStorage.getItem(tokenKey)||"";
+ const hash=new URLSearchParams(location.hash.replace(/^#/,""));
+ if(hash.has("bima_session")){
+   session=hash.get("bima_session")||"";
+   sessionStorage.setItem(tokenKey,session);
+   history.replaceState(null,"",location.pathname+location.search);
+ }
+ urlEl.value=localStorage.getItem(endpointKey)||"https://content-studio-api-production-3fe2.up.railway.app";
+ const say=(s,good=false)=>{message.textContent=s;chip.textContent=good?"Server connected":"Needs attention";};
+ const base=()=>{
+   const input=urlEl.value.trim().replace(/\/$/,"");
+   if(!/^https:\/\/[a-zA-Z0-9.-]+\.up\.railway\.app$/.test(input))throw Error("Enter the full HTTPS Railway service URL (up.railway.app), not GitHub Pages.");
+   localStorage.setItem(endpointKey,input);return input;
+ };
+ async function call(path,method="GET",body=null,mime="application/json"){
+   if(!session)throw Error("Connect Google before using secure API.");
+   const headers={Authorization:"Bearer "+session};
+   if(body!==null)headers["Content-Type"]=mime;
+   const r=await fetch(base()+path,{method,headers,body:body===null?undefined:body});
+   let data;try{data=await r.json();}catch{throw Error("Invalid server response ("+r.status+").");}
+   if(!r.ok)throw Error(data.error||"HTTP "+r.status);
+   return data;
+ }
+ const safeRun=fn=>async()=>{try{await fn();}catch(e){say("Action blocked: "+(e.message||e));}};
+ byId("apiCheck").addEventListener("click",safeRun(async()=>{
+    const r=await fetch(base()+"/health");const data=await r.json();
+    say("Backend "+data.status+" · OAuth config "+(data.oauthConfigured?"ready":"pending")+
+      " · YouTube "+(data.youtubeConnected?"consented":"not connected")+
+      " · Upload "+(data.uploadsEnabled?"enabled":"disabled"),data.status==="online");
+ }));
+ byId("apiGoogle").addEventListener("click",safeRun(async()=>{
+    const r=await fetch(base()+"/health");const v=await r.json();
+    if(!v.oauthConfigured)throw Error("Set backend OAuth variables in Railway first. Do not paste secrets here.");
+    location.href=base()+"/auth/google/start";
+ }));
+ byId("apiSend").addEventListener("click",safeRun(async()=>{
+    const item=getSelected();
+    if(!item)throw Error("Select a YouTube calendar draft first.");
+    // Saves current editor before upload, but does not mark editorial approval.
+    saveDraft();
+    if(!item.mediaName)throw Error("Attach the final MP4 through Shorts Production Desk first.");
+    const localFile=await mediaDB("get",item.id);
+    if(!(localFile instanceof Blob))throw Error("Video is missing from browser storage.");
+    if(localFile.type!=="video/mp4" && !String(item.mediaName).toLowerCase().endsWith(".mp4"))throw Error("Only MP4 is supported by the server. Convert final video first.");
+    if(localFile.size>150000000)throw Error("Video exceeds server 150MB limit.");
+    const date=item.date,clock=item.time||"19:30";
+    const time=new Date(date+"T"+clock+":00+07:00");
+    if(!Number.isFinite(time.getTime()))throw Error("Invalid publish date or time.");
+    await call("/api/content","POST",JSON.stringify({
+      id:item.id,title:item.title,description:item.caption||"",
+      publishAt:time.toISOString(),
+      madeForKids:byId("apiMadeForKids").value==="true",
+      containsSyntheticMedia:byId("apiSynthetic").checked
+    }));
+    say("Sending "+item.mediaName+" to private Railway storage (not YouTube)…");
+    const b=await call("/api/content/"+encodeURIComponent(item.id)+"/media","POST",localFile,"video/mp4");
+    say("Stored on Railway: "+((b.item.mediaSize/1048576)||0).toFixed(1)+" MB · server draft ready.",true);
+ }));
+ byId("apiApprove").addEventListener("click",safeRun(async()=>{
+    const i=getSelected();if(!i)throw Error("Select a draft.");
+    if(!i.approved)throw Error("First mark Approved in the local editor after completing video QA.");
+    const r=await call("/api/content/"+encodeURIComponent(i.id)+"/approve","POST","{}");
+    say("Server approved "+r.item.title+" for "+new Date(r.item.publishAt).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"})+" WIB.",true);
+ }));
+ byId("apiSubmit").addEventListener("click",safeRun(async()=>{
+    const i=getSelected();if(!i)throw Error("Select a draft.");
+    if(!confirm("Upload this OWNER-APPROVED video to the authorized YouTube channel now? Google may keep it Private until your project passes verification."))return;
+    const r=await call("/api/content/"+encodeURIComponent(i.id)+"/submit","POST","{}");
+    say("Upload submitted. Server is processing; use Check Backend / Verify on YouTube to confirm the result.",true);
+ }));
+ byId("apiVerify").addEventListener("click",safeRun(async()=>{
+    const i=getSelected();if(!i)throw Error("Select a draft.");
+    const r=await call("/api/content/"+encodeURIComponent(i.id)+"/verify","POST","{}");
+    say("YouTube verified: "+r.item.status+" · "+(r.item.youtubeId?"https://youtube.com/watch?v="+r.item.youtubeId:"No video ID"),true);
+ }));
+ if(session){
+   call("/api/status").then(r=>say("Signed in as authorized channel "+(r.channel?.name||"owner")+" · "+(r.channel?.verified?"channel ID confirmed":"channel ID pending")+".",!!r.channel?.verified))
+     .catch(()=>{session="";sessionStorage.removeItem(tokenKey);say("Sign in again to reconnect.");});
+ }
+})();
+
 render();
 </script></body></html>
