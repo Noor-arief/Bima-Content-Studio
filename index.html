@@ -918,7 +918,7 @@ render();
    const dd=document.getElementById('deskDate');if(dd)dd.textContent=human(state.selected);
  }
  function route(v,replace=false){
-   const params=new URLSearchParams({view:v});
+   const params=new URLSearchParams({view:v,date:state.selected,month:state.month});
    if(getSelected())params.set('item',getSelected().id);
    const hash='#'+params.toString();
    if(location.hash!==hash)history[replace?'replaceState':'pushState'](null,'',hash);
@@ -950,6 +950,8 @@ render();
  });
  document.getElementById('dayList').addEventListener('click',e=>{if(e.target.closest('.item'))setView('desk')});
  document.getElementById('newContent').addEventListener('click',()=>setView('desk'));
+ document.getElementById('calendar').addEventListener('click',e=>{if(e.target.closest('.day'))route('kalender')});
+ for(const id of ['prev','next'])document.getElementById(id).addEventListener('click',()=>route('kalender'));
  const todayButton=document.createElement('button');todayButton.type='button';todayButton.className='btn ghost';todayButton.textContent='Hari ini';
  document.getElementById('next').after(todayButton);
  todayButton.addEventListener('click',()=>{if(!mayLeave())return;state.selected=today();state.month=state.selected.slice(0,7);state.selectedItem=items().find(i=>i.date===state.selected)?.id||'';persist();route('kalender')});
@@ -963,7 +965,9 @@ render();
  function restore(){
    const params=new URLSearchParams(location.hash.slice(1)),id=params.get('item');
    if(id&&items().some(i=>i.id===id)){const i=items().find(i=>i.id===id);state.selectedItem=id;state.selected=i.date;state.month=i.date.slice(0,7);render();}
-   setView(params.get('view')||'ringkasan',false,false);
+   if(/^\d{4}-\d{2}-\d{2}$/.test(params.get('date')||'')){state.selected=params.get('date');if(!id)state.selectedItem='';}
+   if(/^\d{4}-\d{2}$/.test(params.get('month')||''))state.month=params.get('month');
+   render();setView(params.get('view')||'ringkasan',false,false);
  }
  window.addEventListener('popstate',()=>{if(mayLeave())restore();else route(document.body.dataset.view,true)});
  if(location.hash.startsWith('#view='))restore();else{let saved;try{saved=sessionStorage.getItem('bimaView')}catch(_){}setView(saved||'ringkasan',false,false);route(document.body.dataset.view,true)}
