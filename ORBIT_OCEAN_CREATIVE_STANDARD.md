@@ -26,3 +26,15 @@ Updated 11 October 2026. Applies to every 10-second science/nature/space Short g
 
 ## Safe migration
 The default calendar contains 37 revised prompts. The browser stores drafts in localStorage; therefore **only untouched legacy prompt text on an unapproved/unuploaded entry is upgraded automatically**. Any custom-edited text, approved item, or item with a YouTube ID is preserved. Existing MP4s in IndexedDB are never modified or replaced by this prompt migration.
+
+## Episode Storyboard V3 — 16/24/32 second workflow
+- Stop assuming all science topics can be fully explained in 10 seconds. Choose runtime for **learning complexity**: 16 seconds (2 × ~8s) for one simple visual mechanism; 24 seconds (3 × ~8s) for hook + explanation + payoff; 32 seconds (4 × ~8s) for a more involved scientific explanation.
+- Use Production Desk → **Episode Workflow**, where each selected draft has: unique learning objective, scene-by-scene storyboard, 8-second Gemini prompts and one master narration text.
+- Octopus (12 Oct) pilot = **24 seconds**; scene 1 shows a friendly octopus with three icons outside its body, scene 2 shows two icons pumping toward gills, scene 3 illustrates third heart pumping oxygen-rich blood around the body and holds the final image.
+- Generate scenes one at a time, preserving appearance by using previous last frame as a reference when the chosen Gemini/Flow capability supports it. Each scene prompt explicitly requests **no narration**; a continuous master voice-over spans the finished montage to prevent broken/uneven speech.
+- Final audio: voice clear and moderate-paced, starts near 0.5s and **finishes ≥2.5s before the video ends**. Hold the final visual while music resolves; do not cut off the narrator.
+- Assemble scenes in sequence and attach **one completed portrait MP4** for BIMA approval/publishing. **No automatic clip-stitching or master voice synthesis is implemented in BIMA yet.** Do not present separate generated clips as a final approved video.
+- Clicking **Use workflow in draft** is explicit; it changes the draft prompt and format to Shorts 15–60 seconds, requiring normal Save/Review/Approval. Approved/uploaded video records are protected and unchanged.
+- Existing 10-second creative prompt references remain available as source concepts, not automatic production instructions once a longer workflow is applied.
+- Scientific specifics and voice text generated from standard fallback plans require editorial fact-check before publishing. A model prompt does not guarantee timing, audio, or factual accuracy.
+
