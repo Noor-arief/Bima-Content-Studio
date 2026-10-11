@@ -325,6 +325,45 @@ body[data-view="publishing"] #serverAutomation{max-width:980px!important}
   .brand{display:block;padding:0}
   .brand-logo{width:auto;height:46px;max-width:100%}
 }
+
+/* ---------- Ringkasan: metrics without boxes + fit one screen ---------- */
+.content>.head{grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:stretch}
+.content .hero{padding:18px 24px}
+.content .hero h1{font-size:clamp(21px,1.9vw,26px);margin:8px 0 6px}
+.content .hero p{max-width:640px;margin:0 0 12px;font-size:12.5px;line-height:1.5}
+.content .side-status{display:flex;align-items:stretch;gap:12px}
+.content .metric{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px 20px;min-width:0;flex:0 1 300px;max-width:300px;justify-content:flex-start;gap:6px}
+.content .metric strong{font-size:28px}
+.content #connectionStatus{font-size:17px}
+.content .metric small{margin-top:auto;padding-top:8px;font-size:11.5px;line-height:1.5}
+.queue td,.queue th{padding-top:10px;padding-bottom:10px}
+
+body[data-view="ringkasan"] .content{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-bottom:22px;overflow-y:auto}
+body[data-view="ringkasan"] .content>.head{flex:0 0 auto;margin-bottom:14px}
+body[data-view="ringkasan"] #ytWorkspace{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+body[data-view="ringkasan"] #ytWorkspace>.content-grid{flex:0 0 auto}
+body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding-bottom:16px}
+body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]>.line{flex:0 0 auto}
+body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]>.queue{flex:1 1 auto;min-height:0;overflow:auto}
+body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]>.hint{flex:0 0 auto;margin-top:10px}
+body[data-view="ringkasan"] .footer{display:none}
+body[data-view="ringkasan"] #futureWorkspace{flex:0 0 auto}
+
+@media(max-width:1160px){
+  .content>.head{grid-template-columns:1fr;gap:12px}
+  .content .side-status{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .content .metric{max-width:none;padding:14px 18px}
+}
+@media(max-width:900px),(max-height:620px){
+  body[data-view="ringkasan"] .content{display:block;height:auto;overflow:visible}
+  body[data-view="ringkasan"] #ytWorkspace{display:block}
+  body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]{display:block}
+  body[data-view="ringkasan"] #ytWorkspace>section.panel[data-panel="ringkasan"]>.queue{max-height:60vh}
+  body[data-view="ringkasan"] .footer{display:block}
+}
+@media(max-width:600px){
+  .content .side-status{grid-template-columns:1fr;gap:10px}
+}
 </style>
 </head>
 <body data-view="ringkasan">
