@@ -453,7 +453,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
     say("YouTube verified: "+r.item.status+" · "+(r.item.youtubeId?"https://youtube.com/watch?v="+r.item.youtubeId:"No video ID"),true);
  }));
  if(session){
-   call("/api/status").then(r=>say("Signed in as authorized channel "+(r.channel?.name||"owner")+" · "+(r.channel?.verified?"channel ID confirmed":"channel ID pending")+".",!!r.channel?.verified))
+   call("/api/status").then(r=>{const connected=!!r.channel?.verified; const channel=r.channel; const statusEl=document.getElementById("connectionStatus"); if(statusEl)statusEl.textContent=connected?"Connected · "+(channel.name||"YouTube"):"Verification pending"; const pub=document.getElementById("publishedCount");if(pub)pub.textContent=(r.items||[]).filter(x=>x.status==="published").length; say("Google authorized: "+(channel?.name||"owner")+" · Channel ID: "+(channel?.id||"pending")+" · "+(connected?"verified target":"set EXPECTED_YOUTUBE_CHANNEL_ID in Railway after checking this is Orbit & Ocean")+".",connected);})
      .catch(()=>{session="";sessionStorage.removeItem(tokenKey);say("Sign in again to reconnect.");});
  }
 })();
