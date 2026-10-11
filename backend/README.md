@@ -1,40 +1,44 @@
-# BIMA Content Studio — isolated backend foundation
+# BIMA Content Studio — secure YouTube upload backend (Phase 2)
 
-**Status: infrastructure scaffold only. NOT a live YouTube integration.** This directory is intentionally isolated from the Pages `index.html`. Nothing in this version uploads, schedules, authorizes Google, saves videos, or publishes to YouTube.
+## Deployed technical foundation
+- Railway project: `bima-content-studio`, service: `content-studio-api`; separate from BIMA.Ginga, Quant, AVA, and Vireqo.
+- Runtime: built-in Node 22 HTTP; no third-party dependencies.
+- Persistent Railway volume: `/data` (1 GB); owner session hashes, encrypted Google refresh token, upload journal, private MP4 files. A single Railway replica only.
+- Railway URL: https://content-studio-api-production-3fe2.up.railway.app
+- Owner frontend: https://noor-arief.github.io/Bima-Content-Studio/
+- Current rollout: **OAuth NOT configured; video uploads OFF; public scheduling OFF.** A running backend is NOT a connected YouTube channel.
 
-## Intended Railway configuration
+## Setup remaining — OWNER-ONLY, NEVER COMMIT SECRETS
+1. On Google Cloud, open existing **BIMA Content Studio Backend / Web application** OAuth Client.
+2. Add authorized redirect URL: `https://content-studio-api-production-3fe2.up.railway.app/auth/google/callback`. No JavaScript origin needed; browser client communicates with Railway, Google redirects to the backend.
+3. On Google Auth Platform **Data Access**, retain `youtube.upload` and add `youtube.readonly` for exact channel identity verification. Set OAuth test user to the account controlling **Orbit & Ocean**.
+4. In Railway service **Variables** (not frontend or GitHub), set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from Google OAuth client. They must remain on the server. Confirm `OWNER_EMAIL` is the actual Google identity owning Orbit & Ocean, not merely a vidIQ login (currently configured based on the connected account; update privately if different).
+5. Current stable non-secret variables: `PUBLIC_BASE_URL=https://content-studio-api-production-3fe2.up.railway.app`; `DATA_DIR=/data`; `NODE_ENV=production`; `ENABLE_UPLOADS=false`; `ENABLE_PUBLIC_SCHEDULING=false`. `TOKEN_ENCRYPTION_KEY` is preconfigured, never rotate without first decrypting/migrating stored tokens.
+6. Use dashboard's **Connect YouTube (Google OAuth)**. Login and consent as owner. Backend calls the YouTube channels endpoint. It returns the authorized channel ID/name in `/api/status`; owner checks it matches Orbit & Ocean.
+7. Set `EXPECTED_YOUTUBE_CHANNEL_ID` on Railway Variables to confirmed value (UC... ID). Until it matches, upload and scheduling gates stay closed.
+8. After the channel matches and a FINAL MP4 with future publication date is approved: carefully set `ENABLE_UPLOADS=true` to test a **Private upload only**, then use dashboard buttons **Save selected video to server → Approve server-side schedule → Upload Private / Schedule**. Verify in YouTube Studio and BIMA. No automatic duplicate retries.
+9. **Before `ENABLE_PUBLIC_SCHEDULING=true`:** verify YouTube API project's audit/compliance requirements and OAuth production/verification. Projects that have not passed a required YouTube audit may be restricted to Private uploads. External Testing OAuth refresh tokens may expire after 7 days, making unattended long-term scheduling unreliable. Confirm a real successful future `publishAt` and a public result before claiming PASS.
+10. Set `ENABLE_PUBLIC_SCHEDULING=true` only after owner-approved end-to-end test, compliance and audit. Google API `status.privacyStatus=private` + `status.publishAt` handles the transition if permitted. Backend polls every 15 minutes and stores confirmed state.
 
-- **Railway project:** `bima-content-studio`, not any existing BIMA, AVA, Quant, or Vireqo service.
-- **Service:** `content-studio-api`, repository `Noor-arief/Bima-Content-Studio`
-- **Root directory:** `/backend`, Node >=20, `npm start`
-- **Health path:** `/health`. A response with `status: scaffold` is NOT authorization or posting.
-- **Readiness path:** `/ready` intentionally returns HTTP 503 until the real secure backend is implemented.
-- **Public domain:** generate a Railway HTTPS service domain only after a backend service has been safely deployed and verified. The Google OAuth redirect URI will be that verified origin plus `/auth/google/callback` AFTER route implementation; do not guess it.
-- **Cost:** provisioning/deployment can incur Railway usage. Do not deploy or attach always-on resources without owner approval.
+## Routes
+- `GET /health` — public and non-sensitive; indicates OAuth and upload gating flags.
+- `GET /ready` — intentionally returns 503 until Google authorization and confirmed channel ID are available.
+- `GET /auth/google/start`, `GET /auth/google/callback` — Google OAuth code grant + PKCE, offline access, owner email enforcement; no secrets in URLs sent to GitHub.
+- `GET /api/status` — owner session Bearer required; list server job states, channel identity and recent logs.
+- `POST /api/content` — owner-only draft upsert; requires title/description, ISO future `publishAt`, flags for made-for-kids and realistic synthetic content.
+- `POST /api/content/:id/media` — owner-only, raw MP4, max 150MB, signature checked, SHA-256 streamed, stored in private Railway volume.
+- `POST /api/content/:id/approve` — server-side approval locked to exact MP4 hash and future schedule.
+- `POST /api/content/:id/submit` — if `ENABLE_UPLOADS=true`, performs one resumable upload; marks ambiguous outcomes `needs_review` to prevent duplicates.
+- `POST /api/content/:id/verify` — checks YouTube status and target channel before marking Published.
 
-## Required before enabling automation
+## Security boundaries & known limitations
+- Current authentication is limited to the configured single Google owner email + short-lived session token (stored only in tab sessionStorage); owner must authenticate through Google.
+- OAuth refresh token encrypted using AES-256-GCM and key in Railway. Never expose client secret, refresh token or file bytes to Github Pages repo.
+- A single Node process and single persistent Railway volume hold JSON job state. This is an early controlled rollout, NOT multi-worker/high-throughput production. More scalable database, reliable upload resume/reconciliation and alerting should be built before higher volume.
+- Upload attempts with uncertain Google responses never retry automatically; owner must investigate the YouTube channel to prevent duplicated clips.
+- Backend does not create or generate Gemini video; user manually supplies final reviewed MP4.
+- YouTube application audits and consent screen verification are external steps BIMA cannot bypass.
+- New Railway service and volume may accrue usage charges.
 
-1. Owner-only session/access control on all API actions. Real backend must not trust editable localStorage booleans like `approved` as authorization.
-2. Google OAuth Authorization Code with PKCE, exact allowlisted redirect URI, cryptographically random one-time state, explicit YouTube channel ID verification; owner completes consent in Google.
-3. Store client secret and refresh token only as Railway server-side environment secrets, or encrypt tokens at rest in server-side persistent storage. Never store them in the browser, GitHub, logs, or AI chat.
-4. Persistent server-side database for approvals, statuses, schedules, upload journal, retries, content ID, and audit logs; private S3-compatible object bucket for actual approved MP4s. Browser IndexedDB is only a local preview and is not usable for scheduled posting.
-5. Validate original MP4 type, length, width/height, declared owner, storage integrity, title/description, kids/synthetic-media flags and exact scheduling time. Confirm owner approval for a specific file hash and publish target.
-6. Upload once to the **exact verified YouTube channel**, mark private, schedule public release through the official API, track API quota, idempotency key, upload status and failures. Never report `Connected`, `Scheduled` or `Published` without YouTube confirmation.
-7. Testing-mode OAuth refresh tokens may expire in 7 days for YouTube scopes; plan Google consent screen production/verification and YouTube API project upload restrictions before relying on unattended weeks-long schedules.
-8. Upload a dummy video privately and verify the owner/channel, before enabling auto-publication.
-
-## GitHub Pages integration
-
-The static page is at https://noor-arief.github.io/Bima-Content-Studio/ .
-This branch deliberately does NOT alter the existing page, change branding, connect third-party accounts, add public upload endpoints, or deploy any backend.
-
-## Local start
-
-```bash
-cd backend
-npm start
-curl -i http://localhost:3000/health
-curl -i http://localhost:3000/ready
-```
-
-**Acceptance gate:** implement secure server state + OAuth + storage and automated tests, then obtain owner permission to deploy, connect tokens and test upload in Private mode.
+## Automated tests
+`cd backend && npm test`: probes healthy endpoint, denied private endpoints, inactive OAuth and CORS origin checks. GitHub Actions checks syntax and these security smoke tests on backend branch PRs.
