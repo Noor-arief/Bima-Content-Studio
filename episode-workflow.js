@@ -22,6 +22,7 @@ css.textContent=[
 '#episodeWorkflow .ew-btn:disabled{opacity:.4;cursor:not-allowed}',
 '#episodeWorkflow .ew-control{border:1px solid rgba(148,163,255,.33);background:#0c1737;border-radius:9px;color:#f3f5ff;padding:8px 10px;font:inherit}',
 '#episodeWorkflow .ew-voice{display:block;width:100%;min-height:82px;resize:vertical;border:1px solid rgba(148,163,255,.35);border-radius:9px;background:#0b1531;color:#f3f5ff;font:13px/1.6 ui-sans-serif,system-ui;padding:10px}',
+'#episodeWorkflow .ew-scene-input{width:100%;min-height:124px;resize:vertical;color:#c5d3f0;background:rgba(8,15,36,.7);border:1px solid rgba(148,163,255,.2);border-radius:8px;padding:8px;font:12px/1.55 ui-sans-serif,system-ui}',
 '#episodeWorkflow .ew-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}',
 '#episodeWorkflow .ew-status{font-size:12px;color:#9fefcf;min-height:18px;margin:8px 0}',
 '@media(max-width:780px){#episodeWorkflow{padding:12px}#episodeWorkflow .ew-grid{grid-template-columns:1fr}}'
@@ -31,7 +32,7 @@ const panel=document.createElement('section');panel.id='episodeWorkflow';
 panel.setAttribute('aria-label','Per-video production workflow');
 panel.innerHTML='<div class="ew-row"><div><h3>Episode Workflow</h3><p class="ew-muted">Teaching brief → storyboard → Gemini clips → full voice-over → final MP4 → BIMA Publish</p></div><span id="ewPhase" class="ew-muted"></span></div>'+
 '<div class="ew-row"><label for="ewDuration" class="ew-muted">Video duration <select id="ewDuration" class="ew-control"><option value="16">16s · 2 clips</option><option value="24">24s · 3 clips</option><option value="32">32s · 4 clips</option></select></label><span class="ew-muted">Each Gemini scene targets 8 seconds</span></div>'+
-'<p id="ewBrief" class="ew-muted"></p><div id="ewScenes" class="ew-grid"></div>'+
+'<label class="ew-muted" for="ewBrief">What viewers will learn (edit before generating)</label><textarea id="ewBrief" class="ew-voice" spellcheck="true"></textarea><div id="ewScenes" class="ew-grid"></div>'+
 '<label class="ew-muted" for="ewVoice">Full English voice-over · record ONE continuous narration for the final video</label>'+
 '<textarea id="ewVoice" class="ew-voice" spellcheck="true"></textarea>'+
 '<div class="ew-actions"><button class="ew-btn" type="button" id="ewCopyVoice">Copy voice-over</button><button class="ew-btn" type="button" id="ewCopyFull">Copy full brief</button><button class="ew-btn primary" type="button" id="ewApply">Use workflow in draft</button></div>'+
@@ -88,9 +89,11 @@ function createPlan(item){
 }
 function scenes(plan){
  const a=plan.scenes||[],n=plan.duration/8;
- if(n===2)return [(a[0]||'Animated hook')+' Then introduce this visual explanation: '+(a[1]||''),(a[2]||'Animated ending')];
- if(n===3)return a;
- return [a[0]||'Animated hook',a[1]||'Animated explanation',(a[1]||'Illustrated explanation')+' Reinforce the teaching point using a simple diagram.',a[2]||'Animated resolved ending'];
+ const custom=plan.overrides?.[plan.duration]||{};
+ const finish=arr=>arr.map((x,i)=>Object.prototype.hasOwnProperty.call(custom,i)?custom[i]:x);
+ if(n===2)return finish([(a[0]||'Animated hook')+' Then introduce this visual explanation: '+(a[1]||''),(a[2]||'Animated ending')]);
+ if(n===3)return finish(a);
+ return finish([a[0]||'Animated hook',a[1]||'Animated explanation',(a[1]||'Illustrated explanation')+' Reinforce the teaching point using a simple diagram.',a[2]||'Animated resolved ending']);
 }
 function clip(item,plan,i){
  const n=plan.duration/8,scene=scenes(plan)[i]||'Continue the science story';
@@ -122,7 +125,8 @@ function populateScenes(item){
   const div=document.createElement('article');div.className='ew-scene';
   const title=document.createElement('strong');title.textContent='Scene '+(index+1)+' · '+index*8+'–'+(index+1)*8+'s';
   const sub=document.createElement('small');sub.textContent=index===0?'Hook':index===plan.duration/8-1?'Payoff and resolved ending':'Explain the fact';
-  const p=document.createElement('p');p.textContent=content;
+  const p=document.createElement('textarea');p.className='ew-scene-input';p.setAttribute('aria-label','Scene '+(index+1)+' visual storyboard');p.value=content;const protect=locked(item);p.readOnly=protect;
+  p.addEventListener('input',()=>{if(!plan||locked(item))return;plan.overrides||={};plan.overrides[plan.duration]||={};plan.overrides[plan.duration][index]=p.value;dirty=true;show('Scene '+(index+1)+' edited. Apply to save.');});
   const b=document.createElement('button');b.className='ew-btn';b.type='button';b.textContent='Copy Gemini prompt';
   b.addEventListener('click',()=>void copy(clip(item,plan,index),'Scene '+(index+1)+' prompt copied.'));
   div.append(title,sub,p,b);area.append(div);
@@ -137,9 +141,9 @@ function render(){
  panel.hidden=false;if(item.id===active&&dirty)return;
  active=item.id;plan=createPlan(item);dirty=false;
  $('ewDuration').value=String(plan.duration);$('ewVoice').value=plan.voice;
- $('ewBrief').textContent='What viewers learn: '+plan.objective;
+ $('ewBrief').value=plan.objective;
  const protect=locked(item);
- $('ewDuration').disabled=protect;$('ewVoice').readOnly=protect;$('ewApply').disabled=protect;
+ $('ewDuration').disabled=protect;$('ewVoice').readOnly=protect;$('ewBrief').readOnly=protect;$('ewApply').disabled=protect;
  $('ewPhase').textContent=protect?'Approved/uploaded · protected':'Planning · needs final video review';
  populateScenes(item);
  show(protect?'Existing approved/uploaded video stays unchanged.':'Set a clear story, generate each scene, then apply workflow to draft.');
@@ -149,11 +153,14 @@ $('ewDuration').addEventListener('change',()=>{
  populateScenes(getSelected());show('Changed to '+plan.duration+'s. Apply to save.');
 });
 $('ewVoice').addEventListener('input',()=>{if(plan){plan.voice=$('ewVoice').value;dirty=true;show('Narration edited. Apply to save.');}});
+$('ewBrief').addEventListener('input',()=>{if(plan){plan.objective=$('ewBrief').value;dirty=true;show('Teaching objective edited. Apply to save.');}});
 $('ewCopyVoice').addEventListener('click',()=>{if(plan)void copy(plan.voice,'Narration copied.');});
 $('ewCopyFull').addEventListener('click',()=>{const item=getSelected();if(plan&&item)void copy(brief(item,plan),'Full storyboard brief copied.');});
 $('ewApply').addEventListener('click',()=>{
  const item=getSelected();if(!item||!plan||locked(item)){show('Cannot edit approved or uploaded content.',true);return;}
- plan.voice=$('ewVoice').value.trim();
+ plan.voice=$('ewVoice').value.trim();plan.objective=$('ewBrief').value.trim();
+ if(plan.objective.length<15){show('Teaching objective is too short. Explain the learning goal first.',true);return;}
+ if(scenes(plan).some(s=>s.trim().length<20)){show('Complete every scene storyboard before applying.',true);return;}
  const words=(plan.voice.match(/\b[\w’'-]+\b/g)||[]).length;
  if(words<10||words>Math.floor(plan.duration*2.5)){show('Narration length '+words+' words does not fit '+plan.duration+' seconds. Adjust length/duration.',true);return;}
  $('fFormat').value='Shorts · 15–60s';
