@@ -3,6 +3,9 @@ import { randomBytes, createHash, createCipheriv, createDecipheriv, timingSafeEq
 import { createReadStream, createWriteStream, existsSync, promises as fs } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import path from "node:path";
+import os from "node:os";
+import { Transform } from "node:stream";
+import { convertShortsVideo } from "./shorts.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -18,6 +21,8 @@ const KEY_B64 = process.env.TOKEN_ENCRYPTION_KEY || "";
 const KEY = /^[0-9a-f]{64}$/i.test(KEY_B64) ? Buffer.from(KEY_B64,"hex") : Buffer.from(KEY_B64,"base64");
 const HAVE_OAUTH = Boolean(BASE && CLIENT_ID && CLIENT_SECRET && OWNER && KEY.length === 32);
 const ENABLE_UPLOADS = process.env.ENABLE_UPLOADS === "true";
+const SHORTS_MAX_UPLOAD = 30 * 1024 * 1024;
+let shortsConversionBusy = false;
 const ENABLE_PUBLIC_SCHEDULING = process.env.ENABLE_PUBLIC_SCHEDULING === "true";
 const EXPECTED_CHANNEL_ID = process.env.EXPECTED_YOUTUBE_CHANNEL_ID || "";
 const ACCESS_SCOPE = "openid email https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
@@ -225,6 +230,50 @@ async function handler(req,res){
   }
   if(!u.pathname.startsWith("/api/"))return error(res,404,"not_found");
   if(!access(req))return error(res,401,"authentication_required");
+  // Conversion is isolated from publishing: authenticated, bounded, temporary MP4 processing only.
+  if(req.method==="POST"&&u.pathname==="/api/convert-shorts"){
+    if(shortsConversionBusy)return error(res,429,"conversion_busy_try_again");
+    const mode=u.searchParams.get("mode")||"blur";
+    if(mode!=="blur"&&mode!=="crop")return error(res,400,"invalid_conversion_mode");
+    if(!String(req.headers["content-type"]||"").startsWith("video/mp4"))return error(res,415,"only_mp4_supported");
+    const givenBytes=Number(req.headers["content-length"]||0);
+    if(!Number.isFinite(givenBytes)||givenBytes>SHORTS_MAX_UPLOAD)return error(res,413,"shorts_max_30mb");
+    shortsConversionBusy=true;
+    let tmp="";
+    try{
+      tmp=await fs.mkdtemp(path.join(os.tmpdir(),"bima-short-"));
+      const source=path.join(tmp,"source.mp4"),output=path.join(tmp,"shorts.mp4");
+      let bytes=0;
+      const limiter=new Transform({transform(chunk,enc,cb){
+        bytes+=chunk.length;
+        cb(bytes>SHORTS_MAX_UPLOAD?Error("shorts_max_30mb"):null,bytes>SHORTS_MAX_UPLOAD?undefined:chunk);
+      }});
+      await pipeline(req,limiter,createWriteStream(source,{flags:"wx"}));
+      if(bytes<128)throw Error("invalid_mp4");
+      const input=await fs.open(source,"r");
+      let header;
+      try{header=Buffer.alloc(12);await input.read(header,0,12,0);}finally{await input.close();}
+      if(header.toString("ascii",4,8)!=="ftyp")throw Error("invalid_mp4");
+      const info=await convertShortsVideo(source,output,{mode});
+      const file=await fs.stat(output);
+      if(!file.size||file.size>150*1024*1024)throw Error("conversion_output_too_large");
+      logEvent("shorts_converted","local",{mode,durationSeconds:info.durationSeconds});
+      res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":file.size,
+        "Content-Disposition":'attachment; filename="bima-shorts-9x16.mp4"',
+        "Cache-Control":"no-store","X-Content-Type-Options":"nosniff"});
+      await pipeline(createReadStream(output),res);
+    }catch(e){
+      const code=String(e?.message||"conversion_failed").split(":")[0];
+      const userError=["shorts_max_30mb","invalid_mp4","shorts_duration_out_of_range","video_metadata_unavailable","conversion_timeout","conversion_output_too_large"].includes(code)?code:"conversion_failed";
+      const status=code==="shorts_max_30mb"?413:code==="conversion_timeout"?504:code==="conversion_failed"||code.startsWith("ffmpeg")?500:422;
+      if(!res.headersSent&&!res.destroyed)error(res,status,userError);
+      else if(!res.destroyed)res.destroy();
+    }finally{
+      if(tmp)await fs.rm(tmp,{recursive:true,force:true}).catch(()=>{});
+      shortsConversionBusy=false;
+    }
+    return;
+  }
   if(req.method==="GET"&&u.pathname==="/api/status"){
     return respond(res,200,{authenticated:true,email:OWNER,channel:activeOauth()?{
       id:db.oauth.channelId,name:db.oauth.channelName,verified:db.oauth.channelId===EXPECTED_CHANNEL_ID}:null,
