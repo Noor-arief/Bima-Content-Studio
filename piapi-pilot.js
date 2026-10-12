@@ -11,6 +11,20 @@
    const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||"HTTP "+r.status);return data;
  };
  const button=$("piapiGenerate");const refresh=$("piapiRefresh");
+ // Production planning is intentionally read-only until a full-episode renderer,
+ // audio synchronizer and fresh owner budget approval are implemented.
+ const planBox=document.createElement("section");
+ planBox.id="piapiFullEpisodePlan";
+ planBox.style.cssText="border:1px solid rgba(148,163,255,.27);border-radius:12px;padding:16px;margin:16px 0;color:#dbe5ff";
+ const planTitle=document.createElement("h3");planTitle.textContent="Next · Venus Shorts 30s — Production Plan";
+ const planText=document.createElement("p");planText.textContent="Use the third 8-second PiAPI test as an opening candidate (owner visual review); create unique 11s explanation and 11s payoff clips, then record and sync ONE continuous English narration. This is a plan, not an automated final video.";
+ const sceneText=document.createElement("p");sceneText.textContent="0–8s: Venus close-up (existing candidate) · 8–19s: demonstrate 243-day axial rotation · 19–30s: compare with 225-day orbit and resolve the ending.";
+ const budgetText=document.createElement("p");budgetText.id="piapiFullBudget";budgetText.textContent="Checking remaining internal pilot budget…";
+ const warning=document.createElement("p");warning.textContent="No more paid renders from the 8s pilot while preparing the 30s workflow. Voiceover and MP4 stitching are NOT implemented yet; review is required before any publishing.";
+ warning.style.color="#f6c28d";
+ planBox.append(planTitle,planText,sceneText,budgetText,warning);
+ root.append(planBox);
+
  const reference=$("piapiReferenceUrl"),approved=$("piapiReferenceApproved"),image=$("piapiReferencePreview");
  reference.addEventListener("input",()=>{
    approved.checked=false;
@@ -21,7 +35,7 @@
    }catch{image.removeAttribute("src");image.hidden=true;image.style.display="none";}
    button.disabled=true;
  });
- approved.addEventListener("change",()=>{button.disabled=!active||!approved.checked;});
+ approved.addEventListener("change",()=>{button.disabled=true;});
  if(reference.value.trim())reference.dispatchEvent(new Event("input"));
 
  let active=false;
@@ -33,7 +47,10 @@
    if(serial!==statusSerial)return d;
    active=d.enabled;
    $("piapiBudget").textContent="PiAPI "+(d.enabled?"Ready":"Not configured")+" · reserved $"+Number(d.reservedUsd).toFixed(2)+" / $3.00";
-   button.disabled=!active||!approved.checked;
+   const remaining=Math.max(0,Number(d.capUsd||3)-Number(d.reservedUsd||0));
+   $("piapiFullBudget").textContent="Two new 11s clips at 720p: estimated $2.12 (2 × $1.056, rounded up). Remaining internal pilot reservation: $"+remaining.toFixed(2)+". Shortfall: $"+Math.max(0,2.12-remaining).toFixed(2)+". Not a provider spending cap; no charges triggered.";
+
+   button.disabled=true;
    const list=$("piapiJobs");list.replaceChildren();
    const visible=[...(d.jobs||[])].filter(j=>j.status!=="rejected"&&!locallyRejected.has(j.id)).reverse().slice(0,5);
    if(!visible.some(j=>j.status==="review_required")){const player=$("piapiPlayer");player.pause();player.removeAttribute("src");player.load();$("piapiPreview").hidden=true;}
@@ -67,6 +84,7 @@
  }
  const safe=async(fn)=>{button.disabled=true;refresh.disabled=true;try{await fn();}catch(e){say("Belum berhasil: "+e.message);}finally{refresh.disabled=false;button.disabled=!active||!approved.checked;}};
  button.onclick=()=>safe(async()=>{
+   throw Error("Pilot 8s ditahan. Jangan generate lagi sebelum plan 30s dan biaya disetujui.");
    const referenceImageUrl=reference.value.trim();
    if(!approved.checked||!referenceImageUrl.startsWith("https://"))throw Error("Setujui gambar referensi Venus dulu.");
    const item=(typeof state!=="undefined"?state.items?.youtube?.find(x=>x.id==="yt26-20261013-piapi-pilot"):null);
@@ -108,7 +126,7 @@
    await status();
  });
  refresh.onclick=()=>safe(async()=>{await status();say("Status produksi diperbarui.");});
- button.disabled=true;
+ button.disabled=true;button.textContent="8s pilot paused · Plan 30s";
  if(token())status().catch(e=>say("Status PiAPI belum tersedia: "+e.message));
  else say("Login owner melalui Publishing dulu, kemudian klik Refresh.");
 })();
