@@ -63,11 +63,22 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const pad=n=>String(n).padStart(2,'0');
  const hash=s=>{let x=2166136261;for(let i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,16777619)}return x>>>0;};
+ function smartHeadline(title){
+   const words=String(title||'SCIENCE SURPRISE').toUpperCase().replace(/[?!.]/g,'').split(/\s+/)
+    .filter(x=>x&&!['A','AN','THE','THAT','IS','DOES','WITH','AND','OUR','ITS','OF'].includes(x));
+   return (words.slice(0,5).join(' ')||'SCIENCE SURPRISE').slice(0,36);
+ }
  function theme(item){
-   const matched=entries.find(x=>item.title?.toLowerCase().includes(x[0].toLowerCase()));
+   const title=String(item.title||'');
+   const matched=entries.find(x=>title.toLowerCase().includes(x[0].toLowerCase()));
    const hints=matched||['Science Surprise','SCIENCE SURPRISE','✨','space','#141e55','#7a8bff','SCIENCE'];
-   return {headline:item.thumbnailHeadline||customByDate[item.date]?.[0]||hints[1],icon:customByDate[item.date]?.[1]||hints[2],
-     category:hints[6],kind:hints[3],dark:hints[4],light:hints[5]};
+   // A date is not a permanent topic identifier. User title edits must regenerate the art.
+   const planned=typeof SCHEDULE_2026!=='undefined'&&Array.isArray(SCHEDULE_2026)
+     ? SCHEDULE_2026.find(i=>i.id===item.id):null;
+   const original=!!planned&&planned.title===title&&planned.date===item.date;
+   const preset=original?customByDate[item.date]:null;
+   return {headline:item.thumbnailHeadline||preset?.[0]||smartHeadline(title),
+     icon:preset?.[1]||hints[2],category:hints[6],kind:hints[3],dark:hints[4],light:hints[5]};
  }
  function wrapTitle(value){
    const words=String(value).trim().toUpperCase().split(/\s+/).filter(Boolean);
