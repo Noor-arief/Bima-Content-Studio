@@ -6,8 +6,8 @@
  const $=id=>document.getElementById(id);
  if(typeof getSelected!=='function'||typeof items!=='function')return;
  const entries=[
- ['Venus','VENUS vs TIME','🪐','space','#161a52','#ef8a4a','SPACE'],
- ['Fireflies','HOW FIREFLIES GLOW','✨','nature','#082940','#1acbaf','NATURE'],
+ ['Venus','VENUS vs TIME','🟠','space','#161a52','#ef8a4a','SPACE'],
+ ['Fireflies','HOW FIREFLIES GLOW','🪲','nature','#082940','#1acbaf','NATURE'],
  ['Fly Backward','FLY BACKWARD?!','🐦','nature','#18355b','#ffb457','WILDLIFE'],
  ['Rock That','FLOATING ROCK?!','🪨','ocean','#073d54','#46c8f2','SCIENCE'],
  ['Owls','SILENT FLYERS','🦉','nature','#17325e','#a990ff','WILDLIFE'],
@@ -17,11 +17,11 @@
  ['Bees','THE BEE DANCE','🐝','nature','#37345c','#faca4e','NATURE'],
  ['Saturn','SATURN’S ICE RINGS','🪐','space','#161640','#b48bff','SPACE'],
  ['Pine Cones','PINE CONE SECRET','🌲','nature','#153f3b','#a3d46f','NATURE'],
- ['Seahorses','DAD GIVES BIRTH?!','🐴','ocean','#04475b','#ffaf76','OCEAN'],
+ ['Seahorses','DAD GIVES BIRTH?!','🐠','ocean','#04475b','#ffaf76','OCEAN'],
  ['Space Is Silent','SPACE IS SILENT','🌌','space','#0c163c','#a1a5ff','SPACE'],
  ['Moonquake','THE MOON SHAKES','🌕','space','#131c51','#bac8ff','SPACE'],
  ['Red Disappears','WHERE DID RED GO?','🌊','ocean','#023b62','#28a7e8','OCEAN'],
- ['Cuttlefish','COLOR CHANGERS','🐙','ocean','#123e64','#f08fb5','OCEAN'],
+ ['Cuttlefish','COLOR CHANGERS','🦑','ocean','#123e64','#f08fb5','OCEAN'],
  ['Wombat','CUBE-SHAPED POOP?!','🐾','nature','#5a3343','#f9bf75','WILDLIFE'],
  ['Whales','WHALES CAN SING','🐋','ocean','#06395f','#83c4ff','OCEAN'],
  ['Coral Is','CORAL IS ALIVE','🪸','ocean','#073a65','#ff8db0','OCEAN'],
@@ -30,7 +30,7 @@
  ['Snowflakes','SIX-ARM SNOWFLAKES','❄️','ice','#163d6e','#a5e8ff','SCIENCE'],
  ['Sharks','NO BONES?!','🦈','ocean','#053556','#73c9de','OCEAN'],
  ['Antifreeze','FISH THAT DON’T FREEZE','🐟','ice','#174e70','#b8e5ef','OCEAN'],
- ['Jupiter','JUPITER’S BIG STORM','🪐','space','#3c295f','#eea276','SPACE'],
+ ['Jupiter','JUPITER’S BIG STORM','🟤','space','#3c295f','#eea276','SPACE'],
  ['Arctic Fox','CHANGING COATS','🦊','ice','#25537c','#d8edff','WILDLIFE'],
  ['Deep Currents','THE OCEAN MOVES','🌊','ocean','#08486e','#79e2cc','OCEAN'],
  ['Winter Days','SHORTER WINTER DAYS','🌗','space','#212b61','#ffc68b','SPACE'],
@@ -41,19 +41,19 @@
  ['Leap Days','WHY LEAP DAYS?','🌍','space','#14325c','#ffc278','SPACE']
  ];
  const customByDate={
-  '2026-10-19':['VENUS vs TIME','🪐'], '2026-10-21':['HOW FIREFLIES GLOW','✨'],
+  '2026-10-19':['VENUS vs TIME','🟠'], '2026-10-21':['HOW FIREFLIES GLOW','🪲'],
   '2026-10-23':['FLY BACKWARD?!','🐦'], '2026-10-26':['FLOATING ROCK?!','🪨'],
   '2026-10-28':['SILENT FLYERS','🦉'], '2026-10-30':['FROZEN BUT ALIVE','🐸'],
   '2026-11-02':['NO BRAIN?!','🪼'],'2026-11-04':['BLACK SKIN?!','🐻‍❄️'],
   '2026-11-06':['THE BEE DANCE','🐝'],'2026-11-09':['SATURN’S ICE RINGS','🪐'],
-  '2026-11-11':['PINE CONE SECRET','🌲'],'2026-11-13':['DAD GIVES BIRTH?!','🐴'],
+  '2026-11-11':['PINE CONE SECRET','🌲'],'2026-11-13':['DAD GIVES BIRTH?!','🐠'],
   '2026-11-16':['SPACE IS SILENT','🌌'],'2026-11-18':['THE MOON SHAKES','🌕'],
-  '2026-11-20':['WHERE DID RED GO?','🌊'],'2026-11-23':['COLOR CHANGERS','🐙'],
+  '2026-11-20':['WHERE DID RED GO?','🌊'],'2026-11-23':['COLOR CHANGERS','🦑'],
   '2026-11-25':['CUBE-SHAPED POOP?!','🐾'],'2026-11-27':['WHALES CAN SING','🐋'],
   '2026-11-30':['CORAL IS ALIVE','🪸'],'2026-12-02':['HALF-ASLEEP?!','🐬'],
   '2026-12-04':['SKY LIGHT SHOW','🌌'],'2026-12-07':['SIX-ARM SNOWFLAKES','❄️'],
   '2026-12-09':['NO BONES?!','🦈'],'2026-12-11':['FISH THAT DON’T FREEZE','🐟'],
-  '2026-12-14':['JUPITER’S BIG STORM','🪐'],'2026-12-16':['CHANGING COATS','🦊'],
+  '2026-12-14':['JUPITER’S BIG STORM','🟤'],'2026-12-16':['CHANGING COATS','🦊'],
   '2026-12-18':['THE OCEAN MOVES','🌊'],'2026-12-21':['SHORTER WINTER DAYS','🌗'],
   '2026-12-23':['DRINKING SALT WATER?','🐧'],'2026-12-25':['ALWAYS GREEN','🌲'],
   '2026-12-28':['MARS GIANT VOLCANO','🌋'],'2026-12-30':['TINY SURVIVORS','🔬'],
@@ -101,6 +101,15 @@
     ?'<path d="M0 1060 Q250 1000 540 1078 T1080 1048 V1920 H0Z" fill="#12b7b8" opacity=".12"/><path d="M0 1130 Q220 1060 540 1150 T1080 1115" fill="none" stroke="#a8fff2" stroke-width="9" opacity=".25"/>'
     :t.kind==='nature'?'<path d="M0 1015 Q235 940 540 1050 Q790 980 1080 1040 V1920H0Z" fill="#9dffba" opacity=".09"/>'
     :'<ellipse cx="565" cy="820" rx="470" ry="350" fill="#adb6ff" opacity=".07"/>';
+   // Science-specific vector art avoids misleading iconography (e.g. rings on Venus/Jupiter).
+   const topic=String(item.title||'').toLowerCase();
+   const artwork=topic.includes('venus')
+      ? '<g><circle cx="540" cy="765" r="230" fill="#f9b36f" stroke="#ffdaaa" stroke-width="9"/><path d="M338 690 Q510 600 722 690 M320 760 Q540 700 768 765 M350 830 Q530 760 730 830 M385 900 Q540 875 690 890" stroke="#ed885d" stroke-width="30" fill="none" opacity=".72"/><ellipse cx="465" cy="659" rx="70" ry="25" fill="#fff3cf" opacity=".26" transform="rotate(-22 465 659)"/></g>'
+      :topic.includes('jupiter')
+      ? '<g><circle cx="540" cy="765" r="232" fill="#d49a75" stroke="#f4d4aa" stroke-width="10"/><path d="M333 665 Q545 710 747 665 M314 743 Q539 697 766 743 M319 818 Q546 860 758 818 M355 898 Q545 866 718 900" stroke="#f7d1ab" stroke-width="40" fill="none" opacity=".75"/><ellipse cx="640" cy="828" rx="65" ry="34" fill="#c95f56" stroke="#f1aa8b" stroke-width="9"/></g>'
+      :topic.includes('seahorse')
+      ? '<g transform="translate(0 -10)"><path d="M586 545 Q745 565 724 664 L680 688 Q746 729 700 815 L632 844 Q667 903 620 955 Q575 1000 523 966 Q485 941 515 896 Q538 869 572 899 Q572 928 549 923 Q578 945 595 914 Q610 888 582 870 Q480 820 515 754 Q470 723 496 672 L460 649 Q458 594 524 584 Q540 543 586 545Z" fill="#ffb56d" stroke="#ffddaa" stroke-width="12"/><circle cx="561" cy="612" r="17" fill="#112944"/><circle cx="568" cy="607" r="5" fill="white"/><path d="M703 665 L754 664" stroke="#ffd1a6" stroke-width="22" stroke-linecap="round"/><path d="M631 665 L659 677 M636 716 L668 725 M624 764 L655 779" stroke="#f17d67" stroke-width="13" stroke-linecap="round"/></g>'
+      :'<text x="540" y="950" font-size="430" font-family="Segoe UI Emoji,Apple Color Emoji,Noto Color Emoji,Arial" text-anchor="middle">'+esc(t.icon)+'</text>';
    const date=item.date.split('-');
    const out='<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920" role="img" aria-label="'+esc(item.title)+' cover">'+
    '<defs><linearGradient id="bg" x1="0" y1="0" x2=".95" y2="1"><stop offset="0" stop-color="'+t.dark+'"/><stop offset=".6" stop-color="'+t.light+'"/><stop offset="1" stop-color="#090e2a"/></linearGradient>'+
@@ -110,7 +119,7 @@
    '<circle cx="540" cy="800" r="420" fill="url(#halo)"/>'+
    '<circle cx="540" cy="770" r="318" fill="none" stroke="#fff" stroke-opacity=".27" stroke-width="4"/>'+
    '<circle cx="540" cy="770" r="360" fill="none" stroke="#fff" stroke-opacity=".13" stroke-width="2" stroke-dasharray="16 20"/>'+
-   '<text x="540" y="950" font-size="430" font-family="Segoe UI Emoji,Apple Color Emoji,Noto Color Emoji,Arial" text-anchor="middle">'+esc(t.icon)+'</text>'+
+   artwork+
    '<rect x="0" y="990" width="1080" height="930" fill="url(#shade)"/>'+
    '<text x="77" y="119" fill="#e8f3ff" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="41" letter-spacing="10">ORBIT &amp; OCEAN</text>'+
    '<rect x="77" y="161" width="325" height="8" rx="4" fill="#7ce7d5"/>'+
