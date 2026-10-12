@@ -14,7 +14,8 @@ export function createPiapiWorker({db,persist}){
   const safe=j=>j&&(({prompt,...rest})=>rest)(j);
   const overview=()=>({configured:key.length>10,enabled,capUsd:cap/100,
     reservedUsd:db.piapiReservedCents/100,
-    jobs:Object.values(db.piapiJobs).slice(-15).map(j=>safe(j.rejectedAt?{...j,status:"rejected"}:j))});
+    jobs:Object.values(db.piapiJobs).slice(-15).map(j=>safe(j.rejectedAt?{...j,status:"rejected"}:j)),
+    production:db.piapiProduction||{}});
   async function api(path,options={}){
     const r=await fetch(base+path,{...options,headers:{"X-API-Key":key,"Content-Type":"application/json",...options.headers},signal:AbortSignal.timeout(30000)});
     const j=await r.json().catch(()=>({}));
@@ -59,6 +60,20 @@ export function createPiapiWorker({db,persist}){
       return safe(j);
     }catch(e){j.status="failed";j.error=String(e.message||e).slice(0,160);await persist();throw e;}
   }
+  async function useAsScene1(id){
+    const job=db.piapiJobs[id];
+    if(!job||job.status!=="review_required"||job.rejectedAt||!job.videoUrl)
+      throw Error("completed_preview_required");
+    if(!job.videoUrl.startsWith("https://"))throw Error("invalid_provider_video_url");
+    db.piapiProduction ||= {};
+    db.piapiProduction[id]={
+      scene1:{taskId:job.taskId,videoUrl:job.videoUrl,durationSeconds:8,status:"reference_selected",
+        selectedAt:new Date().toISOString()},
+      status:"planning_only",autoPublish:false
+    };
+    await persist();
+    return {id,scene1Selected:true,taskId:job.taskId,status:"planning_only"};
+  }
   async function reject(id){
     const j=db.piapiJobs[id];
     if(!j)throw Error("piapi_job_not_found");
@@ -84,5 +99,5 @@ export function createPiapiWorker({db,persist}){
   }
   // Do not retry ambiguous POSTs after restart.
   for(const j of Object.values(db.piapiJobs))if(j.status==="submitting"){j.status="failed";j.error="interrupted_submission_do_not_retry";}
-  return {start,reject,refresh,overview};
+  return {start,reject,useAsScene1,refresh,overview};
 }
