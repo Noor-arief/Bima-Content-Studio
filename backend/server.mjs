@@ -9,6 +9,7 @@ import { convertShortsVideo } from "./shorts.mjs";
 import { MIX_2026, validateEditorial } from "./editorial.mjs";
 import { createVeoWorker } from "./veo.mjs";
 import { createPiapiWorker } from "./piapi.mjs";
+import { createVenusProduction } from "./venus-production.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -40,6 +41,7 @@ let pendingWrite = Promise.resolve();
 const submitting = new Set();
 let veoWorker=null;
 let piapiWorker=null;
+let venusProduction=null;
 
 const logEvent=(action,id,extra={})=>{
   db.events.push({at:new Date().toISOString(),action,id,...extra});
@@ -342,6 +344,29 @@ async function handler(req,res){
     }
     return;
   }
+  // Full-length Venus production, owner-only. No YouTube publishing.
+  if(req.method==="GET"&&u.pathname==="/api/venus-production/status")
+    return respond(res,200,venusProduction.publicState());
+  if(req.method==="POST"&&u.pathname==="/api/venus-production/start"){
+    let data;try{data=await readJSON(req,3000);}catch{return error(res,400,"invalid_budget_approval");}
+    if(data?.confirmPaidProduction!==true)return error(res,409,"explicit_paid_production_approval_required");
+    try{return respond(res,202,await venusProduction.begin({ownerApproved:true,capUsd:Number(data.maximumUsd||0)}));}
+    catch(e){return error(res,409,String(e.message||e).slice(0,160));}
+  }
+  if(req.method==="POST"&&u.pathname==="/api/venus-production/refresh"){
+    try{return respond(res,200,await venusProduction.poll());}
+    catch(e){return error(res,409,String(e.message||e).slice(0,150));}
+  }
+  if(req.method==="GET"&&u.pathname==="/api/venus-production/video"){
+    const job=db.venusProduction?.final;
+    if(db.venusProduction?.status!=="ready_for_review"||!job?.path)return error(res,404,"final_video_not_ready");
+    try{
+      const stat=await fs.stat(job.path);
+      res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":stat.size,
+        "Cache-Control":"private,no-store","Content-Disposition":"inline; filename=venus-owner-review.mp4"});
+      return createReadStream(job.path).pipe(res);
+    }catch{return error(res,404,"final_video_unavailable");}
+  }
   // PiAPI pilot: owner-authenticated, no publishing endpoint, explicit budget consent.
   if(req.method==="GET"&&u.pathname==="/api/piapi/status")
     return respond(res,200,await piapiWorker.refresh());
@@ -564,6 +589,7 @@ async function handler(req,res){
 await init();
 veoWorker=createVeoWorker({db,persist,logEvent,mediaDir:MEDIA_DIR});
 piapiWorker=createPiapiWorker({db,persist,mediaDir:MEDIA_DIR});
+venusProduction=createVenusProduction({db,persist,mediaDir:MEDIA_DIR});
 let pollBusy=false;
 setInterval(async ()=>{
   if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
