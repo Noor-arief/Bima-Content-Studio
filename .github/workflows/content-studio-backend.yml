@@ -23,6 +23,9 @@ jobs:
           node --check backend/server.mjs
           node --check backend/veo.mjs
           node --check auto-video-pipeline.js
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install --no-audit --no-fund
       - name: Server security smoke tests
         working-directory: backend
         run: npm test
