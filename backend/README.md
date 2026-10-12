@@ -44,9 +44,22 @@
 - OAuth refresh token encrypted using AES-256-GCM and key in Railway. Never expose client secret, refresh token or file bytes to Github Pages repo.
 - A single Node process and single persistent Railway volume hold JSON job state. This is an early controlled rollout, NOT multi-worker/high-throughput production. More scalable database, reliable upload resume/reconciliation and alerting should be built before higher volume.
 - Upload attempts with uncertain Google responses never retry automatically; owner must investigate the YouTube channel to prevent duplicated clips.
-- Backend does not create or generate Gemini video; user manually supplies final reviewed MP4.
+- Veo generation code is implemented but gated behind an owner-provided Gemini API key, explicit paid generation approval and Railway controls; manual MP4 remains supported.
 - YouTube application audits and consent screen verification are external steps BIMA cannot bypass.
 - New Railway service and volume may accrue usage charges.
 
 ## Automated tests
 `cd backend && npm test`: probes healthy endpoint, denied private endpoints, inactive OAuth and CORS origin checks. GitHub Actions checks syntax and these security smoke tests on backend branch PRs.
+
+## BIMA Auto Video Production — gated Veo API pilot
+
+The YouTube Production Desk now includes an autonomous pipeline: selected calendar brief → storyboard adaptation for 8 seconds → native audio Veo 3.1 → backend video vault → automatic MP4/duration/portrait/audio-track technical checks → secure video preview → owner Approve or Request revision → YouTube approval/scheduling gate.
+
+- API pricing: Fast 1080p $0.96 per 8-second successful clip, Lite 1080p $0.64. 2026 official docs: https://ai.google.dev/gemini-api/docs/veo and https://ai.google.dev/gemini-api/docs/pricing .
+- In Google AI Studio https://aistudio.google.com/api-keys import BIMA Content Studio Cloud project if needed, enable Gemini API paid tier and create a modern authorization key for Gemini; the YouTube OAuth client is NOT the Gemini API key.
+- In isolated Railway service Variables, set `GEMINI_API_KEY` privately. `VEO_PILOT_BUDGET_CENTS=500` is configured and `ENABLE_VEO_GENERATION=false` by default. After confirming Google paid tier and reviewing costs, owner may enable the flag. Never paste the key into the website, public repo, chat or issues.
+- One video job at a time. Each paid request requires explicit owner confirmation and reserves the configured price against a cumulative *lifetime* $5 cap. Revisions never erase previous reservations. Failed/ambiguous responses do not automatically refund estimated budget or silently regenerate.
+- Owner authenticated routes: `GET /api/veo/status`, `POST /api/veo/generate`, `GET /api/veo/:id/video`, `POST /api/veo/:id/reject`, `POST /api/veo/:id/accept`. A successful accept imports the finished MP4 to the standard Content Studio draft. YouTube publish remains subject to original explicit approval, future schedule, verified channel, compliance and Railway flags.
+- Automatic QA covers MP4 parse, audio-track presence, portrait framing, and 8-second length. It CANNOT reliably certify narration quality, scientific accuracy, action continuity, rights or full ending: owner MUST watch and listen before accepting. An unsatisfactory render can be rejected; additional generation is a new paid action.
+- Model operations and job ledger stored in Railway persistent volume. Poll every ~20 seconds. After uncertain network outcomes, review before retry to avoid duplicate charges. Local max budget is NOT a Google billing hard cap; independently set billing alerts/budgets.
+- This feature is deployed with paid generation OFF until the owner provides a Gemini API key. No Veo credits have been spent by deployment.
