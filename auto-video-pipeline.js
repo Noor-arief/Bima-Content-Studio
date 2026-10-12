@@ -107,6 +107,38 @@
    notice(note);await reload();
  }
  get("veoRefresh").addEventListener("click",()=>lock(get("veoRefresh"),async()=>{await reload();notice("Updated from secure Railway backend.");}));
+ get("veoPilot").addEventListener("click",()=>lock(get("veoPilot"),async()=>{
+   if(!overview)await reload();
+   if(!overview.enabled)throw Error("Veo API belum diaktifkan di Railway. Tidak ada biaya yang dikenakan.");
+   if(typeof state==="undefined"||!state.items?.youtube)throw Error("Kalender YouTube belum tersedia.");
+   const now=Date.now()+20*60000;
+   const candidates=[...state.items.youtube].filter(i=>{
+     const time=Date.parse(i.date+"T"+(i.time||"19:30")+":00+07:00");
+     return String(i.format||"").toLowerCase().includes("shorts")&&
+       i.prompt?.length>=40 && !i.mediaName && !i.approved &&
+       Number.isFinite(time)&&time>now;
+   }).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,3);
+   if(candidates.length===0)throw Error("Tidak ada 3 Shorts mendatang dengan storyboard siap. Lengkapi kalender dahulu.");
+   const model=selectedModel(),resolution=get("veoModel").selectedOptions[0].dataset.resolution;
+   const estimated=candidates.length*cost();
+   if(estimated>overview.remainingUsd+0.001)throw Error("Sisa batas pilot tidak cukup: $"+overview.remainingUsd.toFixed(2));
+   const summary=candidates.map((i,n)=>(n+1)+". "+i.date+" · "+i.title).join("\n");
+   if(!confirm("Approve ONE autonomous pilot batch for these "+candidates.length+" videos?\n\n"+summary+
+      "\n\nMaximum reservation for this batch: $"+estimated.toFixed(2)+" including QA allowance."+
+      "\nBIMA generates sequentially, never regenerates a failed video automatically."+
+      "\nVideos will wait for your review; NO automatic YouTube publishing. Continue?"))return;
+   const drafts=[];
+   for(const i of candidates){
+     const publishAt=new Date(i.date+"T"+(i.time||"19:30")+":00+07:00").toISOString();
+     await api("/api/content","POST",{id:i.id,title:i.title,description:i.caption||"",
+       publishAt,madeForKids:false,containsSyntheticMedia:true});
+     drafts.push({id:i.id,title:i.title,prompt:i.prompt,description:i.caption||"",
+       model,resolution,voiceover:""});
+   }
+   const q=await api("/api/veo/queue","POST",{jobs:drafts,confirmBudget:true});
+   overview=q.summary;updateWallet();updateJobs();
+   notice("BIMA menerima "+q.queued.length+" video dalam pilot. Proses otomatis berjalan satu per satu; review hasil di bawah.");
+ }));
  get("veoCreate").addEventListener("click",()=>lock(get("veoCreate"),async()=>{
    const d=current();
    if(!d.prompt||d.prompt.length<40)throw Error("Calendar draft needs a full storyboard prompt.");
