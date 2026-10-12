@@ -341,6 +341,25 @@ async function handler(req,res){
   // Owner-only autonomous video pipeline; generation has explicit cost confirmation and hard cap.
   if(req.method==="GET"&&u.pathname==="/api/veo/status")
     return respond(res,200,veoWorker.overview());
+  if(req.method==="POST"&&u.pathname==="/api/veo/queue"){
+    let data;try{data=await readJSON(req,35000);}catch{return error(res,400,"invalid_autonomous_queue_payload");}
+    if(data?.confirmBudget!==true)return error(res,409,"owner_budget_approval_required");
+    const rows=Array.isArray(data?.jobs)?data.jobs:[];
+    if(rows.length<1||rows.length>4)return error(res,422,"queue_requires_1_to_4_shorts");
+    const jobs=[];
+    for(const job of rows){
+      const item=db.content?.[job?.id];
+      if(!item||item.title!==job.title||item.filePath||!["draft","draft_with_video"].includes(item.status))
+        return error(res,409,"queue_requires_registered_unpublished_draft");
+      if(!job.prompt||typeof job.prompt!=="string")return error(res,422,"queue_requires_storyboard");
+      jobs.push({...job,description:item.description});
+    }
+    try{
+      const queued=await veoWorker.queueBatch(jobs);
+      void veoWorker.pump().catch(e=>console.warn("veo_autonomous_pump_failed",String(e.message||e).slice(0,90)));
+      return respond(res,202,{queued,summary:veoWorker.overview()});
+    }catch(e){return error(res,409,String(e.message||e).slice(0,160));}
+  }
   if(req.method==="POST"&&u.pathname==="/api/veo/generate"){
     let data;try{data=await readJSON(req,10000);}catch{return error(res,400,"invalid_generation_payload");}
     if(!db.content[data?.id])return error(res,404,"draft_not_registered_on_server");
