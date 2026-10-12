@@ -37,16 +37,22 @@ export function createPiapiWorker({db,persist}){
     if(previous&&!data.retryApproved)throw Error("explicit_retry_approval_required");
     if(Object.values(db.piapiJobs).some(x=>["submitting","pending","processing"].includes(x.status)))throw Error("piapi_generation_in_progress");
     if(db.piapiReservedCents+priceCents>cap)throw Error("pilot_budget_exhausted");
+    if(data.referenceApproved!==true)throw Error("reference_image_approval_required");
+    const ref=String(data.referenceImageUrl||"").trim();
+    let parsed;try{parsed=new URL(ref);}catch{throw Error("invalid_reference_image_url");}
+    if(parsed.protocol!=="https:"||parsed.username||parsed.password||ref.length>1600||
+       /^(localhost|127\\.|10\\.|192\\.168\\.|169\\.254\\.|172\\.(1[6-9]|2\\d|3[01])\\.|0\\.|::1|\\[::1\\])/i.test(parsed.hostname))
+      throw Error("public_https_reference_required");
     const prompt=String(data.prompt||"").trim();
     if(prompt.length<40||prompt.length>4000)throw Error("storyboard_prompt_invalid");
-    const j={id,title:String(data.title||"").slice(0,100),prompt,status:"submitting",estimatedCents:priceCents,
+    const j={id,title:String(data.title||"").slice(0,100),referenceImageUrl:ref,prompt,status:"submitting",estimatedCents:priceCents,
       createdAt:new Date().toISOString()};
     if(previous){db.piapiHistory ||= [];db.piapiHistory.push({...previous,prompt:undefined});}
     db.piapiJobs[id]=j;db.piapiReservedCents+=priceCents;await persist();
     try{
       const response=await api("/api/v1/task",{method:"POST",body:JSON.stringify({
         model:"seedance",task_type:"seedance-2-fast",
-        input:{prompt,mode:"text_to_video",duration:8,aspect_ratio:"9:16",resolution:"720p"}
+        input:{prompt,mode:"first_last_frames",image_urls:[ref],duration:8,aspect_ratio:"9:16",resolution:"720p"}
       })});
       if(!response.task_id)throw Error("piapi_ambiguous_submission_do_not_retry");
       j.taskId=response.task_id;j.status=response.status||"pending";await persist();
