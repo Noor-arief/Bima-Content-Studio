@@ -24,6 +24,32 @@
  warning.style.color="#f6c28d";
  planBox.append(planTitle,planText,sceneText,budgetText,warning);
  root.append(planBox);
+ const fullActions=document.createElement("div");fullActions.className="actions";fullActions.style.marginTop="10px";
+ const fullStatus=document.createElement("p");fullStatus.id="venusFullStatus";fullStatus.className="hint";fullStatus.textContent="Checking production readiness…";
+ const fullStart=document.createElement("button");fullStart.type="button";fullStart.className="btn primary";fullStart.textContent="Produce full 30s · approx $2.17";fullStart.disabled=true;
+ const fullRefresh=document.createElement("button");fullRefresh.type="button";fullRefresh.className="btn";fullRefresh.textContent="Refresh 30s production";
+ const fullVideo=document.createElement("video");fullVideo.controls=true;fullVideo.playsInline=true;fullVideo.hidden=true;fullVideo.style.cssText="display:none;width:min(100%,360px);max-height:650px;margin:10px auto;border-radius:12px;background:#000";
+ fullActions.append(fullStart,fullRefresh);planBox.append(fullActions,fullStatus,fullVideo);
+ async function refreshFull(){
+   const d=await api("/api/venus-production/status");
+   fullStatus.textContent="30s production: "+d.status+" · Scene 1 archived: "+(d.scene1Archived?"Yes":"No")+" · additional estimate $"+Number(d.totalEstimateUsd||0).toFixed(2);
+   fullStart.disabled=!(d.status==="not_started"&&d.scene1Archived);
+   if(d.finalReady){fullVideo.hidden=false;fullVideo.style.display="block";if(!fullVideo.src)fullVideo.src=server+"/api/venus-production/video";}
+   return d;
+ }
+ fullRefresh.onclick=async()=>{fullRefresh.disabled=true;try{
+   await api("/api/venus-production/refresh","POST",{});
+   await refreshFull();
+ }catch(e){fullStatus.textContent="Production check: "+e.message;}finally{fullRefresh.disabled=false;}};
+ fullStart.onclick=async()=>{
+   const status=await refreshFull();if(status.status!=="not_started"||!status.scene1Archived)return;
+   if(!confirm("Produce the remaining two AI clips (11s each), English AI narration, and assemble 30s MP4? Estimated NEW charge $2.17 USD; failed/rejected output may still consume credits. Not uploaded to YouTube. This requires additional PiAPI balance and explicit approval. Continue?"))return;
+   fullStart.disabled=true;
+   try{await api("/api/venus-production/start","POST",{confirmPaidProduction:true,maximumUsd:2.18});await refreshFull();}
+   catch(e){fullStatus.textContent="Production not started: "+e.message;await refreshFull().catch(()=>{});}
+ };
+ if(token())refreshFull().catch(e=>{fullStatus.textContent="Production not ready: "+e.message;});
+
 
  const reference=$("piapiReferenceUrl"),approved=$("piapiReferenceApproved"),image=$("piapiReferencePreview");
  reference.addEventListener("input",()=>{
