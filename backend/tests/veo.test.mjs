@@ -55,3 +55,44 @@ test("pilot budget hard cap cannot be bypassed by revisions or API failures",asy
     for(const [k,v] of Object.entries(previous)){if(v===undefined)delete process.env[k];else process.env[k]=v;}
   }
 });
+
+
+test("interrupted provider request and autonomous queue do not silently regenerate after restart",async()=>{
+  const env={GEMINI_API_KEY:process.env.GEMINI_API_KEY,ENABLE_VEO_GENERATION:process.env.ENABLE_VEO_GENERATION,VEO_PILOT_BUDGET_CENTS:process.env.VEO_PILOT_BUDGET_CENTS};
+  try {
+    delete process.env.GEMINI_API_KEY;process.env.ENABLE_VEO_GENERATION="false";process.env.VEO_PILOT_BUDGET_CENTS="500";
+    let saved=0;
+    const db={veoJobs:{
+      one:{id:"one",status:"submitting",cents:106},
+      two:{id:"two",status:"running",cents:106,operation:"operations/some"},
+    },veoQueue:[
+      {id:"one",status:"submitting"},
+      {id:"two",status:"submitting"},
+      {id:"three",status:"queued"},
+    ],veoBudgetUsedCents:212};
+    createVeoWorker({db,persist:async()=>{saved++;},logEvent:()=>{},mediaDir:"/tmp"});
+    assert.equal(db.veoJobs.one.status,"failed");
+    assert.match(db.veoJobs.one.error,/do_not_retry/);
+    assert.equal(db.veoQueue[0].status,"failed");
+    assert.equal(db.veoQueue[1].status,"submitted");
+    assert.equal(db.veoQueue[2].status,"queued");
+    assert.equal(db.veoBudgetUsedCents,212);
+    await new Promise(r=>setImmediate(r));
+    assert.ok(saved>=1);
+  } finally {
+    for(const [k,v] of Object.entries(env)){if(v===undefined)delete process.env[k];else process.env[k]=v;}
+  }
+});
+
+test("generated MP4 cannot be approved if semantic QA is incomplete",async()=>{
+  const env={GEMINI_API_KEY:process.env.GEMINI_API_KEY,ENABLE_VEO_GENERATION:process.env.ENABLE_VEO_GENERATION,VEO_PILOT_BUDGET_CENTS:process.env.VEO_PILOT_BUDGET_CENTS};
+  try {
+    delete process.env.GEMINI_API_KEY;process.env.ENABLE_VEO_GENERATION="false";process.env.VEO_PILOT_BUDGET_CENTS="500";
+    const db={veoJobs:{clip:{id:"clip",status:"needs_owner_review",qa:{technicalPass:true,semanticPass:false},filename:"/tmp/clip.mp4"}}};
+    const w=createVeoWorker({db,persist:async()=>{},logEvent:()=>{},mediaDir:"/tmp"});
+    await assert.rejects(w.accept("clip"),/not_ready_to_approve/);
+    assert.equal(db.veoJobs.clip.status,"needs_owner_review");
+  } finally {
+    for(const [k,v] of Object.entries(env)){if(v===undefined)delete process.env[k];else process.env[k]=v;}
+  }
+});
