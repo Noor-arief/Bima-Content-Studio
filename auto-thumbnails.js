@@ -388,12 +388,29 @@
  '<div><h3>Thumbnail · Matched to Video</h3>'+
  '<p id="autoThumbTitle">Waiting for selected content…</p>'+
  '<p id="autoThumbMode">CONCEPT PREVIEW · Final thumbnail will use an actual MP4 frame.</p>'+
+ '<p id="autoThumbYouTubeStatus">YouTube thumbnail: awaiting video upload</p>'+
  '<div class="auto-actions"><button type="button" id="autoThumbDownload" class="auto-btn auto-btn-primary" disabled>Download Final PNG</button>'+
  '<button type="button" id="autoThumbRefresh" class="auto-btn">Try another video frame</button></div>'+
  '<p id="autoThumbMessage" class="auto-msg" role="status" aria-live="polite"></p>'+
  '<p>Before MP4: concept only, not final. After MP4: actual video frame, same character, colors and background; 1080 × 1920 PNG. Does not auto-upload to YouTube.</p></div>';
  if(field)field.insertAdjacentElement('beforebegin',panel);
  function note(text){const n=$('autoThumbMessage');if(n)n.textContent=text;}
+ function youtubeThumbnailStatus(item){
+   const el=$('autoThumbYouTubeStatus');if(!el||!item)return;
+   const server=window.BIMA_REMOTE_CONTENT?.[item.id];
+   const status=server?.thumbnailStatus;
+   const map={
+     'awaiting_mp4_frame':'Not prepared; waiting for MP4',
+     'stored_on_railway':'Saved to Railway · waiting for YouTube upload',
+     'applying':'YouTube API processing thumbnail…',
+     'api_accepted':'✓ YouTube API accepted thumbnail · verify display in Studio',
+     'failed':'YouTube rejected thumbnail · video itself unaffected',
+   };
+   el.textContent='YouTube thumbnail: '+(map[status]||'Not submitted yet');
+   el.style.color=status==='api_accepted'?'#9deecb':status==='failed'?'#ffacaf':'#aebce1';
+   if(status==='failed'&&server?.thumbnailError)el.title=server.thumbnailError;
+   else el.removeAttribute('title');
+ }
  function updatePanelImage(item,row,check){
    if(session!==check||item.id!==getSelected()?.id)return;
    const button=$('autoThumbDownload'),mode=$('autoThumbMode'),preview=$('autoThumbPreview');
@@ -414,6 +431,7 @@
    const check=session;selectedId=item?.id||'';
    if(!panel.isConnected||!isEligible(item)){panel.hidden=true;return;}
    panel.hidden=false;
+   youtubeThumbnailStatus(item);
    $('autoThumbPreview').src=src(item);
    $('autoThumbDownload').disabled=true;
    $('autoThumbTitle').textContent=theme(item).headline+' · '+item.date+' · '+item.title;
@@ -465,6 +483,9 @@
  $('dropzone')?.addEventListener('drop',invalidateSelectedCover);
  $('removeVideo')?.addEventListener('click',invalidateSelectedCover);
  document.addEventListener('bima:episode-selected',()=>void showPanel());
+ document.addEventListener('bima:remote-status',()=>{
+   const selected=getSelected();if(selected&&isEligible(selected))youtubeThumbnailStatus(selected);
+ });
  document.addEventListener('bima:render-status',()=>{
    const id=getSelected()?.id||'';
    if(id!==selectedId)void showPanel();
