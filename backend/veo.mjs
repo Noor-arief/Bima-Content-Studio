@@ -3,6 +3,7 @@ import {createWriteStream,createReadStream,promises as fs} from "node:fs";
 import path from "node:path";
 import {spawn} from "node:child_process";
 import {pipeline} from "node:stream/promises";
+import {assessVideo} from "./semantic-qa.mjs";
 
 export const RATES=Object.freeze({"veo-3.1-lite-generate-preview":{"720p":40,"1080p":64},"veo-3.1-fast-generate-preview":{"720p":80,"1080p":96},"veo-3.1-generate-preview":{"720p":320,"1080p":320}});
 export function storyboard({title,prompt,description,voiceover}){
@@ -68,6 +69,7 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
   const enabled=process.env.ENABLE_VEO_GENERATION==="true"&&key.length>12;
   const cap=Math.min(500,Math.max(0,Number(process.env.VEO_PILOT_BUDGET_CENTS||0)));
   const busy=new Set();
+  const qaReserveCents=10; // bounded estimate for multimodal QA; external Google billing must also be capped
   const total=()=>db.veoBudgetUsedCents;
   const sanitized=j=>{if(!j)return null;const {operation,filename,...rest}=j;return rest;};
   const overview=()=>({configured:key.length>12,enabled,limitUsd:cap/100,reservedUsd:total()/100,
@@ -79,15 +81,15 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
     if(!/^[a-zA-Z0-9_-]{3,80}$/.test(id))throw Error("invalid_id");
     const model=data.model||"veo-3.1-fast-generate-preview",res=data.resolution||"1080p";
     const cents=RATES[model]?.[res];
-    if(!cents||total()+cents>cap||cap<1)throw Error("invalid_model_or_pilot_budget_exhausted");
+    if(!cents||total()+cents+qaReserveCents>cap||cap<1)throw Error("invalid_model_or_pilot_budget_exhausted");
     if(Object.values(db.veoJobs).some(j=>["submitting","running","downloading"].includes(j.status)))throw Error("one_video_generation_at_a_time");
     const old=db.veoJobs[id];
     if(old&&!["rejected","failed"].includes(old.status))throw Error("existing_job_must_be_reviewed_first");
     const story=storyboard(data);
-    const j={id,revision:(old?.revision||0)+1,title:data.title,model,resolution:res,cents,
+    const j={id,revision:(old?.revision||0)+1,title:data.title,model,resolution:res,cents:cents+qaReserveCents,veoCents:cents,qaReserveCents,
       voiceover:story.voiceover,shots:story.shots,prompt:story.text,status:"submitting",
       createdAt:new Date().toISOString(),error:null,qa:null,filename:null,operation:null};
-    db.veoJobs[id]=j;db.veoBudgetUsedCents+=cents;logEvent("veo_budget_reserved",id,{cents,ledgerCents:db.veoBudgetUsedCents});await persist();
+    db.veoJobs[id]=j;db.veoBudgetUsedCents+=j.cents;logEvent("veo_budget_reserved",id,{cents:j.cents,ledgerCents:db.veoBudgetUsedCents});await persist();
     try{
       const o=await jsonCall("models/"+model+":predictLongRunning",key,{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({instances:[{prompt:story.text}],
@@ -116,8 +118,21 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
           if(info.seconds<7.5||info.seconds>9)issues.push("duration_wrong");
           if(info.height<=info.width)issues.push("not_vertical");
           if(!info.hasAudio)issues.push("no_audio_track");
-          j.qa={...info,technicalPass:issues.length===0,issues,storyVerified:false,narrationVerified:false,
-            note:"Automated checks cover file/audio track/duration/orientation only. Owner must watch and verify story accuracy, voiceover words and uncut ending."};
+          const technicalPass=issues.length===0;
+          let semantic=null;
+          if(technicalPass){
+            j.status="auditing";await persist();
+            try{
+              semantic=await assessVideo({file,prompt:j.prompt,voiceover:j.voiceover,key});
+              if(!semantic.pass)issues.push(...semantic.issues.length?semantic.issues:["semantic_qa_did_not_pass"]);
+            }catch(e){
+              issues.push("semantic_qa_unavailable");
+              semantic={pass:false,issues:["Provider/video QA error; review blocked until resolved."],error:String(e.message||e).slice(0,120)};
+            }
+          }
+          j.qa={...info,technicalPass,semanticPass:semantic?.pass===true,semantic,issues,
+            storyVerified:semantic?.pass===true,narrationVerified:semantic?.pass===true,
+            note:"AI QA is a conservative filter. Owner must still watch full video and confirm science, narration and ending."};
           j.filename=file;j.hash=await hashFile(file);j.status=issues.length?"qa_failed":"needs_owner_review";
           j.completedAt=new Date().toISOString();logEvent("veo_video_stored",j.id,{qa:j.status});
         }catch(e){await fs.unlink(file).catch(()=>{});j.status="failed";j.error=String(e.message||e).slice(0,180);}
@@ -137,7 +152,7 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
   }
   for(const j of Object.values(db.veoJobs)){
     if(j.status==="submitting"){j.status="failed";j.error="ambiguous_submission_on_restart_do_not_retry_automatically";}
-    if(j.status==="downloading")j.status="running";
+    if(["downloading","auditing"].includes(j.status))j.status="running";
   }
   const timer=setInterval(()=>void poll(),20000);timer.unref();
   return {overview,start,poll,reject,accept,job:id=>db.veoJobs[id],sanitized};
