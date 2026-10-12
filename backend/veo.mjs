@@ -188,14 +188,25 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
     j.status="rejected";j.reviewNote=String(note||"").slice(0,500);await persist();return sanitized(j);
   }
   async function accept(id){
-    const j=db.veoJobs[id];if(!j||j.status!=="needs_owner_review"||!j.qa?.technicalPass||!j.filename)throw Error("not_ready_to_approve");
+    const j=db.veoJobs[id];if(!j||j.status!=="needs_owner_review"||!j.qa?.technicalPass||!j.qa?.semanticPass||!j.filename)throw Error("not_ready_to_approve");
     j.status="approved";j.ownerApprovedAt=new Date().toISOString();await persist();
     return {job:sanitized(j),filename:j.filename};
   }
+  // Preserve safety across a Railway process restart: ambiguous provider submissions
+  // are never automatically repeated because the provider may already have billed them.
+  let recovered=false;
   for(const j of Object.values(db.veoJobs)){
-    if(j.status==="submitting"){j.status="failed";j.error="ambiguous_submission_on_restart_do_not_retry_automatically";}
-    if(["downloading","auditing"].includes(j.status))j.status="running";
+    if(j.status==="submitting"){j.status="failed";j.error="ambiguous_submission_on_restart_do_not_retry_automatically";recovered=true;}
+    if(["downloading","auditing"].includes(j.status)){j.status="running";recovered=true;}
   }
+  for(const q of db.veoQueue){
+    if(q.status!=="submitting")continue;
+    const prior=db.veoJobs[q.id];
+    q.status=prior?.operation?"submitted":"failed";
+    if(q.status==="failed")q.error="interrupted_during_provider_submission_manual_review_required";
+    recovered=true;
+  }
+  if(recovered)void persist().catch(e=>console.warn("veo_recovery_persist_failed",String(e.message||e).slice(0,70)));
   const timer=setInterval(()=>{void poll().then(()=>pump()).catch(e=>console.warn("veo_tick_failed",String(e.message||e).slice(0,100)));},20000);
   timer.unref();
   return {overview,start,poll,pump,queueBatch,reject,accept,job:id=>db.veoJobs[id],sanitized};
