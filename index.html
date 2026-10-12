@@ -536,6 +536,25 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  <section class="side-status"><div class="metric"><span>YouTube account</span><strong id="connectionStatus">Not connected</strong><small id="connectionDetail" role="status" aria-live="polite">Hubungkan akun Google untuk memulai.</small></div><div class="metric"><span>Uploaded by BIMA</span><strong id="publishedCount">—</strong><small>Confirmed YouTube uploads</small><small id="scheduledInfo" role="status" aria-live="polite">Checking Railway upload status…</small></div></section>
 </header>
 <main id="ytWorkspace">
+
+<section id="veoProduction" class="panel" data-panel="desk" style="max-width:980px;margin:0 auto 18px">
+  <div class="line"><div><h2><span aria-hidden="true">✦</span> BIMA Auto Video Production</h2><p class="sub">Dari storyboard kalender → video Veo + voiceover → preview → approve → YouTube. Tidak perlu keluar ke Gemini.</p></div><span class="chip">Pilot · Owner review</span></div>
+  <div class="note" style="margin-top:12px">Pilih satu draft Science &amp; Nature di kalender. BIMA menggunakan prompt, judul, dan caption draft tersebut. Hasil API berdurasi <strong>8 detik</strong> dengan audio. Ini bukan video Gemini 10 detik. Tidak ada generasi berbayar otomatis atau revisi otomatis.</div>
+  <div class="fields" style="margin-top:12px">
+    <div class="field"><label for="veoModel">Quality mode</label><select id="veoModel"><option value="veo-3.1-fast-generate-preview" data-resolution="1080p">Veo 3.1 Fast · 1080p · $0.96</option><option value="veo-3.1-lite-generate-preview" data-resolution="1080p">Veo 3.1 Lite · 1080p · $0.64</option></select></div>
+    <div class="field"><label for="veoVoice">Voiceover · Optional override</label><input id="veoVoice" type="text" placeholder="BIMA extracts a short complete sentence from the draft automatically" maxlength="180"></div>
+  </div>
+  <p id="veoBudget" class="hint" aria-live="polite">Checking Veo budget / API connectivity…</p>
+  <div class="actions" style="flex-wrap:wrap">
+    <button class="btn primary" id="veoCreate" type="button">Generate final video for selected draft</button>
+    <button class="btn" id="veoRefresh" type="button">Refresh production queue</button>
+    <span class="chip" id="veoEstimate">Estimated $0.96 USD / 8s clip</span>
+  </div>
+  <p id="veoMessage" class="hint" role="status" aria-live="polite">No generation started yet.</p>
+  <div id="veoPreview" hidden><h3 style="margin:14px 0 8px">Review produced video</h3><video id="veoPlayer" controls playsinline preload="none" style="display:block;width:min(100%,320px);max-height:570px;border-radius:14px;background:#000;margin:0 auto"></video><p class="hint">Watch all 8 seconds WITH audio. Computer QA can detect an audio track, not guarantee narration makes sense or finishes.</p></div>
+  <div class="field" style="margin-top:12px"><label><input id="veoAutoQueue" type="checkbox"> After owner approval, submit to YouTube if production publishing is explicitly enabled</label></div>
+  <div id="veoJobs" aria-live="polite" style="display:grid;gap:12px;margin-top:16px"></div>
+</section>
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
  <div class="line"><div><h2 id="publishingQuickHeading">Publikasikan konten</h2><p class="sub" style="margin-bottom:0">Periksa konten terpilih, lalu lanjutkan melalui Publish with BIMA.</p></div><span class="chip" id="publishingReadyBadge">Checking draft…</span></div>
  <p id="publishingSelected" class="publishing-selected" role="status" aria-live="polite">Checking selected draft…</p>
@@ -1049,4 +1068,5 @@ render();
 <script src="tiktok-affiliate.js?v=20261012-3" defer></script>
 <script src="channel-navigation.js?v=20261012-1" defer></script>
 <script src="autonomous-planner.js?v=20261012-science-mix1" defer></script>
+<script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
 </body></html>
