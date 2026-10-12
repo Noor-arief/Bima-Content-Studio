@@ -17,7 +17,9 @@
    $("piapiBudget").textContent="PiAPI "+(d.enabled?"Ready":"Not configured")+" · reserved $"+Number(d.reservedUsd).toFixed(2)+" / $3.00";
    button.disabled=!active;
    const list=$("piapiJobs");list.replaceChildren();
-   for(const j of [...(d.jobs||[])].reverse().slice(0,5)){
+   const visible=[...(d.jobs||[])].filter(j=>j.status!=="rejected").reverse().slice(0,5);
+   if(!visible.some(j=>j.status==="review_required")){const player=$("piapiPlayer");player.pause();player.removeAttribute("src");player.load();$("piapiPreview").hidden=true;}
+   for(const j of visible){
      const row=document.createElement("div");row.className="note";row.style.marginTop="8px";
      const label=document.createElement("p");label.textContent=j.title+" · "+j.status+" · $"+(j.estimatedCents/100).toFixed(2)+" reserved";row.append(label);
      if(j.error||j.lastPollError){const err=document.createElement("small");err.textContent=j.error||j.lastPollError;row.append(err);}
@@ -26,6 +28,7 @@
        reject.onclick=()=>safe(async()=>{
          if(!confirm("Reject hasil Venus pertama? Ini tidak mengembalikan biaya video sebelumnya. Tidak ada video baru yang akan dibuat."))return;
          await api("/api/piapi/reject","POST",{id:j.id});
+         $("piapiPreview").hidden=true;
          say("Video pertama ditolak. Retry bisa dilakukan dengan konfirmasi biaya baru.");
          await status();
        });row.append(reject);
