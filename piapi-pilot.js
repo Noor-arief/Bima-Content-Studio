@@ -34,7 +34,12 @@
    const d=await api("/api/venus-production/status");
    fullStatus.textContent="30s production: "+d.status+" · Scene 1 archived: "+(d.scene1Archived?"Yes":"No")+" · additional estimate $"+Number(d.totalEstimateUsd||0).toFixed(2);
    fullStart.disabled=!(d.status==="not_started"&&d.scene1Archived);
-   if(d.finalReady){fullVideo.hidden=false;fullVideo.style.display="block";if(!fullVideo.src)fullVideo.src=server+"/api/venus-production/video";}
+   if(d.finalReady&&!fullVideo.dataset.loaded){
+     const v=await fetch(server+"/api/venus-production/video",{headers:{Authorization:"Bearer "+token()}});
+     if(!v.ok)throw Error("final_video_fetch_"+v.status);
+     const blob=await v.blob();if(!blob.type.includes("video"))throw Error("invalid_final_video");
+     fullVideo.src=URL.createObjectURL(blob);fullVideo.dataset.loaded="true";fullVideo.hidden=false;fullVideo.style.display="block";
+   }
    return d;
  }
  fullRefresh.onclick=async()=>{fullRefresh.disabled=true;try{
