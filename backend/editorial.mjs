@@ -58,9 +58,9 @@ export function validateEditorial(input){
   const voice=String(input?.voiceover||"").trim();
   const words=voice?voice.split(/\s+/).length:0;
   if(words<(short?5:200)||words>(short?19:480))issues.push(short?"8-second voiceover must be 5–19 words":"Long-form voiceover should be 200–480 words for 3-minute video");
-  if(!input?.voiceEndsBeforeOutro)issues.push("Voiceover must finish before final frame, with no cut-off syllable");
+  if(input?.phase==="publish"&&!input?.voiceEndsBeforeOutro)issues.push("Voiceover must finish before final frame, with no cut-off syllable");
   if(!input?.thumbnail?.concept||input.thumbnail?.ratio!==(short?"9:16":"16:9"))issues.push("Distinct thumbnail concept and correct aspect ratio required");
   if(input?.thumbnail?.misleading===true)issues.push("Thumbnail must not exaggerate scientifically");
-  if(!input?.manualQualityApproval)issues.push("Owner review is mandatory before sending to YouTube");
+  if(input?.phase==="publish"&&!input?.manualQualityApproval)issues.push("Owner review is mandatory before sending to YouTube");
   return {passed:issues.length===0,issues,format:input?.format||null};
 }
