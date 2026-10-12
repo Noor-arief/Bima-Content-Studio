@@ -51,7 +51,7 @@
   function saveStatusCache(data){
     try{
       const items=(data.items||[]).filter(item=>typeof item.id==='string'&&typeof item.status==='string')
-        .map(({id,status,youtubeId,publishAt,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,youtubeId,publishAt,youtubePrivacyStatus,youtubeUploadStatus}));
+        .map(({id,status,youtubeId,publishAt,youtubePrivacyStatus,youtubeUploadStatus,thumbnailStatus,thumbnailError})=>({id,status,youtubeId,publishAt,youtubePrivacyStatus,youtubeUploadStatus,thumbnailStatus,thumbnailError}));
       localStorage.setItem(cacheKey,JSON.stringify({at:Date.now(),items}));
     }catch(_){}
   }
@@ -121,13 +121,21 @@
       }catch(e){say('Unable to verify current Public status yet; BIMA will keep the scheduled record unchanged.','error');}
     }
   }
+  function thumbDescription(entry){
+    if(!entry||!entry.thumbnailStatus)return '';
+    if(entry.thumbnailStatus==='api_accepted')return ' · Thumbnail: accepted by YouTube API (check Studio display)';
+    if(entry.thumbnailStatus==='failed')return ' · Thumbnail FAILED: '+(entry.thumbnailError||'YouTube did not accept it')+' · Video upload remains valid';
+    if(entry.thumbnailStatus==='applying')return ' · Thumbnail: uploading to YouTube…';
+    if(entry.thumbnailStatus==='stored_on_railway')return ' · Thumbnail: ready on Railway';
+    return ' · Thumbnail: '+entry.thumbnailStatus;
+  }
   function detailFor(item){
     if(!item)return 'Belum ada konten terpilih.';
     const entry=currentItems[item.id];
     const stale=window.BIMA_REMOTE_STALE?' · Last verified state; sign in to refresh.':'';
-    if(entry?.status==='published')return '✓ Published on YouTube · '+(entry.youtubeId||'')+' · BIMA selesai.'+stale;
-    if(entry?.status==='scheduled')return '✓ BIMA sudah upload & schedule · '+wib(entry.publishAt)+' · Video ID '+(entry.youtubeId||'')+'. Menunggu konfirmasi Public.'+stale;
-    if(entry?.status==='private_uploaded')return '✓ BIMA berhasil upload Private · '+(entry.youtubeId||'')+'. Publikasi Public belum terjadwal atau terkonfirmasi.';
+    if(entry?.status==='published')return '✓ Published on YouTube · '+(entry.youtubeId||'')+' · BIMA selesai.'+thumbDescription(entry)+stale;
+    if(entry?.status==='scheduled')return '✓ BIMA sudah upload & schedule · '+wib(entry.publishAt)+' · Video ID '+(entry.youtubeId||'')+'. Menunggu konfirmasi Public.'+thumbDescription(entry)+stale;
+    if(entry?.status==='private_uploaded')return '✓ BIMA berhasil upload Private · '+(entry.youtubeId||'')+'. Publikasi Public belum terjadwal atau terkonfirmasi.'+thumbDescription(entry);
     if(entry?.status==='uploading')return 'BIMA sedang upload… jangan klik ulang.';
     if(entry?.status==='needs_review')return 'Upload perlu investigasi; BIMA tidak akan mencoba ulang agar tidak menduplikasi video.';
     if(entry?.status==='approved')return 'Sudah approved di Railway · siap upload melalui BIMA.';
@@ -183,11 +191,24 @@
         if(blob.size>150000000)throw Error('MP4 melebihi limit 150 MB.');
         await api('/api/content/'+encodeURIComponent(item.id)+'/media','POST',blob,'video/mp4');
       }
+      // Prepare the exact frame-derived cover before sending the video to YouTube.
+      // Do not submit a new 19-Oct+ Short without a matching thumbnail safely on Railway.
+      if(item.date>='2026-10-19'&&server?.thumbnailStatus!=='stored_on_railway'){
+        say('Membuat thumbnail otomatis dari MP4 final…');
+        const engine=window.BIMA_THUMBNAILS;
+        if(!engine?.ensureFinal)throw Error('Thumbnail generator belum siap. Refresh dashboard sebelum publishing.');
+        const cover=await engine.ensureFinal(item);
+        if(!(cover?.blob instanceof Blob)||cover.blob.size<100)throw Error('Gagal membuat cover dari video; publikasi dihentikan agar thumbnail tidak berbeda.');
+        if(cover.blob.size>12*1024*1024)throw Error('Cover PNG lebih dari 12 MB, pilih frame lain di Production Desk.');
+        say('Menyimpan thumbnail video-matched di Railway…');
+        const savedCover=await api('/api/content/'+encodeURIComponent(item.id)+'/thumbnail','POST',cover.blob,'image/png');
+        if(savedCover.item?.thumbnailStatus!=='stored_on_railway')throw Error('Railway belum mengonfirmasi thumbnail.');
+      }
       if(!server||server.status!=='approved'){
         say('Memvalidasi approval server…');
         await api('/api/content/'+encodeURIComponent(item.id)+'/approve','POST','{}');
       }
-      say('BIMA sedang mengirim video ke YouTube. Jangan klik ulang…');
+      say('BIMA mengirim video dan thumbnail lewat Railway. Jangan klik ulang…');
       const submitted=await api('/api/content/'+encodeURIComponent(item.id)+'/submit','POST','{}');
       if(submitted.status!=='upload_started')throw Error('Server tidak mengonfirmasi upload_started.');
       for(let i=0;i<9;i++){
