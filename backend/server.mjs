@@ -345,6 +345,12 @@ async function handler(req,res){
   // PiAPI pilot: owner-authenticated, no publishing endpoint, explicit budget consent.
   if(req.method==="GET"&&u.pathname==="/api/piapi/status")
     return respond(res,200,await piapiWorker.refresh());
+  if(req.method==="POST"&&u.pathname==="/api/piapi/reject"){
+    let data;try{data=await readJSON(req,2000);}catch{return error(res,400,"invalid_rejection_payload");}
+    if(data?.id!=="yt26-20261013-piapi-pilot")return error(res,403,"pilot_only");
+    try{return respond(res,200,{job:await piapiWorker.reject(data.id)});}
+    catch(e){return error(res,409,String(e.message||e).slice(0,140));}
+  }
   if(req.method==="POST"&&u.pathname==="/api/piapi/generate"){
     let data;try{data=await readJSON(req,10000);}catch{return error(res,400,"invalid_generation_payload");}
     const item=db.content[data?.id];
