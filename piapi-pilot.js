@@ -51,7 +51,7 @@
      "Output vertical 9:16, 720p. Keep the subject centered with no on-screen words.",
      "No narration or human speech. Do not include later scenes. End on a clean stable frame.",
      "Never show logos, watermarks or unrelated visuals."
-   ].join("\\n").replaceAll("\\\\n","\\n");
+   ].join("\n");
    if(prompt.length>3900)throw Error("Scene 1 terlalu panjang untuk pilot. Ringkas storyboard.");
    const description=$("fCaption")?.value||item.caption||"";
    if(item.approved||item.youtubeId||item.mediaName)
