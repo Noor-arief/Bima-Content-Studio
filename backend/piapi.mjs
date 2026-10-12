@@ -46,7 +46,7 @@ export function createPiapiWorker({db,persist}){
         const d=await api("/api/v1/task/"+encodeURIComponent(j.taskId));
         const status=String(d.status||"").toLowerCase();
         if(["completed","success"].includes(status)){
-          const url=d.output?.video_url||d.output?.video_urls?.[0]||d.output?.video?.url||d.output?.url;
+          const url=d.output?.video_url||d.output?.video_urls?.[0]||(typeof d.output?.video==="string"?d.output.video:d.output?.video?.url)||d.output?.url;
           if(typeof url!=="string"||!url.startsWith("https://"))throw Error("piapi_video_url_missing");
           j.videoUrl=url;j.status="review_required";j.completedAt=new Date().toISOString();
         }else if(["failed","error","cancelled"].includes(status)){j.status="failed";j.error=String(d.error?.message||"provider_failed").slice(0,120);}
