@@ -544,6 +544,12 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
     <div class="field"><label for="veoModel">Quality mode</label><select id="veoModel"><option value="veo-3.1-fast-generate-preview" data-resolution="1080p">Veo 3.1 Fast · 1080p · $0.96</option><option value="veo-3.1-lite-generate-preview" data-resolution="1080p">Veo 3.1 Lite · 1080p · $0.64</option></select></div>
     <div class="field"><label for="veoVoice">Voiceover · Optional override</label><input id="veoVoice" type="text" placeholder="BIMA extracts a short complete sentence from the draft automatically" maxlength="180"></div>
   </div>
+  <div id="veoSetup" class="note warn" style="margin-top:12px" hidden>
+    <strong>Veo API belum aktif — bukan error dashboard.</strong>
+    <p style="margin:7px 0">Untuk BIMA Auto Video, buat Gemini API Key di Google AI Studio untuk project BIMA Content Studio, lalu tambahkan ke Railway sebagai <code>GEMINI_API_KEY</code>. Jangan tempel API key di chat atau GitHub.</p>
+    <p><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">1. Google AI Studio API Keys ↗</a> &nbsp; · &nbsp; <a href="https://railway.com/dashboard" target="_blank" rel="noopener noreferrer">2. Railway Content Studio → Variables ↗</a></p>
+    <small>Aktifkan billing sesuai kebutuhan, kemudian set <code>ENABLE_VEO_GENERATION=true</code>. Batas pilot US$5 tetap berlaku. Tidak ada regenerasi otomatis dan semua hasil tetap menunggu review.</small>
+  </div>
   <p id="veoBudget" class="hint" aria-live="polite">Checking Veo budget / API connectivity…</p>
   <div class="actions" style="flex-wrap:wrap">
     <button class="btn primary" id="veoCreate" type="button">Generate final video for selected draft</button>
