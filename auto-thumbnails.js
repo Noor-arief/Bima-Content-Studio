@@ -399,9 +399,9 @@
    const button=$('autoThumbDownload'),mode=$('autoThumbMode'),preview=$('autoThumbPreview');
    if(row){
      previewFromBlob(preview,row.blob,item);
-     mode.textContent='FINAL · FRAME FROM YOUR MP4 · Matched to video';
+     mode.textContent=item.approved?'FINAL · ACTUAL MP4 FRAME · Video approved':'VIDEO-MATCHED PREVIEW · Awaiting video approval';
      button.disabled=false;
-     note('✓ Video-matched thumbnail ready. Download PNG or try another frame.');
+     note(item.approved?'✓ Final thumbnail matches your approved MP4. Download PNG or try another frame.':'✓ Thumbnail matches the attached MP4. Review the video before publishing.');
      if(typeof renderCalendar==='function')renderCalendar();
      if(typeof renderDay==='function')renderDay();
    }else{
@@ -438,7 +438,7 @@
      a.download='orbit-ocean-'+item.date+'-'+item.id.replace(/[^a-zA-Z0-9-]/g,'')+'-video-matched-9x16.png';
      document.body.appendChild(a);a.click();a.remove();
      setTimeout(()=>URL.revokeObjectURL(url),15000);
-     note('✓ Final 1080 × 1920 PNG downloaded. Video itself was not changed.');
+     note('✓ 1080 × 1920 PNG downloaded from the attached MP4 frame. Video itself was not changed.');
    }catch(e){note('Download blocked: '+e.message);}
    finally{button.disabled=false;}
  }
@@ -456,11 +456,14 @@
  $('autoThumbDownload')?.addEventListener('click',()=>void download());
  $('autoThumbRefresh')?.addEventListener('click',()=>void refresh());
  // New file invalidates previous final thumbnail, even if replacement has the same name/size.
- $('videoFile')?.addEventListener('change',()=>{
+ function invalidateSelectedCover(){
    const selected=getSelected();if(!selected)return;
    void removeCover(selected.id);
-   if(isEligible(selected))note('New MP4 selected. The final thumbnail will be regenerated from this video.');
- });
+   if(isEligible(selected))note('Video changed. Thumbnail will be generated from the replacement MP4.');
+ }
+ $('videoFile')?.addEventListener('change',invalidateSelectedCover);
+ $('dropzone')?.addEventListener('drop',invalidateSelectedCover);
+ $('removeVideo')?.addEventListener('click',invalidateSelectedCover);
  document.addEventListener('bima:episode-selected',()=>void showPanel());
  document.addEventListener('bima:render-status',()=>{
    const id=getSelected()?.id||'';
