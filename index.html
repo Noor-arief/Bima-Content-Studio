@@ -565,6 +565,13 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
 <section id="piapiPilot" class="panel" data-panel="desk" style="max-width:980px;margin:0 auto 18px">
   <div class="line"><div><h2>PiAPI · Seedance Video Pilot</h2><p class="sub">BIMA generates one 8-second 9:16 720p test video from the selected draft. Preview only; never uploads to YouTube.</p></div><span class="chip">Owner review only</span></div>
   <p class="hint" id="piapiBudget">Connecting to PiAPI backend…</p>
+  <div style="padding:14px;border:1px solid rgba(148,163,255,.25);border-radius:12px;margin:12px 0">
+   <label for="piapiReferenceUrl" style="display:block;font-weight:700;margin-bottom:7px">Step 1 · Reference gambar Venus (URL HTTPS publik)</label>
+   <input id="piapiReferenceUrl" type="url" placeholder="https://.../venus-reference.png" style="width:100%;padding:11px;background:#101b3b;color:#fff;border:1px solid #53618e;border-radius:9px" autocomplete="off">
+   <p class="hint">Gunakan URL gambar Venus yang sudah lo periksa. URL harus bisa dibuka publik oleh PiAPI. Belum ada biaya pada langkah ini.</p>
+   <img id="piapiReferencePreview" alt="Pratinjau referensi Venus" hidden style="width:min(100%,230px);border-radius:10px;margin:9px 0;display:none">
+   <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px"><input type="checkbox" id="piapiReferenceApproved"> Saya sudah memeriksa gambar referensi: ini Venus, bukan Jupiter. Izinkan referensi ini dipakai saat tes berbayar.</label>
+  </div>
   <div class="actions"><button class="btn primary" id="piapiGenerate" type="button" disabled>Generate 8s test · ≈$0.77</button><button class="btn" id="piapiRefresh" type="button">Refresh PiAPI status</button></div>
   <p class="hint" id="piapiMessage" role="status" aria-live="polite">No PiAPI render started.</p>
   <div id="piapiJobs" style="display:grid;gap:8px;margin-top:12px"></div>
@@ -1085,5 +1092,5 @@ render();
 <script src="autonomous-planner.js?v=20261012-science-mix1" defer></script>
 <script src="mixed-calendar-sync.js?v=20261012-81-scene-audit1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
-<script src="piapi-pilot.js?v=20261012-venus-auto5" defer></script>
+<script src="piapi-pilot.js?v=20261012-reference-gate1" defer></script>
 </body></html>
