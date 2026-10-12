@@ -514,6 +514,30 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  .controls{flex-wrap:wrap;justify-content:flex-start}
  #episodeWorkflow .ew-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+/* UI polish: compact summary and predictable responsive panel widths. */
+.content .hero{padding:20px 24px}
+.content .hero h1{font-size:clamp(20px,2vw,27px);line-height:1.25}
+.content .hero p{max-width:760px;margin-bottom:10px}
+.content .metric{padding:16px 20px;min-height:112px}
+.workspace-bar{padding-bottom:14px;border-bottom:1px solid var(--line)}
+.queue{border-radius:12px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.queue td{vertical-align:middle}
+.queue th:first-child,.queue td:first-child{white-space:nowrap}
+#veoProduction{max-width:none!important}
+body[data-channel]:not([data-channel="youtube"]) #autonomousPlanner{display:none!important}
+#autonomousPlanner>div[style*="grid-template-columns"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media(max-width:900px){
+ .sidebar .menu-item{min-height:44px}
+ .content .hero{padding:16px}
+ .content .metric{padding:14px;min-height:100px}
+}
+@media(max-width:600px){
+ #autonomousPlanner>div[style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+ .content .side-status{gap:8px}
+ .content .metric>span{font-size:9px;letter-spacing:.08em}
+ .workspace-bar h1{font-size:22px}
+}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -637,7 +661,7 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  <p class="note warn" style="margin-top:14px"><strong>Approval safeguard:</strong> Select and save a final MP4 in Shorts Production Desk. Then send it to Railway, approve that exact file, and upload after OAuth setup. Until Google’s API audit and permission checks pass, BIMA may be able to upload Private but cannot promise public scheduling. No action here uploads without a click.</p>
  <p class="hint" id="apiServerMessage" role="status" aria-live="polite">Checking Railway connection. Calendar drafts stay local until explicitly sent.</p>
 </section>
-<section class="panel" id="autonomousPlanner" style="margin:20px 0;border:1px solid rgba(98,220,209,.25)">
+<section class="panel" id="autonomousPlanner" data-panel="kalender" style="margin:20px 0;border:1px solid rgba(98,220,209,.25)">
  <div class="line"><div><h2>BIMA Autonomous Content — Science Production Planner</h2><p class="sub">Orbit &amp; Ocean · YouTube Shorts today, an educational video tomorrow. Daily alternating plan until 31 Dec 2026 — editorial planning only, NOT an active publishing queue.</p></div><span class="chip" id="autonomousCount">Loading mixed schedule…</span></div>
  <div class="note warn" style="margin:14px 0"><strong>Science and rights:</strong> book titles are research leads, not verified citations. Verify title, edition and page for every claim. No copying copyrighted book figures for monetization without permission. All anatomy labels must be checked independently.</div>
  <div class="fields" style="margin:12px 0"><div class="field full"><label for="autonomousDate">Production date and format</label><select id="autonomousDate" style="max-width:100%;min-height:44px"></select></div></div>
@@ -1073,7 +1097,7 @@ render();
 <script src="episode-workflow.js?v=20261012-scene-copy2" defer></script>
 <script src="auto-thumbnails.js?v=20261012-thumbnail-upload4" defer></script>
 <script src="tiktok-affiliate.js?v=20261012-3" defer></script>
-<script src="channel-navigation.js?v=20261012-1" defer></script>
+<script src="channel-navigation.js?v=20261012-ui2" defer></script>
 <script src="autonomous-planner.js?v=20261012-science-mix1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
 </body></html>
