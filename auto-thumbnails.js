@@ -132,93 +132,344 @@
    if(svgCache.size>150)svgCache.clear();
    svgCache.set(sig,out);return out;
  }
+
+ // Final cover is ALWAYS derived from the final MP4. Before that, only a labeled concept.
+ const DB_NAME='bima-video-matched-thumbnail-v1';
+ const STORE_NAME='covers';
+ const coverMemory=new Map();
+ const pending=new Map();
+ let selectedId='',shownPreviewUrl='',session=0;
+ function signature(item){
+   return [item?.id,item?.title,item?.date,item?.mediaName,item?.mediaSize,'actual-frame-v1'].join('|');
+ }
  function src(item){return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg(item));}
+ function openCoverDB(){
+   return new Promise((resolve,reject)=>{
+     if(!('indexedDB'in window))return reject(Error('Browser thumbnail storage unavailable'));
+     const req=indexedDB.open(DB_NAME,1);
+     req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE_NAME))req.result.createObjectStore(STORE_NAME)};
+     req.onsuccess=()=>resolve(req.result);
+     req.onerror=()=>reject(req.error||Error('Cover storage unavailable'));
+   });
+ }
+ async function coverStore(mode,id,value){
+   const db=await openCoverDB();
+   return new Promise((resolve,reject)=>{
+     const tx=db.transaction(STORE_NAME,mode==='get'?'readonly':'readwrite');
+     const store=tx.objectStore(STORE_NAME);
+     const req=mode==='get'?store.get(id):mode==='put'?store.put(value,id):store.delete(id);
+     req.onsuccess=()=>resolve(req.result);
+     req.onerror=()=>reject(req.error||Error('Thumbnail storage failed'));
+     tx.oncomplete=()=>db.close();
+     tx.onerror=()=>reject(tx.error||Error('Thumbnail transaction failed'));
+   });
+ }
+ async function readCover(item){
+   if(!isEligible(item)||!item.mediaName)return null;
+   const sig=signature(item);
+   const cached=coverMemory.get(item.id);
+   if(cached&&cached.signature===sig)return cached;
+   const row=await coverStore('get',item.id).catch(()=>null);
+   if(row?.signature===sig&&row.blob instanceof Blob){
+     coverMemory.set(item.id,row);return row;
+   }
+   return null;
+ }
+ async function removeCover(id){
+   coverMemory.delete(id);
+   await coverStore('del',id).catch(()=>{});
+ }
+ function previewFromBlob(img,blob,item){
+   const url=URL.createObjectURL(blob);
+   const sig=signature(item);
+   img.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true});
+   if(img.dataset)img.dataset.coverSignature=sig;
+   img.src=url;
+ }
  function image(item,cls){
-   const img=document.createElement('img');img.className=cls;img.alt='Thumbnail otomatis: '+item.title;
-   img.decoding='async';img.loading='lazy';img.src=src(item);return img;
+   const img=document.createElement('img');
+   img.className=cls;img.alt='Concept thumbnail: '+item.title;
+   img.decoding='async';img.loading='lazy';img.src=src(item);
+   if(img.dataset)img.dataset.coverKind='concept';
+   if(item.mediaName){
+     void readCover(item).then(row=>{
+       if(!row||!img.isConnected||row.signature!==signature(item))return;
+       img.alt='Final thumbnail taken from actual video: '+item.title;
+       if(img.dataset)img.dataset.coverKind='final';
+       previewFromBlob(img,row.blob,item);
+     }).catch(()=>{});
+   }
+   return img;
  }
  function calendarTile(day,list){
    const item=list.find(isEligible);if(!item)return;
    day.classList.add('has-auto-cover');
-   day.appendChild(image(item,'auto-calendar-thumb'));
-   day.title='Thumbnail otomatis tersedia · '+item.title;
+   const thumb=image(item,'auto-calendar-thumb');
+   day.appendChild(thumb);
+   const tag=document.createElement('span');
+   tag.className='auto-thumb-status';tag.textContent='CONCEPT';
+   day.appendChild(tag);
+   if(item.mediaName)void readCover(item).then(row=>{
+     if(row&&tag.isConnected&&row.signature===signature(item))tag.textContent='VIDEO FRAME';
+   });
+   day.title='Concept before MP4 · Final cover uses actual frame of the video';
  }
  function dayRow(btn,item){
    if(!isEligible(item))return;
    btn.classList.add('has-auto-cover');
    btn.prepend(image(item,'auto-list-thumb'));
+   const tag=document.createElement('span');tag.className='auto-list-label';tag.textContent='CONCEPT';
+   btn.appendChild(tag);
+   if(item.mediaName)void readCover(item).then(row=>{
+     if(row&&tag.isConnected&&row.signature===signature(item))tag.textContent='VIDEO FRAME';
+   });
+ }
+ function frame(canvas,ctx,video){
+   const sw=video.videoWidth,sh=video.videoHeight,w=canvas.width,h=canvas.height;
+   if(!sw||!sh)throw Error('Video dimensions unavailable');
+   const ratio=Math.max(w/sw,h/sh),cw=w/ratio,ch=h/ratio;
+   ctx.drawImage(video,(sw-cw)/2,(sh-ch)/2,cw,ch,0,0,w,h);
+ }
+ async function seek(video,time){
+   return new Promise((resolve,reject)=>{
+     let done=false;
+     const finish=(e)=>{if(done)return;done=true;clearTimeout(timer);
+       video.removeEventListener('seeked',ok);video.removeEventListener('error',fail);
+       e?reject(e):resolve();
+     };
+     const ok=()=>finish(),fail=()=>finish(Error('Could not decode video frame'));
+     const timer=setTimeout(()=>finish(Error('Video frame extraction timed out')),7500);
+     video.addEventListener('seeked',ok,{once:true});
+     video.addEventListener('error',fail,{once:true});
+     try{video.currentTime=time;}catch(e){finish(e);}
+   });
+ }
+ function rating(canvas,ctx){
+   const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+   let count=0,sum=0,sq=0,sat=0,black=0;
+   for(let y=35;y<canvas.height-45;y+=5){
+     for(let x=20;x<canvas.width-20;x+=5){
+       const i=(y*canvas.width+x)*4,r=data[i],g=data[i+1],b=data[i+2];
+       const l=.2126*r+.7152*g+.0722*b;
+       sum+=l;sq+=l*l;sat+=Math.max(r,g,b)-Math.min(r,g,b);black+=l<22?1:0;count++;
+     }
+   }
+   const average=sum/count,contrast=Math.sqrt(Math.max(0,sq/count-average*average));
+   return contrast*.9+(sat/count)*.42-(black/count)*80-(average<30?30:0);
+ }
+ function wordWrap(ctx,title,maxWidth){
+   const list=String(title).trim().toUpperCase().split(/\s+/);
+   const lines=[],buffer=[];
+   for(const word of list){
+     if(buffer.length&&ctx.measureText([...buffer,word].join(' ')).width>maxWidth){
+       lines.push(buffer.join(' '));buffer.length=0;
+     }
+     buffer.push(word);
+   }
+   if(buffer.length)lines.push(buffer.join(' '));
+   return lines.slice(0,3);
+ }
+ function drawFinal(video,item){
+   const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;
+   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas unavailable');
+   frame(canvas,ctx,video);
+   const top=ctx.createLinearGradient(0,0,0,500);
+   top.addColorStop(0,'rgba(6,12,34,.72)');top.addColorStop(1,'rgba(6,12,34,0)');
+   ctx.fillStyle=top;ctx.fillRect(0,0,1080,500);
+   const bottom=ctx.createLinearGradient(0,1020,0,1920);
+   bottom.addColorStop(0,'rgba(5,11,29,0)');
+   bottom.addColorStop(.3,'rgba(5,11,29,.62)');
+   bottom.addColorStop(1,'rgba(5,11,29,.97)');
+   ctx.fillStyle=bottom;ctx.fillRect(0,1020,1080,900);
+   ctx.fillStyle='#fff';ctx.font='bold 46px Arial,sans-serif';ctx.fillText('ORBIT & OCEAN',72,122);
+   ctx.fillStyle='#7ce7d5';ctx.fillRect(72,151,290,8);
+   ctx.font='bold 34px Arial,sans-serif';ctx.fillText('SMALL VIDEOS · BIG WONDERS',73,1825);
+   const title=theme(item).headline;
+   ctx.font='900 116px Arial,sans-serif';
+   let lines=wordWrap(ctx,title,900);
+   if(lines.length>3||lines.some(l=>ctx.measureText(l).width>920)){
+     ctx.font='900 92px Arial,sans-serif';lines=wordWrap(ctx,title,915);
+   }
+   ctx.textBaseline='alphabetic';ctx.lineJoin='round';
+   lines.forEach((line,i)=>{
+     const y=1360+130*i;
+     ctx.lineWidth=12;ctx.strokeStyle='rgba(5,12,31,.92)';ctx.strokeText(line,75,y,910);
+     ctx.fillStyle='#fff';ctx.fillText(line,75,y,910);
+   });
+   return canvas;
+ }
+ function toPng(canvas){
+   return new Promise((resolve,reject)=>canvas.toBlob(
+     blob=>blob?resolve(blob):reject(Error('PNG export failed')),'image/png'));
+ }
+ async function buildCover(item,forced=false){
+   if(!isEligible(item)||!item.mediaName)return null;
+   const expected=signature(item);
+   if(!forced){const row=await readCover(item);if(row)return row;}
+   const file=await mediaDB('get',item.id);
+   if(!(file instanceof Blob)||file.size<1024)throw Error('Final MP4 is not available in this browser. Reattach the video.');
+   const url=URL.createObjectURL(file),v=document.createElement('video');
+   v.preload='auto';v.muted=true;v.playsInline=true;v.crossOrigin='anonymous';
+   try{
+     await new Promise((resolve,reject)=>{
+       let done=false;
+       const finish=e=>{if(done)return;done=true;clearTimeout(timer);
+         v.removeEventListener('loadedmetadata',ok);v.removeEventListener('error',bad);
+         e?reject(e):resolve();
+       };
+       const ok=()=>finish(),bad=()=>finish(Error('Cannot decode MP4 metadata'));
+       const timer=setTimeout(()=>finish(Error('Video metadata timed out')),15000);
+       v.addEventListener('loadedmetadata',ok,{once:true});
+       v.addEventListener('error',bad,{once:true});
+       v.src=url;v.load();
+     });
+     if(!Number.isFinite(v.duration)||v.duration<=0)throw Error('MP4 duration unavailable');
+     const candidates=[.16,.32,.49,.65,.78];
+     const prior=await readCover(item);
+     const next=forced&&prior?((candidates.findIndex(q=>Math.abs(q-prior.ratio)<.005)+1)%candidates.length):-1;
+     const sample=document.createElement('canvas');sample.width=180;sample.height=320;
+     const ctx=sample.getContext('2d',{willReadFrequently:true});
+     if(!ctx)throw Error('Canvas frame extraction unavailable');
+     let choices=[];
+     for(let i=0;i<candidates.length;i++){
+       const fraction=candidates[i],seconds=Math.max(.1,Math.min(v.duration-.07,v.duration*fraction));
+       try{await seek(v,seconds);frame(sample,ctx,v);choices.push({ratio:fraction,score:rating(sample,ctx)});}
+       catch(e){if(!choices.length&&i===candidates.length-1)throw e;}
+     }
+     if(!choices.length)throw Error('No decodable video frames found');
+     choices.sort((a,b)=>b.score-a.score);
+     const picked=next<0?choices[0]:choices.find(x=>x.ratio===candidates[next])||choices[0];
+     await seek(v,Math.max(.1,Math.min(v.duration-.07,v.duration*picked.ratio)));
+     const blob=await toPng(drawFinal(v,item));
+     if(signature(item)!==expected)return null;
+     const saved={signature:expected,ratio:picked.ratio,blob,createdAt:Date.now()};
+     coverMemory.set(item.id,saved);
+     await coverStore('put',item.id,saved).catch(e=>{console.warn('Thumbnail saved in memory only',e)});
+     return saved;
+   }finally{
+     v.pause();v.removeAttribute('src');v.load();URL.revokeObjectURL(url);
+   }
+ }
+ async function ensureFinal(item,force=false){
+   if(!isEligible(item)||!item.mediaName)return null;
+   if(!force){
+     const cached=await readCover(item);
+     if(cached)return cached;
+   }
+   if(pending.has(item.id))return pending.get(item.id);
+   const task=buildCover(item,force).finally(()=>pending.delete(item.id));
+   pending.set(item.id,task);return task;
  }
  const style=document.createElement('style');
  style.textContent=[
    '.day.has-auto-cover{position:relative;padding-right:50px}',
-   '.day .auto-calendar-thumb{position:absolute;right:6px;top:29px;width:39px;height:59px;object-fit:cover;border:1px solid rgba(183,218,247,.34);border-radius:5px;box-shadow:0 5px 12px rgba(0,0,0,.32)}',
+   '.day .auto-calendar-thumb{position:absolute;right:6px;top:28px;width:39px;height:59px;object-fit:cover;border:1px solid rgba(183,218,247,.34);border-radius:5px}',
+   '.day .auto-thumb-status{position:absolute;right:3px;bottom:3px;font-size:7px;letter-spacing:.01em;color:#dcdefe;background:#101c40;border-radius:3px;padding:1px 3px;pointer-events:none}',
    '.item.has-auto-cover{position:relative;padding-left:74px;min-height:89px}',
    '.item .auto-list-thumb{position:absolute;top:10px;left:13px;width:49px;height:67px;object-fit:cover;border:1px solid rgba(183,218,247,.4);border-radius:7px}',
-   '#thumbnailAutoPanel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,190px) 1fr;gap:18px;background:rgba(97,114,210,.07);border:1px solid rgba(142,156,238,.33);border-radius:14px;padding:16px;margin:4px 0 14px;align-items:start}',
+   '.item .auto-list-label{display:inline-block;margin-top:6px;color:#8fe8c9;font-size:10px}',
+   '#thumbnailAutoPanel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,190px) 1fr;gap:18px;background:rgba(97,114,210,.07);border:1px solid rgba(142,156,238,.33);border-radius:14px;padding:16px;margin:4px 0 14px}',
    '#thumbnailAutoPanel[hidden]{display:none!important}',
    '#thumbnailAutoPanel .auto-preview{width:100%;max-width:190px;aspect-ratio:9/16;object-fit:contain;border-radius:9px;border:1px solid rgba(182,220,250,.25)}',
    '#thumbnailAutoPanel h3{color:#eef4ff;font-size:16px;margin:0 0 8px}',
    '#thumbnailAutoPanel p{font-size:12px;line-height:1.6;color:#aebce1;margin:7px 0}',
-   '#thumbnailAutoPanel .auto-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}',
+   '#thumbnailAutoPanel .auto-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:12px 0}',
    '#thumbnailAutoPanel .auto-btn{border:1px solid rgba(146,163,247,.33);border-radius:9px;background:#1c2950;color:#f2f4ff;padding:9px 13px;font:inherit;font-size:12px;font-weight:650;min-height:36px;cursor:pointer}',
    '#thumbnailAutoPanel .auto-btn-primary{background:linear-gradient(120deg,#7467ed,#668cff);color:white}',
-   '#thumbnailAutoPanel .auto-btn:disabled{cursor:wait;opacity:.55}',
+   '#thumbnailAutoPanel .auto-btn:disabled{opacity:.5;cursor:not-allowed}',
    '#thumbnailAutoPanel .auto-msg{color:#94edce;min-height:20px}',
    '@media(max-width:650px){#thumbnailAutoPanel{grid-template-columns:120px 1fr;padding:11px;gap:12px}#thumbnailAutoPanel .auto-preview{max-width:120px}.day .auto-calendar-thumb{width:28px;height:45px;top:44px}.day.has-auto-cover{padding-right:35px}}'
  ].join('\n');
  document.head.append(style);
  const field=$('fCaption')?.closest('.field')||$('fTitle')?.closest('.field');
  const panel=document.createElement('section');panel.id='thumbnailAutoPanel';panel.hidden=true;
- panel.setAttribute('aria-label','Generated YouTube Shorts cover');
- panel.innerHTML='<img class="auto-preview" id="autoThumbPreview" alt="Cover thumbnail 9:16"/>'+
- '<div><h3>Thumbnail · Auto Generated</h3><p id="autoThumbTitle">Loading…</p>'+
- '<p>Cover otomatis sesuai judul, warna, dan tema Orbit &amp; Ocean. Format 9:16 · PNG 1080 × 1920.</p>'+
- '<div class="auto-actions"><button type="button" id="autoThumbDownload" class="auto-btn auto-btn-primary">Download PNG</button><button type="button" id="autoThumbRefresh" class="auto-btn">Refresh cover</button></div>'+
+ panel.setAttribute('aria-label','Video-matched YouTube Shorts thumbnail');
+ panel.innerHTML='<img class="auto-preview" id="autoThumbPreview" alt="Preview of video thumbnail"/>'+
+ '<div><h3>Thumbnail · Matched to Video</h3>'+
+ '<p id="autoThumbTitle">Waiting for selected content…</p>'+
+ '<p id="autoThumbMode">CONCEPT PREVIEW · Final thumbnail will use an actual MP4 frame.</p>'+
+ '<div class="auto-actions"><button type="button" id="autoThumbDownload" class="auto-btn auto-btn-primary" disabled>Download Final PNG</button>'+
+ '<button type="button" id="autoThumbRefresh" class="auto-btn">Try another video frame</button></div>'+
  '<p id="autoThumbMessage" class="auto-msg" role="status" aria-live="polite"></p>'+
- '<p>Thumbnail di kalender dibuat otomatis. Ini aset cover grafis, bukan adegan AI atau upload otomatis ke YouTube.</p></div>';
+ '<p>Before MP4: concept only, not final. After MP4: actual video frame, same character, colors and background; 1080 × 1920 PNG. Does not auto-upload to YouTube.</p></div>';
  if(field)field.insertAdjacentElement('beforebegin',panel);
- let activeId='';
- function showPanel(){
-   const item=getSelected();
-   if(!panel.isConnected||!isEligible(item)){panel.hidden=true;activeId='';return;}
-   panel.hidden=false;activeId=item.id;
+ function note(text){const n=$('autoThumbMessage');if(n)n.textContent=text;}
+ function updatePanelImage(item,row,check){
+   if(session!==check||item.id!==getSelected()?.id)return;
+   const button=$('autoThumbDownload'),mode=$('autoThumbMode'),preview=$('autoThumbPreview');
+   if(row){
+     previewFromBlob(preview,row.blob,item);
+     mode.textContent='FINAL · FRAME FROM YOUR MP4 · Matched to video';
+     button.disabled=false;
+     note('✓ Video-matched thumbnail ready. Download PNG or try another frame.');
+     if(typeof renderCalendar==='function')renderCalendar();
+     if(typeof renderDay==='function')renderDay();
+   }else{
+     preview.src=src(item);mode.textContent='CONCEPT PREVIEW · Not taken from video';
+     button.disabled=true;
+   }
+ }
+ async function showPanel(){
+   const item=getSelected();session++;
+   const check=session;selectedId=item?.id||'';
+   if(!panel.isConnected||!isEligible(item)){panel.hidden=true;return;}
+   panel.hidden=false;
    $('autoThumbPreview').src=src(item);
-   $('autoThumbTitle').textContent=(item.thumbnailHeadline||theme(item).headline)+' · '+item.date+' · '+item.title;
-   $('autoThumbMessage').textContent='✓ Cover 9:16 tersedia otomatis untuk draft ini.';
+   $('autoThumbDownload').disabled=true;
+   $('autoThumbTitle').textContent=theme(item).headline+' · '+item.date+' · '+item.title;
+   $('autoThumbMode').textContent='CONCEPT PREVIEW · Not taken from video';
+   if(!item.mediaName){note('Concept only. Attach your FINAL MP4 in Production Desk to generate the matching thumbnail.');return;}
+   note('Checking saved video and generating a matching frame thumbnail…');
+   try{
+     const row=await ensureFinal(item);
+     if(row)updatePanelImage(item,row,check);
+   }catch(e){
+     if(session===check)note('Final cover not ready: '+e.message+'. The concept is not a publish-ready thumbnail.');
+   }
  }
  async function download(){
    const item=getSelected();if(!isEligible(item))return;
    const button=$('autoThumbDownload');button.disabled=true;
-   const note=$('autoThumbMessage');note.textContent='Preparing 1080 × 1920 PNG…';
-   let url='';
    try{
-     const raw=svg(item);url=URL.createObjectURL(new Blob([raw],{type:'image/svg+xml;charset=utf-8'}));
-     const img=new Image();
-     await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('Preview rendering failed'));img.src=url;});
-     const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;
-     const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas unavailable');
-     ctx.drawImage(img,0,0,canvas.width,canvas.height);
-     const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG export unavailable')),'image/png'));
-     const fileUrl=URL.createObjectURL(blob);
-     const anchor=document.createElement('a');anchor.href=fileUrl;
-     anchor.download='orbit-ocean-'+item.date+'-'+item.id.replace(/[^a-zA-Z0-9-]/g,'')+'-cover-9x16.png';
-     document.body.append(anchor);anchor.click();anchor.remove();
-     setTimeout(()=>URL.revokeObjectURL(fileUrl),15000);
-     note.textContent='✓ PNG 1080 × 1920 siap · '+(blob.size/1048576).toFixed(1)+' MB.';
-   }catch(e){
-     note.textContent='PNG could not be exported: '+e.message+'. Try Chrome/Edge desktop.';
-   }finally{if(url)URL.revokeObjectURL(url);button.disabled=false;}
+     const row=await readCover(item);
+     if(!row)throw Error('No final video frame yet. Attach the final MP4 first.');
+     const url=URL.createObjectURL(row.blob);
+     const a=document.createElement('a');a.href=url;
+     a.download='orbit-ocean-'+item.date+'-'+item.id.replace(/[^a-zA-Z0-9-]/g,'')+'-video-matched-9x16.png';
+     document.body.appendChild(a);a.click();a.remove();
+     setTimeout(()=>URL.revokeObjectURL(url),15000);
+     note('✓ Final 1080 × 1920 PNG downloaded. Video itself was not changed.');
+   }catch(e){note('Download blocked: '+e.message);}
+   finally{button.disabled=false;}
+ }
+ async function refresh(){
+   const item=getSelected();if(!isEligible(item))return;
+   const check=++session;
+   if(!item.mediaName){note('Attach a final MP4 first. Concept covers cannot be downloaded as final.');return;}
+   $('autoThumbRefresh').disabled=true;note('Selecting another frame from the actual MP4…');
+   try{
+     const row=await ensureFinal(item,true);
+     if(row)updatePanelImage(item,row,check);
+   }catch(e){if(check===session)note('Could not choose another frame: '+e.message);}
+   finally{$('autoThumbRefresh').disabled=false;}
  }
  $('autoThumbDownload')?.addEventListener('click',()=>void download());
- $('autoThumbRefresh')?.addEventListener('click',()=>{
-   const item=getSelected();if(!item)return;
-   svgCache.clear();showPanel();$('autoThumbMessage').textContent='✓ Cover refreshed from this title and topic.';
+ $('autoThumbRefresh')?.addEventListener('click',()=>void refresh());
+ // New file invalidates previous final thumbnail, even if replacement has the same name/size.
+ $('videoFile')?.addEventListener('change',()=>{
+   const selected=getSelected();if(!selected)return;
+   void removeCover(selected.id);
+   if(isEligible(selected))note('New MP4 selected. The final thumbnail will be regenerated from this video.');
  });
- document.addEventListener('bima:episode-selected',showPanel);
- document.addEventListener('bima:render-status',()=>{if(getSelected()?.id!==activeId)showPanel();});
- window.BIMA_THUMBNAILS={isEligible,svg,src,calendarTile,dayRow,showPanel};
+ document.addEventListener('bima:episode-selected',()=>void showPanel());
+ document.addEventListener('bima:render-status',()=>{
+   const id=getSelected()?.id||'';
+   if(id!==selectedId)void showPanel();
+ });
+ window.BIMA_THUMBNAILS={isEligible,svg,src,calendarTile,dayRow,showPanel,readCover,ensureFinal};
  if(typeof renderCalendar==='function'&&typeof renderDay==='function'){
    renderCalendar();renderDay();
  }
- showPanel();
+ void showPanel();
+
 })();
