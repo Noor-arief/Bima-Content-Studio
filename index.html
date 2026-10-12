@@ -562,6 +562,14 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
   <div class="field" style="margin-top:12px"><label><input id="veoAutoQueue" type="checkbox"> After owner approval, submit to YouTube if production publishing is explicitly enabled</label></div>
   <div id="veoJobs" aria-live="polite" style="display:grid;gap:12px;margin-top:16px"></div>
 </section>
+<section id="piapiPilot" class="panel" data-panel="desk" style="max-width:980px;margin:0 auto 18px">
+  <div class="line"><div><h2>PiAPI · Seedance Video Pilot</h2><p class="sub">BIMA generates one 8-second 9:16 720p test video from the selected draft. Preview only; never uploads to YouTube.</p></div><span class="chip">Owner review only</span></div>
+  <p class="hint" id="piapiBudget">Connecting to PiAPI backend…</p>
+  <div class="actions"><button class="btn primary" id="piapiGenerate" type="button" disabled>Generate 8s test · ≈$0.77</button><button class="btn" id="piapiRefresh" type="button">Refresh PiAPI status</button></div>
+  <p class="hint" id="piapiMessage" role="status" aria-live="polite">No PiAPI render started.</p>
+  <div id="piapiJobs" style="display:grid;gap:8px;margin-top:12px"></div>
+  <div id="piapiPreview" hidden><h3>PiAPI preview · review before any publication</h3><video id="piapiPlayer" controls playsinline preload="none" style="width:min(100%,360px);max-height:590px;border-radius:14px;background:#000"></video><p class="hint">No automatic YouTube approval, scheduling, or upload is connected to this pilot.</p></div>
+</section>
 <section class="panel publishing-next" data-panel="publishing" id="publishingQuickActions" aria-labelledby="publishingQuickHeading">
  <div class="line"><div><h2 id="publishingQuickHeading">Publikasikan konten</h2><p class="sub" style="margin-bottom:0">Periksa konten terpilih, lalu lanjutkan melalui Publish with BIMA.</p></div><span class="chip" id="publishingReadyBadge">Checking draft…</span></div>
  <p id="publishingSelected" class="publishing-selected" role="status" aria-live="polite">Checking selected draft…</p>
@@ -1076,4 +1084,5 @@ render();
 <script src="channel-navigation.js?v=20261012-1" defer></script>
 <script src="autonomous-planner.js?v=20261012-science-mix1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
+<script src="piapi-pilot.js?v=20261012-pilot1" defer></script>
 </body></html>
