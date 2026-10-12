@@ -62,7 +62,7 @@
        const pilotId="yt26-20261013-piapi-pilot";
        const saved=localStorage.getItem("bima_piapi_scene1_"+pilotId);
        const jobs=await api("/api/piapi/status");
-       const match=jobs.jobs?.find(j=>j.id===pilotId&&j.taskId===saved&&j.status==="review_required");
+       const match=jobs.jobs?.find(j=>j.id===pilotId&&j.status==="review_required"&&j.videoUrl&&(j.taskId===saved||jobs.production?.[pilotId]?.scene1?.taskId===j.taskId));
        if(match){
          fullStatus.textContent="Archiving approved Scene 1 (no API generation charge)…";
          await api("/api/piapi/use-scene1","POST",{id:pilotId});
