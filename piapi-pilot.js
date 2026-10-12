@@ -74,13 +74,22 @@
      }
      if(j.status==="review_required"&&j.videoUrl){
        const use=document.createElement("button");use.type="button";use.className="btn primary";
-       const selected=d.production?.[j.id]?.scene1?.taskId===j.taskId;
+       const localKey="bima_piapi_scene1_"+j.id;
+       let localTaskId="";try{localTaskId=localStorage.getItem(localKey)||"";}catch{}
+       const selected=d.production?.[j.id]?.scene1?.taskId===j.taskId||localTaskId===j.taskId;
        use.textContent=selected?"✓ Scene 1 selected":"Use as Scene 1";
        use.disabled=selected;
        use.onclick=()=>safe(async()=>{
          if(!confirm("Pakai video Venus ini sebagai opening 8 detik dalam RENCANA Shorts 30 detik? Tidak memulai render, tidak upload YouTube."))return;
-         await api("/api/piapi/use-scene1","POST",{id:j.id});
-         say("Scene 1 dipilih untuk rencana 30 detik. Tidak ada biaya atau upload.");
+         try{
+           await api("/api/piapi/use-scene1","POST",{id:j.id});
+           say("Scene 1 tercatat di backend. Tidak ada biaya atau upload.");
+         }catch(e){
+           if(String(e.message)!=="not_found")throw e;
+           try{localStorage.setItem(localKey,j.taskId);}
+           catch{throw Error("Backend belum melayani Scene 1, dan browser menolak penyimpanan lokal.");}
+           say("Scene 1 disimpan sementara di browser. Sinkronisasi backend belum berhasil; belum menjadi aset permanen.");
+         }
          await status();
        });
        row.append(use);
