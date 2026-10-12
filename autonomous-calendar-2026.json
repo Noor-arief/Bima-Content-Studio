@@ -1,0 +1,3165 @@
+{
+  "project": "Orbit & Ocean",
+  "type": "Editorial proposal — not uploads",
+  "timezone": "Asia/Jakarta",
+  "schedule": "Alternate Shorts and standard videos, every day",
+  "firstDate": "2026-10-12",
+  "lastDate": "2026-12-31",
+  "sourcePolicy": "Book name is a research lead, NOT a verified citation; confirm exact title, edition, pages, permissions and independent claims before generation",
+  "items": [
+    {
+      "id": "mixed-2026-10-12",
+      "date": "2026-10-12",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why an Octopus Has Three Hearts",
+      "category": "Biology",
+      "mechanism": "Sea physiology",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate sea physiology. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-13",
+      "date": "2026-10-13",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why the Moon Changes Shape",
+      "category": "Astronomy",
+      "mechanism": "Lunar phases",
+      "referenceCandidate": "Astronomy: A Beginner's Guide to the Universe",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce lunar phases, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-14",
+      "date": "2026-10-14",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Bees Navigate Back Home",
+      "category": "Biology",
+      "mechanism": "Animal navigation",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate animal navigation. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-15",
+      "date": "2026-10-15",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "What Makes Ocean Waves Move",
+      "category": "Earth Science",
+      "mechanism": "Wave physics",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce wave physics, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-16",
+      "date": "2026-10-16",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Venus Spins So Slowly",
+      "category": "Astronomy",
+      "mechanism": "Planetary rotation",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate planetary rotation. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-17",
+      "date": "2026-10-17",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How an Eagle Sees Its Prey",
+      "category": "Biology",
+      "mechanism": "Avian vision",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce avian vision, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-18",
+      "date": "2026-10-18",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Can Coral Build an Island?",
+      "category": "Ocean",
+      "mechanism": "Coral ecosystem",
+      "referenceCandidate": "Coral Reefs: An Ecosystem in Transition",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate coral ecosystem. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-19",
+      "date": "2026-10-19",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "What Is Inside a Volcano?",
+      "category": "Earth Science",
+      "mechanism": "Volcanic anatomy",
+      "referenceCandidate": "Understanding Earth",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce volcanic anatomy, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-20",
+      "date": "2026-10-20",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Saturn Has Rings",
+      "category": "Astronomy",
+      "mechanism": "Planetary rings",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate planetary rings. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-21",
+      "date": "2026-10-21",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How a Seahorse Gives Birth",
+      "category": "Biology",
+      "mechanism": "Seahorse reproduction",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce seahorse reproduction, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-22",
+      "date": "2026-10-22",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Polar Bears Stay Warm",
+      "category": "Biology",
+      "mechanism": "Heat adaptations",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate heat adaptations. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-23",
+      "date": "2026-10-23",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Tornadoes Begin",
+      "category": "Earth Science",
+      "mechanism": "Atmospheric dynamics",
+      "referenceCandidate": "Meteorology Today",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce atmospheric dynamics, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-24",
+      "date": "2026-10-24",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why You Cannot Hear Sound in Space",
+      "category": "Physics",
+      "mechanism": "Sound wave mechanics",
+      "referenceCandidate": "University Physics",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate sound wave mechanics. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-25",
+      "date": "2026-10-25",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Dolphins Sleep",
+      "category": "Biology",
+      "mechanism": "Brain and sleep",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce brain and sleep, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-26",
+      "date": "2026-10-26",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "What Makes the Aurora Glow",
+      "category": "Astronomy",
+      "mechanism": "Magnetosphere",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate magnetosphere. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-27",
+      "date": "2026-10-27",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Trees Pull Water Up",
+      "category": "Biology",
+      "mechanism": "Xylem transport",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce xylem transport, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-28",
+      "date": "2026-10-28",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why the Sea Has Tides",
+      "category": "Ocean",
+      "mechanism": "Tides and gravity",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate tides and gravity. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-29",
+      "date": "2026-10-29",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How the Eye Sees Color",
+      "category": "Biology",
+      "mechanism": "Visual pigments",
+      "referenceCandidate": "Human Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce visual pigments, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-30",
+      "date": "2026-10-30",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Mars Looks Red",
+      "category": "Astronomy",
+      "mechanism": "Martian minerals",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate martian minerals. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-10-31",
+      "date": "2026-10-31",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "What Creates a Rainbow",
+      "category": "Physics",
+      "mechanism": "Light refraction",
+      "referenceCandidate": "University Physics",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce light refraction, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-01",
+      "date": "2026-11-01",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Sharks Detect Electricity",
+      "category": "Biology",
+      "mechanism": "Ampullae of Lorenzini",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate ampullae of lorenzini. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-02",
+      "date": "2026-11-02",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Earth Has Seasons",
+      "category": "Astronomy",
+      "mechanism": "Axial tilt",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce axial tilt, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-03",
+      "date": "2026-11-03",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Penguins Survive Ice",
+      "category": "Biology",
+      "mechanism": "Cold adaptations",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate cold adaptations. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-04",
+      "date": "2026-11-04",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "What Lives at Hydrothermal Vents",
+      "category": "Ocean",
+      "mechanism": "Deep sea ecosystem",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce deep sea ecosystem, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-05",
+      "date": "2026-11-05",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Clouds Form",
+      "category": "Earth Science",
+      "mechanism": "Condensation",
+      "referenceCandidate": "Meteorology Today",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate condensation. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-06",
+      "date": "2026-11-06",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How a Hummingbird Hovers",
+      "category": "Biology",
+      "mechanism": "Wing mechanics",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce wing mechanics, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-07",
+      "date": "2026-11-07",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "What Keeps Jupiter's Storms Alive",
+      "category": "Astronomy",
+      "mechanism": "Gas giant weather",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate gas giant weather. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-08",
+      "date": "2026-11-08",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Butterflies Sense Plants",
+      "category": "Biology",
+      "mechanism": "Insect chemoreceptors",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce insect chemoreceptors, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-09",
+      "date": "2026-11-09",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "What Is Bioluminescence",
+      "category": "Biology",
+      "mechanism": "Light chemistry",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate light chemistry. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-10",
+      "date": "2026-11-10",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Some Rocks Float",
+      "category": "Earth Science",
+      "mechanism": "Pumice porosity",
+      "referenceCandidate": "Understanding Earth",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce pumice porosity, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-11",
+      "date": "2026-11-11",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Owls Fly Quietly",
+      "category": "Biology",
+      "mechanism": "Feather aerodynamics",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate feather aerodynamics. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-12",
+      "date": "2026-11-12",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Some Frogs Can Freeze",
+      "category": "Biology",
+      "mechanism": "Freeze tolerance",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce freeze tolerance, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-13",
+      "date": "2026-11-13",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Jellyfish Move Without a Brain",
+      "category": "Biology",
+      "mechanism": "Nerve nets",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate nerve nets. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-14",
+      "date": "2026-11-14",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Bees Tell Each Other Directions",
+      "category": "Biology",
+      "mechanism": "Waggle dance",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce waggle dance, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-15",
+      "date": "2026-11-15",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Red Light Fades in Water",
+      "category": "Physics",
+      "mechanism": "Light absorption",
+      "referenceCandidate": "University Physics",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate light absorption. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-16",
+      "date": "2026-11-16",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Cuttlefish Change Color",
+      "category": "Biology",
+      "mechanism": "Chromatophores",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce chromatophores, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-17",
+      "date": "2026-11-17",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Humpback Whales Sing",
+      "category": "Ocean",
+      "mechanism": "Underwater acoustics",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate underwater acoustics. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-18",
+      "date": "2026-11-18",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Coral Is an Animal",
+      "category": "Biology",
+      "mechanism": "Cnidaria",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce cnidaria, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-19",
+      "date": "2026-11-19",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Snowflakes Get Six Arms",
+      "category": "Earth Science",
+      "mechanism": "Crystallography",
+      "referenceCandidate": "Understanding Earth",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate crystallography. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-20",
+      "date": "2026-11-20",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Sharks Have Cartilage",
+      "category": "Biology",
+      "mechanism": "Cartilaginous skeletons",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce cartilaginous skeletons, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-21",
+      "date": "2026-11-21",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Fish Survive Antarctic Seas",
+      "category": "Biology",
+      "mechanism": "Antifreeze proteins",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate antifreeze proteins. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-22",
+      "date": "2026-11-22",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "What Makes Deep Ocean Currents",
+      "category": "Ocean",
+      "mechanism": "Thermohaline circulation",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce thermohaline circulation, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-23",
+      "date": "2026-11-23",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Arctic Foxes Turn White",
+      "category": "Biology",
+      "mechanism": "Seasonal camouflage",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate seasonal camouflage. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-24",
+      "date": "2026-11-24",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Penguins Remove Salt",
+      "category": "Biology",
+      "mechanism": "Salt glands",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce salt glands, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-25",
+      "date": "2026-11-25",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "What Makes Olympus Mons So Huge",
+      "category": "Astronomy",
+      "mechanism": "Mars geology",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate mars geology. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-26",
+      "date": "2026-11-26",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Tardigrades Survive Drying",
+      "category": "Biology",
+      "mechanism": "Cryptobiosis",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce cryptobiosis, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-27",
+      "date": "2026-11-27",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why We Need Leap Years",
+      "category": "Astronomy",
+      "mechanism": "Orbital periods",
+      "referenceCandidate": "Astronomy: A Beginner's Guide to the Universe",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate orbital periods. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-28",
+      "date": "2026-11-28",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Ants Follow Chemical Trails",
+      "category": "Biology",
+      "mechanism": "Pheromones",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce pheromones, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-29",
+      "date": "2026-11-29",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Ice Floats on Water",
+      "category": "Physics",
+      "mechanism": "Density",
+      "referenceCandidate": "University Physics",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate density. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-11-30",
+      "date": "2026-11-30",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Lightning Makes Thunder",
+      "category": "Earth Science",
+      "mechanism": "Atmospheric electricity",
+      "referenceCandidate": "Meteorology Today",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce atmospheric electricity, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-01",
+      "date": "2026-12-01",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Woodpeckers Avoid Head Injuries",
+      "category": "Biology",
+      "mechanism": "Bird cranial biomechanics",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate bird cranial biomechanics. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-02",
+      "date": "2026-12-02",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How the Sun Powers Ocean Life",
+      "category": "Ocean",
+      "mechanism": "Photosynthesis plankton",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce photosynthesis plankton, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-03",
+      "date": "2026-12-03",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Planets Orbit Stars",
+      "category": "Physics",
+      "mechanism": "Gravitational motion",
+      "referenceCandidate": "University Physics",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate gravitational motion. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-04",
+      "date": "2026-12-04",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How a Spider Makes Silk",
+      "category": "Biology",
+      "mechanism": "Spider protein fibers",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce spider protein fibers, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-05",
+      "date": "2026-12-05",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why the Moon Has Quakes",
+      "category": "Astronomy",
+      "mechanism": "Lunar tectonics",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate lunar tectonics. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-06",
+      "date": "2026-12-06",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How a Plant Defends Its Leaves",
+      "category": "Biology",
+      "mechanism": "Plant defense",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce plant defense, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-07",
+      "date": "2026-12-07",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Mangroves Protect Coasts",
+      "category": "Ocean",
+      "mechanism": "Coastal ecosystems",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate coastal ecosystems. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-08",
+      "date": "2026-12-08",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why We See Shooting Stars",
+      "category": "Astronomy",
+      "mechanism": "Meteors",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce meteors, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-09",
+      "date": "2026-12-09",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How a Gecko Climbs Glass",
+      "category": "Biology",
+      "mechanism": "Adhesion",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate adhesion. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-10",
+      "date": "2026-12-10",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Bubbles Are Round",
+      "category": "Physics",
+      "mechanism": "Surface tension",
+      "referenceCandidate": "University Physics",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce surface tension, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-11",
+      "date": "2026-12-11",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Earth Makes a Magnetic Field",
+      "category": "Earth Science",
+      "mechanism": "Geodynamo",
+      "referenceCandidate": "Understanding Earth",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate geodynamo. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-12",
+      "date": "2026-12-12",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Salmon Navigate Home",
+      "category": "Biology",
+      "mechanism": "Fish migration",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce fish migration, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-13",
+      "date": "2026-12-13",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Stars Are Born",
+      "category": "Astronomy",
+      "mechanism": "Star formation",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate star formation. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-14",
+      "date": "2026-12-14",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Chameleons Change Color",
+      "category": "Biology",
+      "mechanism": "Structural coloration",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce structural coloration, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-15",
+      "date": "2026-12-15",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How a Waterfall Erodes Rock",
+      "category": "Earth Science",
+      "mechanism": "Stream erosion",
+      "referenceCandidate": "Understanding Earth",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate stream erosion. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-16",
+      "date": "2026-12-16",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How a Whale Breathes Between Dives",
+      "category": "Biology",
+      "mechanism": "Marine mammal lungs",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce marine mammal lungs, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-17",
+      "date": "2026-12-17",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "Why Comets Have Tails",
+      "category": "Astronomy",
+      "mechanism": "Solar wind and sublimation",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate solar wind and sublimation. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-18",
+      "date": "2026-12-18",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Termites Build Cool Towers",
+      "category": "Biology",
+      "mechanism": "Social insect nests",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce social insect nests, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-19",
+      "date": "2026-12-19",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Black Holes Bend Light",
+      "category": "Astronomy",
+      "mechanism": "Gravitational lensing",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate gravitational lensing. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-20",
+      "date": "2026-12-20",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Sea Ice Forms from Saltwater",
+      "category": "Ocean",
+      "mechanism": "Sea ice salinity",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce sea ice salinity, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-21",
+      "date": "2026-12-21",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How the Ear Detects Sound",
+      "category": "Biology",
+      "mechanism": "Hearing",
+      "referenceCandidate": "Human Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate hearing. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-22",
+      "date": "2026-12-22",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Deserts Get Cold at Night",
+      "category": "Earth Science",
+      "mechanism": "Thermal radiation",
+      "referenceCandidate": "Meteorology Today",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce thermal radiation, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-23",
+      "date": "2026-12-23",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Bats Use Echolocation",
+      "category": "Biology",
+      "mechanism": "Sound navigation",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate sound navigation. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-24",
+      "date": "2026-12-24",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "What Makes a Tsunami Move",
+      "category": "Ocean",
+      "mechanism": "Seismic waves",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce seismic waves, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-25",
+      "date": "2026-12-25",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How a Cactus Stores Water",
+      "category": "Biology",
+      "mechanism": "Desert adaptation",
+      "referenceCandidate": "Campbell Biology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate desert adaptation. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-26",
+      "date": "2026-12-26",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Earth's Core Stays Hot",
+      "category": "Earth Science",
+      "mechanism": "Geothermal energy",
+      "referenceCandidate": "Understanding Earth",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce geothermal energy, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-27",
+      "date": "2026-12-27",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How an Eel Generates Electricity",
+      "category": "Biology",
+      "mechanism": "Electric organs",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate electric organs. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-28",
+      "date": "2026-12-28",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "Why Stars Twinkle",
+      "category": "Astronomy",
+      "mechanism": "Atmospheric turbulence",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce atmospheric turbulence, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-29",
+      "date": "2026-12-29",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Seagrass Helps Ocean Animals",
+      "category": "Ocean",
+      "mechanism": "Marine habitats",
+      "referenceCandidate": "Essentials of Oceanography",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate marine habitats. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-30",
+      "date": "2026-12-30",
+      "time": "19:30",
+      "type": "Video",
+      "targetSeconds": 180,
+      "aspect": "16:9",
+      "title": "How Dragonflies Hunt in Flight",
+      "category": "Biology",
+      "mechanism": "Insect vision",
+      "referenceCandidate": "Animal Physiology",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Write an original 3-minute evidence-based narration: introduce insect vision, explain the mechanism with verified diagrams and factual examples, then answer the opening question.",
+      "storyboard": [
+        [
+          "0–15s",
+          "HOOK",
+          "Frame the problem"
+        ],
+        [
+          "15–45s",
+          "CONTEXT",
+          "Define scientific terms with book citation"
+        ],
+        [
+          "45–120s",
+          "MECHANISM",
+          "Show anatomy/diagram sourced independently and labeled correctly"
+        ],
+        [
+          "120–165s",
+          "EXAMPLE",
+          "Demonstrate a scientifically accurate consequence"
+        ],
+        [
+          "165–180s",
+          "PAYOFF",
+          "Answer clearly, conclude VO, leave clean ending"
+        ]
+      ],
+      "thumbnailBrief": "16:9 cinematic original illustration; strong focal subject and <=4-word legible hook; no misleading anatomy",
+      "status": "Research required",
+      "ready": false
+    },
+    {
+      "id": "mixed-2026-12-31",
+      "date": "2026-12-31",
+      "time": "19:30",
+      "type": "Shorts",
+      "targetSeconds": 8,
+      "aspect": "9:16",
+      "title": "How Earth Measures a Year",
+      "category": "Astronomy",
+      "mechanism": "Orbit and calendars",
+      "referenceCandidate": "The Cosmic Perspective",
+      "referenceStatus": "needs-exact-edition-page-check",
+      "voiceover": "Investigate orbit and calendars. Explain one verified mechanism clearly, then finish the answer before the final frame.",
+      "storyboard": [
+        [
+          "0–2s",
+          "HOOK",
+          "Ask one intriguing scientific question"
+        ],
+        [
+          "2–6s",
+          "MECHANISM",
+          "Show a single source-verified mechanism"
+        ],
+        [
+          "6–8s",
+          "PAYOFF",
+          "Complete the answer and finish narration"
+        ]
+      ],
+      "thumbnailBrief": "9:16 strong subject close-up; clear, honest hook; reserve recognizable still frame for Short cover",
+      "status": "Research required",
+      "ready": false
+    }
+  ]
+}
