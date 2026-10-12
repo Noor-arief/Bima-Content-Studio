@@ -6,6 +6,7 @@ import path from "node:path";
 import os from "node:os";
 import { Transform } from "node:stream";
 import { convertShortsVideo } from "./shorts.mjs";
+import { MIX_2026, validateEditorial } from "./editorial.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -276,6 +277,19 @@ async function handler(req,res){
   }
   if(!u.pathname.startsWith("/api/"))return error(res,404,"not_found");
   if(!access(req))return error(res,401,"authentication_required");
+  if(req.method==="GET"&&u.pathname==="/api/production/plan"){
+    return respond(res,200,{mode:"editorial_only",providerGenerationEnabled:false,publishEnabled:false,
+      note:"Alternating daily release proposal; no video generated, source verified, or upload initiated.",
+      items:MIX_2026});
+  }
+  if(req.method==="POST"&&u.pathname==="/api/production/preflight"){
+    let input;try{input=await readJSON(req,250000);}catch{return error(res,400,"invalid_editorial_package");}
+    return respond(res,200,validateEditorial(input));
+  }
+  if(req.method==="POST"&&u.pathname==="/api/production/generate"){
+    return error(res,409,"generation_not_enabled_paid_provider_and_source_QA_pending");
+  }
+
   // Conversion is isolated from publishing: authenticated, bounded, temporary MP4 processing only.
   if(req.method==="POST"&&u.pathname==="/api/convert-shorts"){
     if(shortsConversionBusy)return error(res,429,"conversion_busy_try_again");
