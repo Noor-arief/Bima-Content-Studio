@@ -73,6 +73,19 @@
        });row.append(reject);
      }
      if(j.status==="review_required"&&j.videoUrl){
+       const use=document.createElement("button");use.type="button";use.className="btn primary";
+       const selected=d.production?.[j.id]?.scene1?.taskId===j.taskId;
+       use.textContent=selected?"✓ Scene 1 selected":"Use as Scene 1";
+       use.disabled=selected;
+       use.onclick=()=>safe(async()=>{
+         if(!confirm("Pakai video Venus ini sebagai opening 8 detik dalam RENCANA Shorts 30 detik? Tidak memulai render, tidak upload YouTube."))return;
+         await api("/api/piapi/use-scene1","POST",{id:j.id});
+         say("Scene 1 dipilih untuk rencana 30 detik. Tidak ada biaya atau upload.");
+         await status();
+       });
+       row.append(use);
+     }
+     if(j.status==="review_required"&&j.videoUrl){
        const watch=document.createElement("button");watch.className="btn";watch.textContent="Preview video";watch.onclick=()=>{
          const u=new URL(j.videoUrl);if(u.protocol!=="https:")return;
          const player=$("piapiPlayer");player.src=u.href;$("piapiPreview").hidden=false;player.load();player.scrollIntoView({block:"center",behavior:"smooth"});
