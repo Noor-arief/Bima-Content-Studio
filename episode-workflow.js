@@ -40,8 +40,8 @@ css.textContent=[
 document.head.append(css);
 const panel=document.createElement('section');panel.id='episodeWorkflow';
 panel.setAttribute('aria-label','Per-video production workflow');
-panel.innerHTML='<div class="ew-row"><div><h3>Episode Workflow</h3><p class="ew-muted">Teaching brief → storyboard → Gemini clips → full voice-over → final MP4 → BIMA Publish</p></div><span id="ewPhase" class="ew-muted"></span></div>'+
-'<div class="ew-row"><label for="ewDuration" class="ew-muted">Video duration <select id="ewDuration" class="ew-control"><option value="16">16s · 2 clips</option><option value="24">24s · 3 clips</option><option value="32">32s · 4 clips</option></select></label><span class="ew-muted">Each Gemini scene targets 8 seconds</span></div>'+
+panel.innerHTML='<div class="ew-row"><div><h3>Episode Workflow</h3><p class="ew-muted">Teaching brief → unique storyboard → AI scene clips → continuous voice-over → final MP4 → owner review</p></div><span id="ewPhase" class="ew-muted"></span></div>'+
+'<div class="ew-row"><label for="ewDuration" class="ew-muted">Video duration <select id="ewDuration" class="ew-control"><option value="16">16s · 2 clips</option><option value="24">24s · 3 clips</option><option value="32">32s · 4 clips</option></select></label><span class="ew-muted">Each AI scene targets 8 seconds; final production needs owner review</span></div>'+
 '<label class="ew-muted" for="ewBrief">What viewers will learn (edit before generating)</label><textarea id="ewBrief" class="ew-voice" spellcheck="true"></textarea><div id="ewScenes" class="ew-grid"></div>'+
 '<label class="ew-muted" for="ewVoice">Full English voice-over · record ONE continuous narration for the final video</label>'+
 '<textarea id="ewVoice" class="ew-voice" spellcheck="true"></textarea>'+
@@ -63,6 +63,15 @@ const CUSTOM={
  'One third glowing heart icon appears, sending simple blue illustrated arrows toward the whole body. All three icons pulse together and the healthy octopus swims happily away. Hold a beautiful final composition for 1.5 seconds.'
  ],
  voice:'An octopus has three hearts. Why so many? Two pump blood to its gills to collect oxygen. The third sends oxygen-rich blood around its body. Three hearts, one amazing animal!'
+},
+'yt26-20261013-piapi-pilot':{
+ objective:'Demonstrate that Venus rotates extremely slowly: its sidereal rotation takes about 243 Earth days, longer than its approximately 225-Earth-day orbit. This is a visual-only PiAPI pilot, not publication.',
+ scenes:[
+ 'HOOK: Show one large distinctly golden, cloud-covered Venus slowly rotating in deep indigo space; a gentle Sun glow enters from offscreen. Keep Venus as the unmistakable central subject. No other planets or on-screen text.',
+ 'EXPLANATION: Keep the same golden Venus with identical cloud texture; pull back to reveal a clean stylized orbit around the Sun. Show a deliberately slow rotation axis with one subtle glowing orbital tracer, making the contrast between rotation and orbital movement visually intelligible.',
+ 'PAYOFF: The camera holds the same Venus and its orbit as one complete graceful composition, with a subtle completed orbital trail, gentle atmospheric shimmer, and a held final frame for the last 1.5 seconds. No new objects, no abrupt ending.'
+ ],
+ voice:'Venus turns incredibly slowly. It takes about 243 Earth days to spin once, but only 225 to travel around the Sun. On Venus, one rotation takes longer than its year.'
 },
 'yt26-20261014':{
  objective:'Explain that butterflies taste plants with receptors on their feet and use that information when choosing where to lay eggs.',
@@ -93,11 +102,11 @@ function createPlan(item){
  duration:24,
  objective:curated?.objective||'Teach one verified fact: '+(item.caption||item.title).replace(/#\w+/g,'').trim(),
  scenes:curated?.scenes||[
-  old.scenes[0]||'Open with one clear stylized educational cartoon hook.',
-  old.scenes[1]||'Show the science using simple exterior icons, arrows and visual motion.',
-  old.scenes[2]||'Reveal the payoff and conclude with a clear composed final image.'
+  old.scenes[0]||'HOOK: Establish the exact subject of "'+item.title+'" with an engaging animated close-up. Set up one visual question tied to '+(item.title||'the topic')+'. No unrelated objects or facts.',
+  old.scenes[1]||'EXPLANATION: Stay with the same subject and show the mechanism of '+(item.title||'this phenomenon')+' using a large, readable scientific diagram. The illustration MUST be fact-checked against the named topic before use.',
+  old.scenes[2]||'PAYOFF: Return to the same subject in '+(item.title||'the science story')+' and resolve the opening question. Hold one complete final image for 1.5 seconds, with no new claims or visual topic shift.'
  ],
- voice:curated?.voice||('Here is a curious science fact. '+old.voice+' Watch the visual explanation and remember this surprising idea.'),
+ voice:curated?.voice||old.voice||('Research and explain this topic with verified facts: '+item.title+'. Complete the answer before the final image.'),
  version:1
  };
 }
