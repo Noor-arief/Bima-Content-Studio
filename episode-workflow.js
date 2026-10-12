@@ -109,11 +109,15 @@ function scenes(plan){
  if(n===3)return finish(a);
  return finish([a[0]||'Animated hook',a[1]||'Animated explanation',(a[1]||'Illustrated explanation')+' Reinforce the teaching point using a simple diagram.',a[2]||'Animated resolved ending']);
 }
-function clip(item,plan,i){
- const n=plan.duration/8,scene=scenes(plan)[i]||'Continue the science story';
+function clip(item,plan,i,visual=scenes(plan)[i]){
+ const n=plan.duration/8,scene=String(visual||'Continue the science story').trim();
  const end=i===n-1?'End by holding a fully resolved final frame for at least 1.5 seconds.':'Finish on a stable transition frame.';
- return 'ORBIT & OCEAN | '+item.title+'\nCLIP '+(i+1)+' OF '+n+' | Generate an ~8-second portrait 9:16 scene.\n'+STYLE+
- '\nSCENE: '+scene+'.\n'+end+
+ return 'SCENE '+(i+1)+' OF '+n+' | '+(i*8)+'–'+((i+1)*8)+'s | '+(i===0?'HOOK':i===n-1?'PAYOFF & ENDING':'EXPLANATION')+
+ '\nACTION FOR THIS SCENE ONLY: '+scene+
+ '\n'+end+
+ '\nGenerate only this ~8-second portrait 9:16 clip. Do not repeat another scene or generate the entire video.'+
+ '\nVIDEO: ORBIT & OCEAN | '+item.title+
+ '\nSHARED VISUAL STYLE: '+STYLE+
  '\nCONTINUITY: Use the same character and exact palette as earlier scenes; provide the previous final frame as reference when possible.'+
  '\nAUDIO: ambient music and subtle sound effects ONLY. NO SPEECH, NO lip-sync, NO narrator. Voice-over is recorded ONCE for the entire finished video.';
 }
@@ -156,7 +160,11 @@ async function copy(value,success,button=null,card=null){
    }else{ok=copyLegacy(value);}
  }catch(_){ok=copyLegacy(value);}
  if(ok){
-   if(button)button.textContent='✓ Copied to clipboard';
+   if(button){
+     panel.querySelectorAll('.ew-scene .ew-btn').forEach(b=>{b.textContent=b.dataset.copyLabel;});
+     panel.querySelectorAll('.ew-copy-status').forEach(s=>{s.textContent='';});
+     button.textContent='✓ Scene '+button.dataset.scene+' copied';
+   }
    notice(success);
    const fallback=card?.querySelector('.ew-copy-fallback');
    if(fallback)fallback.hidden=true;
@@ -187,10 +195,10 @@ function populateScenes(item){
   const sub=document.createElement('small');sub.textContent=index===0?'Hook':index===plan.duration/8-1?'Payoff and resolved ending':'Explain the fact';
   const p=document.createElement('textarea');p.className='ew-scene-input';p.setAttribute('aria-label','Scene '+(index+1)+' visual storyboard');p.value=content;const protect=locked(item);p.readOnly=protect;
   p.addEventListener('input',()=>{if(!plan||locked(item))return;plan.overrides||={};plan.overrides[plan.duration]||={};plan.overrides[plan.duration][index]=p.value;dirty=true;show('Scene '+(index+1)+' edited. Apply to save.');});
-  const b=document.createElement('button');b.className='ew-btn';b.type='button';b.textContent='Copy Gemini prompt';
+  const b=document.createElement('button');b.className='ew-btn';b.type='button';b.dataset.scene=String(index+1);b.dataset.copyLabel='Copy Scene '+(index+1)+' prompt';b.textContent=b.dataset.copyLabel;
   const status=document.createElement('small');status.className='ew-copy-status';
   status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-  b.addEventListener('click',()=>void copy(clip(item,plan,index),'Scene '+(index+1)+' copied. Paste it into Gemini.',b,div));
+  b.addEventListener('click',()=>void copy(clip(item,plan,index,p.value),'Scene '+(index+1)+' is now in the clipboard. Paste it into Gemini.',b,div));
   div.append(title,sub,p,b,status);area.append(div);
  });
 }
