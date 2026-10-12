@@ -36,7 +36,7 @@
     publishAt:currentDateTime(item)};
  };
  const selectedModel=()=>get("veoModel").value;
- const cost=()=>selectedModel()==="veo-3.1-lite-generate-preview"?0.64:0.96;
+ const cost=()=>selectedModel()==="veo-3.1-lite-generate-preview"?0.74:1.06; // Veo + $0.10 QA allowance
  const updateWallet=()=>{
    wallet.textContent=overview?
      "Veo API: "+(overview.configured?(overview.enabled?"Ready":"Key detected, generation disabled"):"API key not configured")+
@@ -56,7 +56,7 @@
      const status=document.createElement("span");status.textContent=job.status.replaceAll("_"," ");
      top.append(title,status);block.appendChild(top);
      const info=document.createElement("small");
-     info.textContent="ID "+job.id+" · $"+(job.cents/100).toFixed(2)+" reserved · "+(job.qa?.technicalPass?"MP4 + audio track + portrait PASS":job.qa?.issues?.join(", ")||"Awaiting output");
+     info.textContent="ID "+job.id+" · $"+(job.cents/100).toFixed(2)+" reserved · "+(job.qa?.semanticPass?"Story + narration + ending AI QA PASS (owner review required)":job.qa?.issues?.join(", ")||(job.qa?.technicalPass?"Technical QA PASS · semantic review pending":"Awaiting output"));
      block.appendChild(info);
      if(job.error){const p=document.createElement("p");p.textContent=job.error;block.appendChild(p);}
      if(["needs_owner_review","qa_failed","approved","rejected"].includes(job.status)){
@@ -115,7 +115,7 @@
    if(!overview.enabled)throw Error("Veo requires GEMINI_API_KEY and ENABLE_VEO_GENERATION in Railway. No charge was made.");
    if(overview.remainingUsd<price)throw Error("Pilot budget exhausted.");
    const consent="Generate ONE 8-second video with native voiceover for "+d.title+"?\nModel: "+get("veoModel").selectedOptions[0].text+
-   "\nEstimated cost: $"+price.toFixed(2)+" per successful generation.\nEach new attempt reserves additional budget. Remaining before request: $"+
+   "\nBudget reservation: $"+price.toFixed(2)+" (Veo + QA allowance) per generation.\nEach new attempt reserves additional budget. Remaining before request: $"+
    overview.remainingUsd.toFixed(2)+".\nNo auto-regeneration. Continue?";
    if(!confirm(consent))return;
    await api("/api/content","POST",{id:d.id,title:d.title,description:d.description,publishAt:d.publishAt,madeForKids:false,containsSyntheticMedia:true});
@@ -125,8 +125,8 @@
    notice("BIMA started Veo job for "+d.title+". Generation may take several minutes. Status will refresh automatically.");
    overview=result.summary;updateWallet();updateJobs();
  }));
- get("veoModel").addEventListener("change",()=>{get("veoEstimate").textContent="Estimated "+cost().toFixed(2)+" USD / 8s clip";});
- get("veoEstimate").textContent="Estimated $0.96 USD / 8s clip";
+ get("veoModel").addEventListener("change",()=>{get("veoEstimate").textContent="Estimated $"+cost().toFixed(2)+" USD / 8s incl. QA reserve";});
+ get("veoEstimate").textContent="Estimated $1.06 USD / 8s incl. QA reserve";
  setInterval(()=>{if(token())reload().catch(()=>{});},20000);
  if(token())reload().catch(e=>{notice("Veo status unavailable: "+e.message);});
  else{notice("Connect YouTube via the Publishing tab first. Veo generation stays disabled until API billing/key is configured.");}
