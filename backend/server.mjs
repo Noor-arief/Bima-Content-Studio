@@ -22,6 +22,9 @@ const KEY = /^[0-9a-f]{64}$/i.test(KEY_B64) ? Buffer.from(KEY_B64,"hex") : Buffe
 const HAVE_OAUTH = Boolean(BASE && CLIENT_ID && CLIENT_SECRET && OWNER && KEY.length === 32);
 const ENABLE_UPLOADS = process.env.ENABLE_UPLOADS === "true";
 const SHORTS_MAX_UPLOAD = 30 * 1024 * 1024;
+const THUMBNAIL_MAX_UPLOAD = 12 * 1024 * 1024;
+const THUMBNAIL_START = "2026-10-19";
+const ENABLE_THUMBNAIL_UPLOADS = process.env.ENABLE_THUMBNAIL_UPLOADS === "true";
 let shortsConversionBusy = false;
 const ENABLE_PUBLIC_SCHEDULING = process.env.ENABLE_PUBLIC_SCHEDULING === "true";
 const EXPECTED_CHANNEL_ID = process.env.EXPECTED_YOUTUBE_CHANNEL_ID || "";
@@ -88,7 +91,7 @@ function access(req){
 }
 function envOK(){return HAVE_OAUTH&&Boolean(EXPECTED_CHANNEL_ID);}
 function validateId(id){return /^[a-zA-Z0-9_-]{3,80}$/.test(id);}
-function publicEntry(item){const {filePath,youtubeResumableSession, ...safe}=item;return safe;}
+function publicEntry(item){const {filePath,thumbnailPath,youtubeResumableSession,...safe}=item;return safe;}
 function activeOauth(){return Boolean(db.oauth?.refreshToken&&db.oauth?.email===OWNER);}
 async function tokenExchange(params){
   const response=await fetch("https://oauth2.googleapis.com/token",{
@@ -155,11 +158,37 @@ async function uploadToYoutube(item){
     item.youtubeResumableSession=null;
     item.lastError=null;logEvent("youtube_upload_confirmed",item.id,{youtubeId:item.youtubeId,status:item.status});
     await persist();
+    // A rejected Shorts thumbnail must not invalidate a confirmed video upload.
+    if(item.thumbnailPath&&ENABLE_THUMBNAIL_UPLOADS){
+      try{await applyYouTubeThumbnail(item,token);}
+      catch(e){
+        item.thumbnailStatus="failed";
+        item.thumbnailError=String(e?.message||e).slice(0,180);
+        logEvent("youtube_thumbnail_failed",item.id,{reason:item.thumbnailError});
+        await persist();
+      }
+    }
   }catch(e){
     // A failed/ambiguous resumable upload is NEVER re-submitted automatically: it might already exist.
     item.status="needs_review";item.lastError=String(e.message||e).slice(0,300);
     logEvent("youtube_upload_needs_review",item.id,{message:item.lastError});await persist();
   }
+}
+async function applyYouTubeThumbnail(item,token){
+  if(!item.youtubeId||!item.thumbnailPath||!existsSync(item.thumbnailPath))throw Error("thumbnail_file_missing");
+  if(item.thumbnailForMediaHash!==item.approvedMediaHash)throw Error("thumbnail_video_mismatch");
+  if(item.thumbnailStatus==="api_accepted")return;
+  const file=await fs.stat(item.thumbnailPath);
+  if(file.size<100||file.size>THUMBNAIL_MAX_UPLOAD)throw Error("thumbnail_size_invalid");
+  item.thumbnailStatus="applying";item.thumbnailError=null;await persist();
+  const response=await fetch(
+    "https://www.googleapis.com/upload/youtube/v3/thumbnails/set?uploadType=media&videoId="+encodeURIComponent(item.youtubeId),{
+      method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"image/png","Content-Length":String(file.size)},
+      body:createReadStream(item.thumbnailPath),duplex:"half",signal:AbortSignal.timeout(65000)});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error("youtube_thumbnail_rejected_"+response.status+":"+String(result.error?.message||"unsupported_or_no_permission").slice(0,100));
+  item.thumbnailStatus="api_accepted";item.thumbnailAppliedAt=new Date().toISOString();item.thumbnailError=null;
+  logEvent("youtube_thumbnail_api_accepted",item.id,{youtubeId:item.youtubeId});await persist();
 }
 async function inspectVideo(item){
   if(!item.youtubeId)return;
@@ -189,7 +218,8 @@ async function handler(req,res){
     service:"bima-content-studio-api",status:"online",oauthConfigured:HAVE_OAUTH,
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
     channelVerified:activeOauth()&&Boolean(EXPECTED_CHANNEL_ID)&&db.oauth.channelId===EXPECTED_CHANNEL_ID,
-    uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING
+    uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING,
+    thumbnailUploadsEnabled:ENABLE_THUMBNAIL_UPLOADS
   });
   // Public-safe YouTube counters for the channel dashboard.
   // Expose no OAuth data, titles, descriptions, schedules, video IDs or draft metadata.
@@ -294,6 +324,7 @@ async function handler(req,res){
     return respond(res,200,{authenticated:true,email:OWNER,channel:activeOauth()?{
       id:db.oauth.channelId,name:db.oauth.channelName,verified:db.oauth.channelId===EXPECTED_CHANNEL_ID}:null,
       uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING,
+    thumbnailUploadsEnabled:ENABLE_THUMBNAIL_UPLOADS,
       items:Object.values(db.content).map(publicEntry),events:db.events.slice(-30)});
   }
   if(req.method==="POST"&&u.pathname==="/api/content"){
@@ -311,7 +342,7 @@ async function handler(req,res){
     db.content[id]=item;await persist();
     return respond(res,200,{item:publicEntry(item)});
   }
-  const m=u.pathname.match(/^\/api\/content\/([A-Za-z0-9_-]{3,80})(\/(media|approve|submit|verify))?$/);
+  const m=u.pathname.match(/^\/api\/content\/([A-Za-z0-9_-]{3,80})(\/(media|thumbnail|approve|submit|verify))?$/);
   if(!m)return error(res,404,"not_found");
   const id=m[1],action=m[3]||"";
   const item=db.content[id];if(!item)return error(res,404,"content_not_found");
@@ -331,11 +362,47 @@ async function handler(req,res){
       const final=path.join(MEDIA_DIR,id+"-"+Date.now()+".mp4");
       await fs.rename(temp,final);
       if(item.filePath)await fs.unlink(item.filePath).catch(()=>{});
+      if(item.thumbnailPath)await fs.unlink(item.thumbnailPath).catch(()=>{});
+      item.thumbnailPath=null;item.thumbnailForMediaHash=null;item.thumbnailHash=null;
+      item.thumbnailSize=null;item.thumbnailStatus="awaiting_mp4_frame";item.thumbnailError=null;
       item.filePath=final;item.mediaSize=count;item.status="draft_with_video";
       item.mediaHash=await fileSha256(final);item.updatedAt=new Date().toISOString();
       logEvent("media_stored",id,{size:count});await persist();
       return respond(res,201,{item:publicEntry(item)});
     }catch(e){await fs.unlink(temp).catch(()=>{});return error(res,400,String(e.message||e).slice(0,100));}
+  }
+  if(req.method==="POST"&&action==="thumbnail"){
+    if(item.status!=="draft_with_video"&&item.status!=="approved")return error(res,409,"thumbnail_locked");
+    if(!item.filePath||!item.mediaHash||!existsSync(item.filePath))return error(res,409,"video_required");
+    if(String(item.publishAt||"").slice(0,10)<THUMBNAIL_START)return error(res,422,"thumbnail_starts_19_oct");
+    if(req.headers["content-type"]!=="image/png")return error(res,415,"png_only");
+    const len=Number(req.headers["content-length"]||0);
+    if(!Number.isSafeInteger(len)||len<100||len>THUMBNAIL_MAX_UPLOAD)return error(res,413,"thumbnail_size_unsupported");
+    const temp=path.join(MEDIA_DIR,id+"."+Date.now()+".thumb.part");
+    let count=0;
+    try{
+      await pipeline(req,async function*(source){
+        for await(const chunk of source){
+          count+=chunk.length;if(count>THUMBNAIL_MAX_UPLOAD)throw Error("thumbnail_too_large");yield chunk;
+        }
+      },createWriteStream(temp,{flags:"wx",mode:0o600}));
+      if(count!==len)throw Error("incomplete_thumbnail");
+      const fh=await fs.open(temp,"r"),head=Buffer.alloc(24);
+      try{await fh.read(head,0,24,0);}finally{await fh.close();}
+      if(head.toString("hex",0,8)!=="89504e470d0a1a0a"||head.toString("ascii",12,16)!=="IHDR")
+        throw Error("invalid_png");
+      if(head.readUInt32BE(16)!==1080||head.readUInt32BE(20)!==1920)
+        throw Error("thumbnail_9x16_1080x1920_required");
+      const final=path.join(MEDIA_DIR,id+"-"+Date.now()+".png");
+      await fs.rename(temp,final);
+      const prior=item.thumbnailPath;
+      item.thumbnailPath=final;item.thumbnailForMediaHash=item.mediaHash;
+      item.thumbnailHash=await fileSha256(final);item.thumbnailSize=count;
+      item.thumbnailStatus="stored_on_railway";item.thumbnailError=null;
+      if(prior&&prior!==final)await fs.unlink(prior).catch(()=>{});
+      logEvent("thumbnail_stored",id,{size:count});await persist();
+      return respond(res,201,{item:publicEntry(item)});
+    }catch(e){await fs.unlink(temp).catch(()=>{});return error(res,422,String(e?.message||e).slice(0,90));}
   }
   if(req.method==="POST"&&action==="approve"){
     if(item.status!=="draft_with_video"||!item.filePath)return error(res,409,"video_required");
