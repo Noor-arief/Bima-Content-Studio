@@ -36,9 +36,29 @@
    const item=typeof getSelected==="function"?getSelected():null;
    if(!item)throw Error("Pilih konten draft di kalender.");
    const id=item.id,title=$("fTitle")?.value?.trim()||item.title;
-   const prompt=$("fPrompt")?.value||item.prompt||"";
+   // The full 24s episode brief is >4k chars and is NOT a single 8s video prompt.
+   // For PiAPI's 8s pilot, use ONLY scene 1 of the saved episode workflow.
+   const plan=item.episodePlan;
+   if(!plan||!Array.isArray(plan.scenes)||plan.scenes.length<3)
+     throw Error("Workflow belum disimpan. Klik Use workflow in draft sekali.");
+   const scene=(plan.overrides?.[plan.duration]?.[0]||plan.scenes[0]||"").trim();
+   if(scene.length<40)throw Error("Scene 1 belum siap.");
+   const prompt=[
+     "ORBIT & OCEAN. ONE 8-second TEST CLIP, visual-only, not the full episode.",
+     "TITLE: "+item.title,
+     "SCENE 1 — HOOK: "+scene,
+     "Visual style: premium stylized 3D educational animation; coherent subject and smooth cinematic camera motion.",
+     "Output vertical 9:16, 720p. Keep the subject centered with no on-screen words.",
+     "No narration or human speech. Do not include later scenes. End on a clean stable frame.",
+     "Never show logos, watermarks or unrelated visuals."
+   ].join("\\n").replaceAll("\\\\n","\\n");
+   if(prompt.length>3900)throw Error("Scene 1 terlalu panjang untuk pilot. Ringkas storyboard.");
    const description=$("fCaption")?.value||item.caption||"";
-   if(prompt.trim().length<40)throw Error("Prompt storyboard minimal 40 karakter.");
+   if(item.approved||item.youtubeId||item.mediaName)
+     throw Error("Konten ini sudah approved/di-upload. Pilih draft Test Only.");
+   if(item.id!=="yt26-20261013-piapi-pilot")
+     throw Error("Pilot hanya untuk draft Venus Test Only tanggal 13 Okt.");
+   if(prompt.trim().length<40)throw Error("Scene 1 belum cukup detail.");
    const date=$("fDate")?.value||item.date,time=$("fTime")?.value||item.time||"19:30";
    const publishAt=new Date(date+"T"+time+":00+07:00").toISOString();
    const before=await status();
