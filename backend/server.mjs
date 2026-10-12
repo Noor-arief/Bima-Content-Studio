@@ -7,6 +7,7 @@ import os from "node:os";
 import { Transform } from "node:stream";
 import { convertShortsVideo } from "./shorts.mjs";
 import { MIX_2026, validateEditorial } from "./editorial.mjs";
+import { createVeoWorker } from "./veo.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -36,6 +37,7 @@ const random = () => randomBytes(32).toString("base64url");
 let db = {oauth:null,oauthStates:{},sessions:{},content:{},events:[]};
 let pendingWrite = Promise.resolve();
 const submitting = new Set();
+let veoWorker=null;
 
 const logEvent=(action,id,extra={})=>{
   db.events.push({at:new Date().toISOString(),action,id,...extra});
@@ -220,7 +222,9 @@ async function handler(req,res){
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
     channelVerified:activeOauth()&&Boolean(EXPECTED_CHANNEL_ID)&&db.oauth.channelId===EXPECTED_CHANNEL_ID,
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING,
-    thumbnailUploadsEnabled:ENABLE_THUMBNAIL_UPLOADS
+    thumbnailUploadsEnabled:ENABLE_THUMBNAIL_UPLOADS,
+    veoConfigured:veoWorker?.overview().configured||false,
+    veoEnabled:veoWorker?.overview().enabled||false
   });
   // Public-safe YouTube counters for the channel dashboard.
   // Expose no OAuth data, titles, descriptions, schedules, video IDs or draft metadata.
@@ -334,6 +338,65 @@ async function handler(req,res){
     }
     return;
   }
+  // Owner-only autonomous video pipeline; generation has explicit cost confirmation and hard cap.
+  if(req.method==="GET"&&u.pathname==="/api/veo/status")
+    return respond(res,200,veoWorker.overview());
+  if(req.method==="POST"&&u.pathname==="/api/veo/generate"){
+    let data;try{data=await readJSON(req,10000);}catch{return error(res,400,"invalid_generation_payload");}
+    if(!db.content[data?.id])return error(res,404,"draft_not_registered_on_server");
+    const item=db.content[data.id];
+    if(["uploading","scheduled","published","private_uploaded","needs_review","approved"].includes(item.status))
+      return error(res,409,"content_locked_for_generation");
+    // Prevent a client from generating for a different title than the saved server draft.
+    if(data.title!==item.title)return error(res,409,"draft_title_mismatch");
+    if(!data.prompt||typeof data.prompt!=="string")return error(res,422,"storyboard_prompt_required");
+    try{
+      const job=await veoWorker.start({...data,description:item.description});
+      return respond(res,202,{job,summary:veoWorker.overview()});
+    }catch(e){return error(res,409,String(e.message||e).slice(0,160));}
+  }
+  const vm=u.pathname.match(/^\/api\/veo\/([A-Za-z0-9_-]{3,80})\/(video|accept|reject)$/);
+  if(vm){
+    const id=vm[1],action=vm[2],job=veoWorker.job(id);
+    if(!job)return error(res,404,"veo_job_not_found");
+    if(req.method==="GET"&&action==="video"){
+      if(!["needs_owner_review","qa_failed","approved","rejected"].includes(job.status)||!job.filename)
+        return error(res,409,"video_not_ready");
+      try{
+        const st=await fs.stat(job.filename);
+        res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":String(st.size),
+          "Cache-Control":"private,no-store","X-Content-Type-Options":"nosniff",
+          "Content-Disposition":"inline; filename=review.mp4"});
+        return createReadStream(job.filename).pipe(res);
+      }catch{return error(res,404,"video_file_missing");}
+    }
+    if(req.method==="POST"&&action==="reject"){
+      let input={};try{input=await readJSON(req,2000);}catch{}
+      try{return respond(res,200,{job:await veoWorker.reject(id,input.reason)});}
+      catch(e){return error(res,409,String(e.message||e));}
+    }
+    if(req.method==="POST"&&action==="accept"){
+      const item=db.content[id];
+      if(!item||!["draft","draft_with_video"].includes(item.status))
+        return error(res,409,"draft_locked_or_missing");
+      let result;
+      try{result=await veoWorker.accept(id);}catch(e){return error(res,409,String(e.message||e));}
+      const final=path.join(MEDIA_DIR,id+"-veo-"+Date.now()+".mp4");
+      try{
+        await fs.copyFile(result.filename,final);
+        if(item.filePath)await fs.unlink(item.filePath).catch(()=>{});
+        item.filePath=final;item.mediaHash=result.job.hash;item.mediaSize=result.job.bytes;
+        item.mediaName="BIMA Veo "+result.job.revision+".mp4";
+        item.status="draft_with_video";item.approvedMediaHash=null;item.approvedAt=null;
+        item.containsSyntheticMedia=true;
+        item.updatedAt=new Date().toISOString();
+        logEvent("veo_video_imported_for_owner_approval",id,{revision:result.job.revision});
+        await persist();
+        return respond(res,200,{job:result.job,item:publicEntry(item)});
+      }catch(e){await fs.unlink(final).catch(()=>{});return error(res,500,"veo_media_import_failed");}
+    }
+    return error(res,405,"method_not_allowed");
+  }
   if(req.method==="GET"&&u.pathname==="/api/status"){
     return respond(res,200,{authenticated:true,email:OWNER,channel:activeOauth()?{
       id:db.oauth.channelId,name:db.oauth.channelName,verified:db.oauth.channelId===EXPECTED_CHANNEL_ID}:null,
@@ -443,6 +506,7 @@ async function handler(req,res){
   return error(res,405,"method_not_allowed");
 }
 await init();
+veoWorker=createVeoWorker({db,persist,logEvent,mediaDir:MEDIA_DIR});
 let pollBusy=false;
 setInterval(async ()=>{
   if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
