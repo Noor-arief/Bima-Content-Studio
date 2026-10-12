@@ -22,13 +22,16 @@ export function createPiapiWorker({db,persist}){
     if(data.confirmCost!==true)throw Error("owner_cost_confirmation_required");
     const id=String(data.id||"");
     if(!/^[a-zA-Z0-9_-]{3,80}$/.test(id))throw Error("invalid_id");
-    if(db.piapiJobs[id])throw Error("piapi_job_exists_no_duplicate_billing");
+    const previous=db.piapiJobs[id];
+    if(previous&&!["rejected"].includes(previous.status))throw Error("piapi_job_exists_no_duplicate_billing");
+    if(previous&&!data.retryApproved)throw Error("explicit_retry_approval_required");
     if(Object.values(db.piapiJobs).some(x=>["submitting","pending","processing"].includes(x.status)))throw Error("piapi_generation_in_progress");
     if(db.piapiReservedCents+priceCents>cap)throw Error("pilot_budget_exhausted");
     const prompt=String(data.prompt||"").trim();
     if(prompt.length<40||prompt.length>4000)throw Error("storyboard_prompt_invalid");
     const j={id,title:String(data.title||"").slice(0,100),prompt,status:"submitting",estimatedCents:priceCents,
       createdAt:new Date().toISOString()};
+    if(previous){db.piapiHistory ||= [];db.piapiHistory.push({...previous,prompt:undefined});}
     db.piapiJobs[id]=j;db.piapiReservedCents+=priceCents;await persist();
     try{
       const response=await api("/api/v1/task",{method:"POST",body:JSON.stringify({
@@ -39,6 +42,12 @@ export function createPiapiWorker({db,persist}){
       j.taskId=response.task_id;j.status=response.status||"pending";await persist();
       return safe(j);
     }catch(e){j.status="failed";j.error=String(e.message||e).slice(0,160);await persist();throw e;}
+  }
+  async function reject(id){
+    const j=db.piapiJobs[id];
+    if(!j)throw Error("piapi_job_not_found");
+    if(j.status!=="review_required")throw Error("only_completed_video_can_be_rejected");
+    j.status="rejected";j.rejectedAt=new Date().toISOString();await persist();return safe(j);
   }
   async function refresh(){
     for(const j of Object.values(db.piapiJobs).filter(x=>x.taskId&&!["completed","failed","review_required"].includes(x.status)).slice(0,2)){
@@ -58,5 +67,5 @@ export function createPiapiWorker({db,persist}){
   }
   // Do not retry ambiguous POSTs after restart.
   for(const j of Object.values(db.piapiJobs))if(j.status==="submitting"){j.status="failed";j.error="interrupted_submission_do_not_retry";}
-  return {start,refresh,overview};
+  return {start,reject,refresh,overview};
 }
