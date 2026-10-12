@@ -60,6 +60,7 @@ document.addEventListener('click',e=>{
  if(state.active!=='tiktok')return;
  const b=e.target.closest('.menu-item[data-go]');if(!b)return;
  e.preventDefault();e.stopImmediatePropagation();
+ document.dispatchEvent(new CustomEvent('bima:channel-section',{detail:b.dataset.go}));
  const target=b.dataset.go==='kalender'?root.querySelector('.tt-library'):b.dataset.go==='publishing'?root.querySelectorAll('.tt-card')[2]:b.dataset.go==='desk'?$('ttForm'):root;
  (target?.hidden?$('ttEmpty'):target)?.scrollIntoView({behavior:'smooth',block:'start'});
 },true);
