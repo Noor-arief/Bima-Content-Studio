@@ -43,6 +43,10 @@
  const selectedModel=()=>get("veoModel").value;
  const cost=()=>selectedModel()==="veo-3.1-lite-generate-preview"?0.74:1.06; // Veo + $0.10 QA allowance
  const updateWallet=()=>{
+   const setup=get("veoSetup"),active=!!overview?.enabled;
+   if(setup)setup.hidden=active;
+   get("veoCreate").disabled=!active;
+   get("veoPilot").disabled=!active;
    wallet.textContent=overview?
      "Veo API: "+(overview.configured?(overview.enabled?"Ready":"Key detected, generation disabled"):"API key not configured")+
      " · Reserved $"+overview.reservedUsd.toFixed(2)+" of $"+overview.limitUsd.toFixed(2)+
@@ -168,6 +172,8 @@
  get("veoModel").addEventListener("change",()=>{get("veoEstimate").textContent="Estimated $"+cost().toFixed(2)+" USD / 8s incl. QA reserve";});
  get("veoEstimate").textContent="Estimated $1.06 USD / 8s incl. QA reserve";
  setInterval(()=>{if(token())reload().catch(()=>{});},20000);
- if(token())reload().catch(e=>{notice("Veo status unavailable: "+e.message);});
+ get("veoCreate").disabled=true;
+ get("veoPilot").disabled=true;
+ if(token())reload().catch(e=>{notice("Veo status unavailable: "+e.message);const setup=get("veoSetup");if(setup)setup.hidden=false;});
  else{notice("Connect YouTube via the Publishing tab first. Veo generation stays disabled until API billing/key is configured.");}
 })();
