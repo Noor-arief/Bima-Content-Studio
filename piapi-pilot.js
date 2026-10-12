@@ -21,6 +21,15 @@
      const row=document.createElement("div");row.className="note";row.style.marginTop="8px";
      const label=document.createElement("p");label.textContent=j.title+" · "+j.status+" · $"+(j.estimatedCents/100).toFixed(2)+" reserved";row.append(label);
      if(j.error||j.lastPollError){const err=document.createElement("small");err.textContent=j.error||j.lastPollError;row.append(err);}
+     if(j.status==="review_required"){
+       const reject=document.createElement("button");reject.className="btn ghost";reject.type="button";reject.textContent="Reject hasil video";
+       reject.onclick=()=>safe(async()=>{
+         if(!confirm("Reject hasil Venus pertama? Ini tidak mengembalikan biaya video sebelumnya. Tidak ada video baru yang akan dibuat."))return;
+         await api("/api/piapi/reject","POST",{id:j.id});
+         say("Video pertama ditolak. Retry bisa dilakukan dengan konfirmasi biaya baru.");
+         await status();
+       });row.append(reject);
+     }
      if(j.status==="review_required"&&j.videoUrl){
        const watch=document.createElement("button");watch.className="btn";watch.textContent="Preview video";watch.onclick=()=>{
          const u=new URL(j.videoUrl);if(u.protocol!=="https:")return;
@@ -47,6 +56,7 @@
      "ORBIT & OCEAN. ONE 8-second TEST CLIP, visual-only, not the full episode.",
      "TITLE: "+item.title,
      "SCENE 1 — HOOK: "+scene,
+     "PLANET ACCURACY MUST BE STRICT: Venus is a rocky terrestrial planet enveloped in thick featureless pale yellow-white sulfuric acid clouds. NO Jupiter-like horizontal bands, NO Great Red Spot, NO storm-eye vortex, NO brown gas-giant texture, NO rings. Do not depict Jupiter. Smooth cloud-covered Venus only.",
      "Visual style: premium stylized 3D educational animation; coherent subject and smooth cinematic camera motion.",
      "Output vertical 9:16, 720p. Keep the subject centered with no on-screen words.",
      "No narration or human speech. Do not include later scenes. End on a clean stable frame.",
@@ -64,9 +74,10 @@
    const before=await status();
    if(!before.enabled)throw Error("Backend PiAPI belum aktif.");
    if(before.reservedUsd+0.77>3)throw Error("Batas pilot US$3 tidak cukup.");
-   if(!confirm("Generate SATU video Seedance Fast 720p, 9:16, 8 detik? Estimasi $0.768 (reservasi $0.77). Video hanya untuk preview, TIDAK diupload ke YouTube. Lanjut?"))return;
+   const retry=before.jobs?.some(j=>j.id===id&&j.status==="rejected")||false;
+   if(!confirm((retry?"RETRY setelah Reject: ":"")+"Generate SATU video Seedance Fast 720p, 9:16, 8 detik? BIAYA BARU estimasi $0.768 (reservasi $0.77), tidak refund video sebelumnya. Video hanya untuk preview, TIDAK diupload ke YouTube. Lanjut?"))return;
    await api("/api/content","POST",{id,title,description,publishAt,madeForKids:false,containsSyntheticMedia:true});
-   await api("/api/piapi/generate","POST",{id,title,prompt,confirmCost:true});
+   await api("/api/piapi/generate","POST",{id,title,prompt,confirmCost:true,retryApproved:retry});
    say("PiAPI menerima proses video. Gunakan Refresh untuk melihat hasil. Tidak ada upload YouTube.");
    await status();
  });
