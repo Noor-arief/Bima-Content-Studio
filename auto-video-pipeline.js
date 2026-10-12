@@ -5,6 +5,11 @@
  if(!root)return;
  const feedback=get("veoMessage"),wallet=get("veoBudget"),jobs=get("veoJobs"),player=get("veoPlayer"),preview=get("veoPreview");
  let videoUrl=null,overview=null;
+ let previewId=null;
+ const fullyWatched=new Set();
+ player.addEventListener("ended",()=>{
+   if(previewId){fullyWatched.add(previewId);notice("Video selesai ditonton. Jika storyboard, narasi, dan ending sesuai, klik Approve setelah cek ulang.");}
+ });
  const SERVER="https://content-studio-api-production-3fe2.up.railway.app";
  const token=()=>sessionStorage.getItem("bima_content_server_session")||"";
  const api=async(route,method="GET",body)=>{
@@ -83,14 +88,17 @@
    const blob=await r.blob();
    if(!blob.type.includes("video"))throw Error("Invalid video preview response");
    if(videoUrl)URL.revokeObjectURL(videoUrl);
+   previewId=id;
    videoUrl=URL.createObjectURL(blob);player.src=videoUrl;preview.hidden=false;
-   notice("Preview ready. Watch the entire video with audio before approval. Technical QA cannot guarantee a complete narration.");
+   fullyWatched.delete(id);
+   notice("Preview siap. Putar sampai selesai dengan audio; tombol Approve akan menolak jika belum ditonton penuh.");
    player.scrollIntoView({behavior:"smooth",block:"nearest"});
  }
  async function approveVideo(id){
    const job=overview?.jobs?.find(j=>j.id===id);
    if(!job||job.status!=="needs_owner_review")throw Error("Video not ready for approval");
-   if(!confirm("Have you watched the FULL video and checked voiceover, factual accuracy, storyboard and ending? Approve this exact MP4 for the YouTube pipeline?"))return;
+   if(!fullyWatched.has(id))throw Error("Putar preview sampai akhir sebelum approval. Cek semua adegan dan narasinya.");
+   if(!confirm("Sudah tonton video sampai selesai dan periksa narasi sesuai storyboard, fakta sains, audio tidak terpotong serta ending tuntas? Approve MP4 ini?"))return;
    await api("/api/veo/"+encodeURIComponent(id)+"/accept","POST",{});
    let note="Video accepted and securely stored for publishing.";
    try{
