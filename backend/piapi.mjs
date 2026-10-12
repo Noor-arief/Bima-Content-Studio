@@ -47,10 +47,10 @@ export function createPiapiWorker({db,persist}){
     const j=db.piapiJobs[id];
     if(!j)throw Error("piapi_job_not_found");
     if(j.status!=="review_required")throw Error("only_completed_video_can_be_rejected");
-    j.status="rejected";j.rejectedAt=new Date().toISOString();await persist();return safe(j);
+    j.status="rejected";j.rejectedAt=new Date().toISOString();j.lastPollError=undefined;await persist();return safe(j);
   }
   async function refresh(){
-    for(const j of Object.values(db.piapiJobs).filter(x=>x.taskId&&!["completed","failed","review_required"].includes(x.status)).slice(0,2)){
+    for(const j of Object.values(db.piapiJobs).filter(x=>x.taskId&&!["completed","failed","review_required","rejected"].includes(x.status)).slice(0,2)){
       try{
         const d=await api("/api/v1/task/"+encodeURIComponent(j.taskId));
         const status=String(d.status||"").toLowerCase();
