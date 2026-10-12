@@ -11,6 +11,18 @@
    const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||"HTTP "+r.status);return data;
  };
  const button=$("piapiGenerate");const refresh=$("piapiRefresh");
+ const reference=$("piapiReferenceUrl"),approved=$("piapiReferenceApproved"),image=$("piapiReferencePreview");
+ reference.addEventListener("input",()=>{
+   approved.checked=false;
+   try{const u=new URL(reference.value.trim());if(u.protocol!=="https:")throw Error();
+     image.onload=()=>{image.hidden=false;image.style.display="block";};
+     image.onerror=()=>{image.hidden=true;image.style.display="none";};
+     image.src=u.href;
+   }catch{image.removeAttribute("src");image.hidden=true;image.style.display="none";}
+   button.disabled=true;
+ });
+ approved.addEventListener("change",()=>{button.disabled=!active||!approved.checked;});
+
  let active=false;
  const locallyRejected=new Set();
  let statusSerial=0;
@@ -20,7 +32,7 @@
    if(serial!==statusSerial)return d;
    active=d.enabled;
    $("piapiBudget").textContent="PiAPI "+(d.enabled?"Ready":"Not configured")+" · reserved $"+Number(d.reservedUsd).toFixed(2)+" / $3.00";
-   button.disabled=!active;
+   button.disabled=!active||!approved.checked;
    const list=$("piapiJobs");list.replaceChildren();
    const visible=[...(d.jobs||[])].filter(j=>j.status!=="rejected"&&!locallyRejected.has(j.id)).reverse().slice(0,5);
    if(!visible.some(j=>j.status==="review_required")){const player=$("piapiPlayer");player.pause();player.removeAttribute("src");player.load();$("piapiPreview").hidden=true;}
@@ -52,8 +64,10 @@
    }
    return d;
  }
- const safe=async(fn)=>{button.disabled=true;refresh.disabled=true;try{await fn();}catch(e){say("Belum berhasil: "+e.message);}finally{refresh.disabled=false;button.disabled=!active;}};
+ const safe=async(fn)=>{button.disabled=true;refresh.disabled=true;try{await fn();}catch(e){say("Belum berhasil: "+e.message);}finally{refresh.disabled=false;button.disabled=!active||!approved.checked;}};
  button.onclick=()=>safe(async()=>{
+   const referenceImageUrl=reference.value.trim();
+   if(!approved.checked||!referenceImageUrl.startsWith("https://"))throw Error("Setujui gambar referensi Venus dulu.");
    const item=(typeof state!=="undefined"?state.items?.youtube?.find(x=>x.id==="yt26-20261013-piapi-pilot"):null);
    if(!item)throw Error("Draft Venus Test Only belum ditemukan di kalender. Refresh halaman.");
    const id=item.id,title=item.title;
@@ -85,9 +99,9 @@
    if(!before.enabled)throw Error("Backend PiAPI belum aktif.");
    if(before.reservedUsd+0.77>3)throw Error("Batas pilot US$3 tidak cukup.");
    const retry=before.jobs?.some(j=>j.id===id&&["rejected","review_required"].includes(j.status))||locallyRejected.has(id);
-   if(!confirm((retry?"RETRY setelah Reject: ":"")+"Generate SATU video Seedance Fast 720p, 9:16, 8 detik? BIAYA BARU estimasi $0.768 (reservasi $0.77), tidak refund video sebelumnya. Video hanya untuk preview, TIDAK diupload ke YouTube. Lanjut?"))return;
+   if(!confirm((retry?"RETRY setelah Reject: ":"")+"Generate SATU video dari GAMBAR REFERENSI Venus 720p, 9:16, 8 detik? BIAYA BARU estimasi $0.768 (reservasi $0.77), tidak refund video sebelumnya. Video hanya untuk preview, TIDAK diupload ke YouTube. Lanjut?"))return;
    await api("/api/content","POST",{id,title,description,publishAt,madeForKids:false,containsSyntheticMedia:true});
-   await api("/api/piapi/generate","POST",{id,title,prompt,confirmCost:true,retryApproved:retry});
+   await api("/api/piapi/generate","POST",{id,title,prompt,confirmCost:true,retryApproved:retry,referenceImageUrl,referenceApproved:true});
    locallyRejected.delete(id);
    say("PiAPI menerima proses video. Gunakan Refresh untuk melihat hasil. Tidak ada upload YouTube.");
    await status();
