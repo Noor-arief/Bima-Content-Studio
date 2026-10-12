@@ -86,7 +86,7 @@
    const before=await status();
    if(!before.enabled)throw Error("Backend PiAPI belum aktif.");
    if(before.reservedUsd+0.77>3)throw Error("Batas pilot US$3 tidak cukup.");
-   const retry=before.jobs?.some(j=>j.id===id&&j.status==="rejected")||locallyRejected.has(id);
+   const retry=before.jobs?.some(j=>j.id===id&&["rejected","review_required"].includes(j.status))||locallyRejected.has(id);
    if(!confirm((retry?"RETRY setelah Reject: ":"")+"Generate SATU video Seedance Fast 720p, 9:16, 8 detik? BIAYA BARU estimasi $0.768 (reservasi $0.77), tidak refund video sebelumnya. Video hanya untuk preview, TIDAK diupload ke YouTube. Lanjut?"))return;
    await api("/api/content","POST",{id,title,description,publishAt,madeForKids:false,containsSyntheticMedia:true});
    await api("/api/piapi/generate","POST",{id,title,prompt,confirmCost:true,retryApproved:retry});
