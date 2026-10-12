@@ -12,12 +12,17 @@
  };
  const button=$("piapiGenerate");const refresh=$("piapiRefresh");
  let active=false;
+ const locallyRejected=new Set();
+ let statusSerial=0;
  async function status(){
-   const d=await api("/api/piapi/status");active=d.enabled;
+   const serial=++statusSerial;
+   const d=await api("/api/piapi/status");
+   if(serial!==statusSerial)return d;
+   active=d.enabled;
    $("piapiBudget").textContent="PiAPI "+(d.enabled?"Ready":"Not configured")+" · reserved $"+Number(d.reservedUsd).toFixed(2)+" / $3.00";
    button.disabled=!active;
    const list=$("piapiJobs");list.replaceChildren();
-   const visible=[...(d.jobs||[])].filter(j=>j.status!=="rejected").reverse().slice(0,5);
+   const visible=[...(d.jobs||[])].filter(j=>j.status!=="rejected"&&!locallyRejected.has(j.id)).reverse().slice(0,5);
    if(!visible.some(j=>j.status==="review_required")){const player=$("piapiPlayer");player.pause();player.removeAttribute("src");player.load();$("piapiPreview").hidden=true;}
    for(const j of visible){
      const row=document.createElement("div");row.className="note";row.style.marginTop="8px";
@@ -28,7 +33,11 @@
        reject.onclick=()=>safe(async()=>{
          if(!confirm("Reject hasil Venus pertama? Ini tidak mengembalikan biaya video sebelumnya. Tidak ada video baru yang akan dibuat."))return;
          await api("/api/piapi/reject","POST",{id:j.id});
+         locallyRejected.add(j.id);
+         ++statusSerial;
+         const player=$("piapiPlayer");player.pause();player.removeAttribute("src");player.load();
          $("piapiPreview").hidden=true;
+         row.remove();
          say("Video pertama ditolak. Retry bisa dilakukan dengan konfirmasi biaya baru.");
          await status();
        });row.append(reject);
@@ -77,10 +86,11 @@
    const before=await status();
    if(!before.enabled)throw Error("Backend PiAPI belum aktif.");
    if(before.reservedUsd+0.77>3)throw Error("Batas pilot US$3 tidak cukup.");
-   const retry=before.jobs?.some(j=>j.id===id&&j.status==="rejected")||false;
+   const retry=before.jobs?.some(j=>j.id===id&&j.status==="rejected")||locallyRejected.has(id);
    if(!confirm((retry?"RETRY setelah Reject: ":"")+"Generate SATU video Seedance Fast 720p, 9:16, 8 detik? BIAYA BARU estimasi $0.768 (reservasi $0.77), tidak refund video sebelumnya. Video hanya untuk preview, TIDAK diupload ke YouTube. Lanjut?"))return;
    await api("/api/content","POST",{id,title,description,publishAt,madeForKids:false,containsSyntheticMedia:true});
    await api("/api/piapi/generate","POST",{id,title,prompt,confirmCost:true,retryApproved:retry});
+   locallyRejected.delete(id);
    say("PiAPI menerima proses video. Gunakan Refresh untuk melihat hasil. Tidak ada upload YouTube.");
    await status();
  });
