@@ -22,6 +22,7 @@
    button.disabled=true;
  });
  approved.addEventListener("change",()=>{button.disabled=!active||!approved.checked;});
+ if(reference.value.trim())reference.dispatchEvent(new Event("input"));
 
  let active=false;
  const locallyRejected=new Set();
