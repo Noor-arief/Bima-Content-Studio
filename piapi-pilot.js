@@ -16,11 +16,11 @@
  const planBox=document.createElement("section");
  planBox.id="piapiFullEpisodePlan";
  planBox.style.cssText="border:1px solid rgba(148,163,255,.27);border-radius:12px;padding:16px;margin:16px 0;color:#dbe5ff";
- const planTitle=document.createElement("h3");planTitle.textContent="Next · Venus Shorts 30s — Production Plan";
- const planText=document.createElement("p");planText.textContent="Use the third 8-second PiAPI test as an opening candidate (owner visual review); create unique 11s explanation and 11s payoff clips, then record and sync ONE continuous English narration. This is a plan, not an automated final video.";
+ const planTitle=document.createElement("h3");planTitle.textContent="Venus Shorts 30s — Automated Production";
+ const planText=document.createElement("p");planText.textContent="Use the third 8-second PiAPI test as an opening candidate (owner visual review); create unique 11s explanation and 11s payoff clips, then record and sync ONE continuous English narration. Generation starts only after you approve the additional cost; BIMA then assembles one review MP4.";
  const sceneText=document.createElement("p");sceneText.textContent="0–8s: Venus close-up (existing candidate) · 8–19s: demonstrate 243-day axial rotation · 19–30s: compare with 225-day orbit and resolve the ending.";
  const budgetText=document.createElement("p");budgetText.id="piapiFullBudget";budgetText.textContent="Checking remaining internal pilot budget…";
- const warning=document.createElement("p");warning.textContent="No more paid renders from the 8s pilot while preparing the 30s workflow. Voiceover and MP4 stitching are NOT implemented yet; review is required before any publishing.";
+ const warning=document.createElement("p");warning.textContent="Voiceover and MP4 assembly code is deployed but has not yet passed a full production run. Refresh only checks progress; it does NOT start production. No automatic YouTube upload.";
  warning.style.color="#f6c28d";
  planBox.append(planTitle,planText,sceneText,budgetText,warning);
  root.append(planBox);
@@ -32,7 +32,7 @@
  fullActions.append(fullStart,fullRefresh);planBox.append(fullActions,fullStatus,fullVideo);
  async function refreshFull(){
    const d=await api("/api/venus-production/status");
-   fullStatus.textContent="30s production: "+d.status+" · Scene 1 archived: "+(d.scene1Archived?"Yes":"No")+" · additional estimate $"+Number(d.totalEstimateUsd||0).toFixed(2);
+   fullStatus.textContent=(d.status==="not_started"?"Ready to start: click Produce full 30s (paid) — refreshing alone will not generate a video. ": "30s production: "+d.status+" · ")+" · Scene 1 archived: "+(d.scene1Archived?"Yes":"No")+" · additional estimate $"+Number(d.totalEstimateUsd||0).toFixed(2);
    fullStart.disabled=!(d.status==="not_started"&&d.scene1Archived);
    if(d.finalReady&&!fullVideo.dataset.loaded){
      const v=await fetch(server+"/api/venus-production/video",{headers:{Authorization:"Bearer "+token()}});
