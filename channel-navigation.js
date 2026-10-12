@@ -6,7 +6,8 @@ if(!sidebar||!menu||!channels)return;
 const labels=[...sidebar.querySelectorAll('.side-label')];
 const menuLabel=labels[0],channelLabel=labels[1];
 channelLabel.textContent='Pilih channel';
-sidebar.insertBefore(channelLabel,menuLabel);sidebar.insertBefore(channels,menuLabel);
+// Keep workspace navigation above the channel switcher.
+menu.after(channelLabel,channels);
 const context=document.createElement('div');context.className='channel-menu-context';context.setAttribute('aria-live','polite');
 context.innerHTML='<span class="channel-menu-dot" aria-hidden="true"></span><div><strong></strong><small></small></div>';
 sidebar.insertBefore(context,menuLabel);
@@ -38,12 +39,29 @@ const style=document.createElement('style');style.textContent=`
 .sidebar[data-menu-channel="youtube"] .menu-item.active{border-color:#92525e;background:linear-gradient(115deg,rgba(177,68,83,.26),rgba(99,44,63,.15));box-shadow:none}.sidebar[data-menu-channel="youtube"] .menu-item.active .ico{background:#963b50}
 .sidebar[data-menu-channel="tiktok"] .channel-menu-context{border-color:#356e70;background:rgba(47,154,150,.1)}.sidebar[data-menu-channel="tiktok"] .channel-menu-dot{background:#6be6d7}.sidebar[data-menu-channel="tiktok"] .menu-item.active{border-color:#427f80;background:linear-gradient(115deg,rgba(44,150,148,.25),rgba(39,71,95,.16));box-shadow:none}.sidebar[data-menu-channel="tiktok"] .menu-item.active .ico{background:#287b7d}
 .sidebar nav.menu[hidden],.sidebar .side-label[hidden]{display:none!important}
-@media(max-width:900px){.channel-menu-context{margin:0;padding:8px 11px}.channel-menu-context small{display:inline;margin-left:8px}.channel-menu-context strong{display:inline}.sidebar .menu-item{font-size:11px}.channel-menu-name{white-space:normal}}
+/* Compact sidebar with a consistent violet active state. */
+.sidebar .channel-menu-context{margin:4px 0 8px;padding:11px 12px}
+.sidebar[data-menu-channel="youtube"] .channel-menu-context{border-color:rgba(139,123,255,.3);background:rgba(139,123,255,.08)}
+.sidebar[data-menu-channel="youtube"] .channel-menu-dot{background:#a99bff}
+.sidebar[data-menu-channel="youtube"] .menu-item.active{border-color:rgba(139,123,255,.5);background:rgba(139,123,255,.16)}
+.sidebar[data-menu-channel="youtube"] .menu-item.active .ico{background:#6757c5}
+.sidebar .side-label{margin:12px 10px 5px}
+.sidebar .channels{gap:5px}
+.sidebar .channel{padding:8px 10px;min-height:49px;border-radius:10px}
+.sidebar .channel>div{min-width:0;flex:1}
+.sidebar .channel small{font-size:10px;line-height:1.4}
+.sidebar .channel img{width:27px;height:27px;flex-shrink:0}
+.sidebar .channel .tag{font-size:8px;padding:4px 5px;flex-shrink:0}
+.sidebar .channel:not(.active){background:transparent}
+@media(max-width:900px){.sidebar .menu{order:0}.sidebar .channels{display:flex;flex-direction:row;overflow-x:auto}.sidebar .channel{min-width:126px}.sidebar .channel-menu-context{display:none}.sidebar .side-label{display:none}.sidebar .channels{gap:6px}.channel-menu-context{margin:0;padding:8px 11px}.channel-menu-context small{display:inline;margin-left:8px}.channel-menu-context strong{display:inline}.sidebar .menu-item{font-size:11px}.channel-menu-name{white-space:normal}}
 `;document.head.append(style);
 channels.addEventListener('click',()=>queueMicrotask(sync));
 document.addEventListener('bima:episode-selected',()=>queueMicrotask(sync));
 document.addEventListener('bima:channel-section',e=>{tiktokSection=e.detail;sync();});
 document.addEventListener('click',e=>{if(e.target.closest('[data-go]'))queueMicrotask(sync);});
 window.addEventListener('popstate',()=>queueMicrotask(sync));
+// Programmatic navigation (calendar, queue and production shortcuts) must
+// update the channel menu as reliably as direct menu clicks.
+new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-view','data-channel']});
 sync();
 })();
