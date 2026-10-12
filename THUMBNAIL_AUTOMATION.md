@@ -1,27 +1,25 @@
-# Orbit & Ocean — Automatic Thumbnail Covers V1
+# Orbit & Ocean — Video-Matched Thumbnails V2
 
-Effective date: **19 October 2026**. Only YouTube calendar items on or after this date are eligible; earlier videos and published assets remain untouched.
+Effective for YouTube calendar content on or after **19 October 2026**. Earlier drafts, scheduled uploads and video approval/publishing code remain untouched.
 
-## What happens automatically
-- All **33 existing scheduled YouTube entries from 19 October through 31 December 2026** have an instant, deterministic title/topic-specific cover preview in the Calendar grid, the selected day list and Production Desk.
-- A matching 1080 × 1920 vertical SVG is generated in the browser on demand. The same source is exported with **Download PNG** into a 1080 × 1920 image file. No external API, video editing or Google OAuth is required to preview covers.
-- Template: Orbit & Ocean logo text, short educational hook, science category, stylized topic motif, cosmic/underwater colors, publication date and tagline.
-- Covers are generated from the actual item title. Renaming a draft changes the cover. Pre-approved/published video state, existing approved MP4, and BIMA’s YouTube publishing flow are never touched by the generator.
-- The cover is a **designed graphic template** (SVG/vector/emoji), not an AI-generated photorealistic illustration or a still extracted from the completed video.
+## Two distinct states
 
-## How to use
-1. Open Calendar → a date on/after **19 Oct 2026**. Its card includes a thumbnail preview.
-2. Open the draft's Production Desk; the **Thumbnail · Auto Generated** panel shows a larger preview.
-3. Click **Download PNG** to export the 9:16 cover. **Refresh cover** recomputes it from the item's present topic/title.
-4. Final approval and YouTube upload continue through the existing BIMA workflow.
+1. **CONCEPT preview** — Before an MP4 exists, BIMA displays a topic-based graphic placeholder. It is explicitly labeled **CONCEPT** in the calendar and Production Desk. It is not the final thumbnail and final PNG download is disabled.
+2. **VIDEO-MATCHED frame** — Once an MP4 is attached to that draft in Production Desk, BIMA automatically examines up to five time positions in the actual MP4, chooses a reasonably bright/clear frame using a simple visual score, crops it to 1080 × 1920, and overlays the short topic title and consistent Orbit & Ocean branding. The video itself is not modified. After the owner approves the video, the cover is labeled Final.
 
-## Publishing distinction
-- Generated covers are **not automatically uploaded** or attached to existing YouTube videos by this implementation. Uploading a custom Shorts thumbnail may require appropriate account verification, permissions and YouTube API behavior.
-- YouTube's current desktop Help documents custom Shorts thumbnails with a recommended 9:16 ratio for verified channels in Studio. Do not assume BIMA's video upload also sets the thumbnail until a separate upload/test is implemented.
-- The thumbnail should be reviewed for scientific accuracy; generated graphic icons may be stylistic rather than anatomically precise.
-- A generated cover is not a guarantee of YouTube distribution, views or monetization.
+All final imagery comes from the **attached video frame**, not an independently generated character or illustration. This ensures the actual visual source matches, although the branded text/gradient are additional graphic elements.
 
-## Safety and reliability
-- No assets, OAuth tokens, secrets or API keys are transferred to third-party illustration services.
-- Existing calendar records, IndexedDB videos, published URLs and BIMA approval flags are not mutated.
-- If an SVG to PNG render fails because of browser font/canvas support, the preview remains and a visible error is shown.
+The owner may click **Try another video frame** to cycle through alternative positions if the automatic frame is not representative. **Download Final PNG** exports a 1080 × 1920 PNG from the MP4-derived cover. If the selected clip changes or is removed, BIMA invalidates the old cover and regenerates from the newly attached MP4.
+
+## Storage and privacy
+
+- Video bytes remain in BIMA's existing browser IndexedDB video store; thumbnail PNG blobs are saved separately in IndexedDB database `bima-video-matched-thumbnail-v1` and read on later visits in that browser.
+- The thumbnail generator does not call Gemini, any remote image service or YouTube API. It does not access OAuth tokens.
+- If browser storage is blocked, a generated cover may work for the current tab but might need regeneration after reload.
+- If the MP4 no longer exists locally or cannot be decoded, BIMA keeps the concept labeled as such and displays a visible error. It does not falsely represent a concept as a final cover.
+
+## Limitations
+
+- Automatic frame scoring is approximate, not AI visual understanding. Owner should still inspect faces, scientifically correct appearance, visual legibility and title before publishing.
+- A video-matched PNG is **not automatically attached to YouTube** by this feature. Custom thumbnail upload and supported Shorts behavior require a separate integration/verification.
+- Only one final MP4 is needed. The cover is generated locally; it is not another video production or upload step.
