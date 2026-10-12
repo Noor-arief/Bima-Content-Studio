@@ -7,10 +7,14 @@ export function createPiapiWorker({db,persist}){
   const priceCents=77; // 8s * $0.096 = $0.768 rounded up
   db.piapiJobs ||= {};
   db.piapiReservedCents ||= 0;
+  // Recover rejected tasks even when an older provider poll overwrote their status.
+  for(const job of Object.values(db.piapiJobs)){
+    if(job.rejectedAt && job.status !== "rejected") job.status="rejected";
+  }
   const safe=j=>j&&(({prompt,...rest})=>rest)(j);
   const overview=()=>({configured:key.length>10,enabled,capUsd:cap/100,
     reservedUsd:db.piapiReservedCents/100,
-    jobs:Object.values(db.piapiJobs).slice(-15).map(safe)});
+    jobs:Object.values(db.piapiJobs).slice(-15).map(j=>safe(j.rejectedAt?{...j,status:"rejected"}:j))});
   async function api(path,options={}){
     const r=await fetch(base+path,{...options,headers:{"X-API-Key":key,"Content-Type":"application/json",...options.headers},signal:AbortSignal.timeout(30000)});
     const j=await r.json().catch(()=>({}));
@@ -52,11 +56,12 @@ export function createPiapiWorker({db,persist}){
   async function reject(id){
     const j=db.piapiJobs[id];
     if(!j)throw Error("piapi_job_not_found");
+    if(j.status==="rejected"||j.rejectedAt)return safe({...j,status:"rejected"});
     if(j.status!=="review_required")throw Error("only_completed_video_can_be_rejected");
     j.status="rejected";j.rejectedAt=new Date().toISOString();j.lastPollError=undefined;await persist();return safe(j);
   }
   async function refresh(){
-    for(const j of Object.values(db.piapiJobs).filter(x=>x.taskId&&!["completed","failed","review_required","rejected"].includes(x.status)).slice(0,2)){
+    for(const j of Object.values(db.piapiJobs).filter(x=>x.taskId&&!x.rejectedAt&&!["completed","failed","review_required","rejected"].includes(x.status)).slice(0,2)){
       try{
         const d=await api("/api/v1/task/"+encodeURIComponent(j.taskId));
         const status=String(d.status||"").toLowerCase();
