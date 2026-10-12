@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - feature/content-studio-backend-foundation
+      - main
     paths:
       - 'backend/**'
 jobs:
@@ -18,7 +19,10 @@ jobs:
         with:
           node-version: '22'
       - name: JavaScript syntax check
-        run: node --check backend/server.mjs
+        run: |
+          node --check backend/server.mjs
+          node --check backend/veo.mjs
+          node --check auto-video-pipeline.js
       - name: Server security smoke tests
         working-directory: backend
         run: npm test
