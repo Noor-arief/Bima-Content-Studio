@@ -23,7 +23,13 @@ export function createPiapiWorker({db,persist}){
     const id=String(data.id||"");
     if(!/^[a-zA-Z0-9_-]{3,80}$/.test(id))throw Error("invalid_id");
     const previous=db.piapiJobs[id];
-    if(previous&&!["rejected"].includes(previous.status))throw Error("piapi_job_exists_no_duplicate_billing");
+    // A confirmed retry may replace an existing completed preview even if a stale
+    // status refresh restored review_required after the owner rejected it.
+    // Never allow retry of an active job or any unpublished user content.
+    if(previous&&!["rejected","review_required"].includes(previous.status))
+      throw Error("piapi_job_exists_no_duplicate_billing");
+    if(previous&&previous.status==="review_required"&&!previous.videoUrl)
+      throw Error("preview_not_complete");
     if(previous&&!data.retryApproved)throw Error("explicit_retry_approval_required");
     if(Object.values(db.piapiJobs).some(x=>["submitting","pending","processing"].includes(x.status)))throw Error("piapi_generation_in_progress");
     if(db.piapiReservedCents+priceCents>cap)throw Error("pilot_budget_exhausted");
