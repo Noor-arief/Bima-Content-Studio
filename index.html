@@ -611,6 +611,16 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  <p class="note warn" style="margin-top:14px"><strong>Approval safeguard:</strong> Select and save a final MP4 in Shorts Production Desk. Then send it to Railway, approve that exact file, and upload after OAuth setup. Until Google’s API audit and permission checks pass, BIMA may be able to upload Private but cannot promise public scheduling. No action here uploads without a click.</p>
  <p class="hint" id="apiServerMessage" role="status" aria-live="polite">Checking Railway connection. Calendar drafts stay local until explicitly sent.</p>
 </section>
+<section class="panel" id="autonomousPlanner" style="margin:20px 0;border:1px solid rgba(98,220,209,.25)">
+ <div class="line"><div><h2>BIMA Autonomous Content — Science Production Planner</h2><p class="sub">Orbit &amp; Ocean · YouTube Shorts today, an educational video tomorrow. Daily alternating plan until 31 Dec 2026 — editorial planning only, NOT an active publishing queue.</p></div><span class="chip" id="autonomousCount">Loading mixed schedule…</span></div>
+ <div class="note warn" style="margin:14px 0"><strong>Science and rights:</strong> book titles are research leads, not verified citations. Verify title, edition and page for every claim. No copying copyrighted book figures for monetization without permission. All anatomy labels must be checked independently.</div>
+ <div class="fields" style="margin:12px 0"><div class="field full"><label for="autonomousDate">Production date and format</label><select id="autonomousDate" style="max-width:100%;min-height:44px"></select></div></div>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:16px"><div id="autonomousDetails" style="min-width:0"></div><div id="autonomousStory" style="min-width:0"></div></div>
+ <div class="actions"><button class="btn primary" type="button" id="autonomousCopy">Copy Production Brief</button><button class="btn" type="button" id="autonomousJump">Open Date in Calendar</button><button class="btn" type="button" disabled title="AI video API, budget approval, and science QA must pass before activation">Generate Video — Pending Provider</button></div>
+ <p class="hint" id="autonomousSummary" role="status" aria-live="polite">Book research and scientific QA required before video generation.</p>
+ <details style="margin-top:16px"><summary style="cursor:pointer;color:#c6d4ff">Lihat 81 jadwal campuran hingga akhir tahun</summary><div id="autonomousDays" style="display:grid;gap:6px;max-height:360px;overflow-y:auto;margin:12px 0"></div></details>
+ <p class="hint">Draft yang sudah ada tidak dihapus atau digeser. Jadwal ini menjadi rencana produksi baru; otomatisasi berbayar dan auto-publish belum diaktifkan.</p>
+</section>
 <footer class="footer" id="connectionFooter">BIMA Content Studio · Checking YouTube connection…</footer>
 </div>
 </div>
@@ -1038,4 +1048,5 @@ render();
 <script src="auto-thumbnails.js?v=20261012-thumbnail-upload4" defer></script>
 <script src="tiktok-affiliate.js?v=20261012-3" defer></script>
 <script src="channel-navigation.js?v=20261012-1" defer></script>
+<script src="autonomous-planner.js?v=20261012-science-mix1" defer></script>
 </body></html>
