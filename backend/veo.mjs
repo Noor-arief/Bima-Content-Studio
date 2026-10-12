@@ -11,7 +11,13 @@ export function storyboard({title,prompt,description,voiceover}){
   const fromQuote=prompt.match(/(?:voice|narrat)[^:\n]{0,100}:\s*["“]([^"”]+)[”"]/i);
   const fromCaption=String(description||"").replace(/#[a-z0-9_]+/gi,"").split(/[.!?]\s/)[0];
   let spoken=String(voiceover||fromQuote?.[1]||fromCaption||title).replace(/[^\w\s.,'!?-]/g,"").trim();
-  const wc=spoken.split(/\s+/).filter(Boolean).length;
+  let wc=spoken.split(/\s+/).filter(Boolean).length;
+  if(wc>18){
+    // Preserve a fully formed short sentence, never truncate spoken audio mid-thought.
+    const candidate=(spoken.match(/^.{15,160}?[.!?](?=\s|$)/)||[])[0];
+    if(candidate&&candidate.split(/\s+/).length>=4&&candidate.split(/\s+/).length<=18)spoken=candidate;
+    wc=spoken.split(/\s+/).filter(Boolean).length;
+  }
   if(wc<4||wc>18)throw Error("voiceover_requires_complete_4_to_18_word_sentence_for_8_seconds");
   if(!/[.!?]$/.test(spoken))spoken+=".";
   const base=prompt.replace(/10.seconds?/gi,"8 seconds").slice(0,3000);
@@ -57,11 +63,12 @@ async function download(uri,key,file){
 }
 export function createVeoWorker({db,persist,logEvent,mediaDir}){
   db.veoJobs ||= {};
+  db.veoBudgetUsedCents ||= Object.values(db.veoJobs).reduce((s,j)=>s+(j.cents||0),0);
   const key=process.env.GEMINI_API_KEY||"";
   const enabled=process.env.ENABLE_VEO_GENERATION==="true"&&key.length>12;
   const cap=Math.min(500,Math.max(0,Number(process.env.VEO_PILOT_BUDGET_CENTS||0)));
   const busy=new Set();
-  const total=()=>Object.values(db.veoJobs).reduce((s,j)=>s+(j.cents||0),0);
+  const total=()=>db.veoBudgetUsedCents;
   const sanitized=j=>{if(!j)return null;const {operation,filename,...rest}=j;return rest;};
   const overview=()=>({configured:key.length>12,enabled,limitUsd:cap/100,reservedUsd:total()/100,
     remainingUsd:Math.max(0,cap-total())/100,jobs:Object.values(db.veoJobs).map(sanitized).slice(-50)});
@@ -80,7 +87,7 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
     const j={id,revision:(old?.revision||0)+1,title:data.title,model,resolution:res,cents,
       voiceover:story.voiceover,shots:story.shots,prompt:story.text,status:"submitting",
       createdAt:new Date().toISOString(),error:null,qa:null,filename:null,operation:null};
-    db.veoJobs[id]=j;logEvent("veo_budget_reserved",id,{cents});await persist();
+    db.veoJobs[id]=j;db.veoBudgetUsedCents+=cents;logEvent("veo_budget_reserved",id,{cents,ledgerCents:db.veoBudgetUsedCents});await persist();
     try{
       const o=await jsonCall("models/"+model+":predictLongRunning",key,{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({instances:[{prompt:story.text}],
