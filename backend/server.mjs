@@ -563,7 +563,7 @@ async function handler(req,res){
 }
 await init();
 veoWorker=createVeoWorker({db,persist,logEvent,mediaDir:MEDIA_DIR});
-piapiWorker=createPiapiWorker({db,persist});
+piapiWorker=createPiapiWorker({db,persist,mediaDir:MEDIA_DIR});
 let pollBusy=false;
 setInterval(async ()=>{
   if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
