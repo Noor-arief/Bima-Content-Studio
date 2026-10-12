@@ -345,8 +345,16 @@ async function handler(req,res){
     return;
   }
   // Full-length Venus production, owner-only. No YouTube publishing.
-  if(req.method==="GET"&&u.pathname==="/api/venus-production/status")
+  if(req.method==="GET"&&u.pathname==="/api/venus-production/status"){
+    // Complete archival of an already selected, paid-for Scene 1 on first status read.
+    // This fetches the existing MP4 only; it NEVER submits a paid generation task.
+    const selected=db.piapiProduction?.["yt26-20261013-piapi-pilot"]?.scene1;
+    if(selected?.taskId&&!selected.storedFile){
+      try{await piapiWorker.useAsScene1("yt26-20261013-piapi-pilot");}
+      catch(e){console.warn("venus_scene1_archive_pending",String(e.message||e).slice(0,90));}
+    }
     return respond(res,200,venusProduction.publicState());
+  }
   if(req.method==="POST"&&u.pathname==="/api/venus-production/start"){
     let data;try{data=await readJSON(req,3000);}catch{return error(res,400,"invalid_budget_approval");}
     if(data?.confirmPaidProduction!==true)return error(res,409,"explicit_paid_production_approval_required");
