@@ -476,6 +476,44 @@ body[data-view="desk"] .actions{gap:9px}
 #productionStepper{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:600px){#productionStepper{grid-template-columns:repeat(2,minmax(0,1fr))}}
 body:not(.bima-show-advanced) #publishingManualNotice{display:none}
+
+/* Fit the available desktop viewport, including browser zoom and smaller laptops. */
+.shell.app{width:100%;min-width:0}
+.content{max-width:none;min-width:0}
+#ytWorkspace,.content-grid,.stack,.calendar,.cal-week,.controls{min-width:0;max-width:100%}
+.day{min-width:0;width:100%}
+.line>div:first-child{min-width:0;flex:1 1 260px}
+.day .event{width:100%;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35}
+@media(min-width:901px){
+ .shell.app{grid-template-columns:clamp(210px,17vw,248px) minmax(0,1fr)}
+ .sidebar{padding:16px 12px}
+ .content{padding:20px clamp(16px,1.8vw,28px) 36px}
+ .panel{padding:20px}
+ .brand{padding-bottom:8px}
+ .menu-item{font-size:14px;padding:9px 10px}
+ .sidebar .channel{gap:8px}
+ .sidebar .channel strong{font-size:13px}
+ .sidebar .channel small{font-size:11px}
+ .sidebar .channel .tag{padding:4px 6px;font-size:9px}
+ .workspace-bar h1{font-size:24px}
+ .sub,.hint,.content .hero p{font-size:13px}
+ .btn{font-size:13px;min-height:40px}
+ .day{height:clamp(82px,10.5vh,100px);min-height:82px}
+ .day .date{font-size:13px}
+ .day .count{font-size:11px}
+ .day .event{font-size:11px}
+ .cal-week{margin-top:14px}
+ .content>.head{grid-template-columns:minmax(0,1fr)}
+ .content .side-status{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .content .metric{max-width:none}
+}
+@media(min-width:1500px){.content>.head{grid-template-columns:minmax(0,1.2fr) minmax(360px,1fr)}}
+@media(min-width:601px) and (max-width:1100px){
+ .workspace-bar{flex-wrap:wrap}
+ .draft-picker{width:min(440px,100%)}
+ .controls{flex-wrap:wrap;justify-content:flex-start}
+ #episodeWorkflow .ew-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -513,7 +551,7 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  <p class="hint">Status Published muncul setelah YouTube mengonfirmasi video sudah Public.</p>
 </section>
 <div class="content-grid">
- <section class="panel" data-panel="kalender"><div class="line"><div><h2>YouTube content calendar</h2><p class="sub">Pilih tanggal untuk mengelola konten YouTube. Draft disimpan di perangkat ini; kirim video ke server setelah selesai direview.</p></div><div class="controls"><button class="btn ghost" id="prev" aria-label="Previous month">‹</button><span class="month-title" id="monthLabel"></span><button class="btn ghost" id="next" aria-label="Next month">›</button><button class="btn primary" id="newContent">+ New Short</button></div></div>
+ <section class="panel" data-panel="kalender"><div class="line"><div><h2>YouTube content calendar</h2><p class="sub">Klik konten atau tanggal yang berisi video untuk langsung membuka Production Desk. Pilih tanggal kosong untuk membuat Short baru.</p></div><div class="controls"><button class="btn ghost" id="prev" aria-label="Previous month">‹</button><span class="month-title" id="monthLabel"></span><button class="btn ghost" id="next" aria-label="Next month">›</button><button class="btn primary" id="newContent">+ New Short</button></div></div>
   <div class="cal-week"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div><div class="calendar" id="calendar"></div>
   <div class="section-top"><h3>Content on <span id="selectedLabel"></span></h3><p id="dayDescription">Choose a draft to edit or create a new one.</p></div><div class="list" id="dayList"></div>
  </section>
@@ -627,7 +665,7 @@ function human(d){return new Date(d+'T12:00:00').toLocaleDateString('id-ID',{day
 function gotoChannel(ch){state.active=ch;render();try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){}}
 function renderChannels(){const bar=$('channelBar');bar.replaceChildren();for(const ch of CHANNEL_ORDER){const cfg=PLATFORM_COPY[ch],b=document.createElement('button');b.className='channel'+(state.active===ch?' active':'');b.type='button';b.dataset.channel=ch;const img=document.createElement('img');img.src=ASSETS[ch];img.alt='';const name=document.createElement('span');name.innerHTML=`<strong>${cfg.name}</strong><small>${ch==='youtube'?'Faceless Shorts':ch==='tiktok'?'Affiliate · yellow basket':'Not active yet'}</small>`;const badge=document.createElement('span');badge.className='tag';badge.textContent=cfg.label;b.append(img,name,badge);b.addEventListener('click',()=>gotoChannel(ch));bar.appendChild(b)}}
 function items(){return state.items.youtube;}
-function renderCalendar(){const [y,m]=state.month.split('-').map(Number);const label=new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'});$('monthLabel').textContent=label;const grid=$('calendar');grid.replaceChildren();const dow=new Date(y,m-1,1).getDay(),total=new Date(y,m,0).getDate();for(let n=0;n<42;n++){const d=n-dow+1;const inMonth=d>=1&&d<=total;const actual=new Date(y,m-1,d);const date=dateStr(actual.getFullYear(),actual.getMonth()+1,actual.getDate());const list=items().filter(i=>i.date===date);const el=document.createElement('button');el.className='day'+(!inMonth?' muted':'')+(date===state.selected?' selected':'')+(date===today()?' today':'');el.type='button';el.setAttribute('aria-label',human(date)+(list.length?' · '+list.length+' konten':''));el.setAttribute('aria-pressed',String(date===state.selected));const day=document.createElement('span');day.className='date';day.textContent=String(actual.getDate());const count=document.createElement('span');count.className='count';count.textContent=list.length?list.length+' video planned':'';el.append(day,count);for(const i of list.slice(0,2)){const bubble=document.createElement('span');bubble.className='event';bubble.textContent=i.title;el.append(bubble)}el.addEventListener('click',()=>{state.selected=date;state.month=date.slice(0,7);const first=items().find(i=>i.date===date);state.selectedItem=first?.id||'';persist()});grid.appendChild(el)}}
+function renderCalendar(){const [y,m]=state.month.split('-').map(Number);const label=new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'});$('monthLabel').textContent=label;const grid=$('calendar');grid.replaceChildren();const dow=new Date(y,m-1,1).getDay(),total=new Date(y,m,0).getDate();for(let n=0;n<42;n++){const d=n-dow+1;const inMonth=d>=1&&d<=total;const actual=new Date(y,m-1,d);const date=dateStr(actual.getFullYear(),actual.getMonth()+1,actual.getDate());const list=items().filter(i=>i.date===date);const el=document.createElement('button');el.className='day'+(!inMonth?' muted':'')+(date===state.selected?' selected':'')+(date===today()?' today':'');el.type='button';el.setAttribute('aria-label',human(date)+(list.length?' · '+list.length+' konten':''));el.setAttribute('aria-pressed',String(date===state.selected));const day=document.createElement('span');day.className='date';day.textContent=String(actual.getDate());const count=document.createElement('span');count.className='count';count.textContent=list.length?list.length+' video planned':'';el.append(day,count);for(const i of list.slice(0,2)){const bubble=document.createElement('span');bubble.className='event';bubble.dataset.itemId=i.id;bubble.title=i.title;bubble.textContent=i.title;el.append(bubble)}el.addEventListener('click',e=>{state.selected=date;state.month=date.slice(0,7);const clickedId=e.target.closest('[data-item-id]')?.dataset.itemId;const first=items().find(i=>i.date===date&&i.id===clickedId)||items().find(i=>i.date===date);state.selectedItem=first?.id||'';persist()});grid.appendChild(el)}}
 function renderDay(){const dayItems=items().filter(i=>i.date===state.selected);$('selectedLabel').textContent=human(state.selected);const list=$('dayList');list.replaceChildren();if(!dayItems.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Belum ada konten YouTube untuk tanggal ini. Klik + New Short untuk membuat draft.';list.appendChild(empty);return}for(const i of dayItems){const remote=window.BIMA_REMOTE_CONTENT?.[i.id]||window.BIMA_PUBLIC_UPLOADS?.[i.id];const confirmed=['published','scheduled','private_uploaded'].includes(remote?.status);const displayStatus=remote?.status==='published'?'Published':remote?.status==='scheduled'?'Scheduled':remote?.status==='private_uploaded'?'Uploaded Private':i.status;const btn=document.createElement('button');btn.type='button';btn.className='item'+(i.id===state.selectedItem?' active':'');btn.innerHTML=`<div class="item-title">${escapeHTML(i.title)}</div><div class="item-meta">${escapeHTML(i.format)} · ${escapeHTML(i.time)} WIB</div><div class="chips"><span class="chip">${escapeHTML(displayStatus)}</span><span class="chip ${i.approved?'green':''}">${confirmed?'YouTube confirmed':i.approved?'Approved':'Awaiting approval'}</span></div>`;btn.addEventListener('click',()=>{state.selectedItem=i.id;render()});list.appendChild(btn)}}
 function getSelected(){return items().find(i=>i.id===state.selectedItem)||null}
 function renderEditor(){const i=getSelected();$('draftStatus').textContent=i?.status||'No draft';$('fTitle').value=i?.title||'';$('fDate').value=i?.date||state.selected;$('fTime').value=i?.time||state.channels.youtube.defaultTime;$('fFormat').value=i?.format||'Shorts · 10s';$('fStatus').value=i?.status==='Approved'?'QA Pass':(i?.status||'Draft');$('fPrompt').value=i?.prompt||'';$('fCaption').value=i?.caption||'';$('fNotes').value=i?.notes||'';const approval=$('approvalState');if(approval){approval.textContent=i?.approved?'Approved · Saved locally':'Awaiting approval';approval.style.color=i?.approved?'#9deecb':'#ffdcad';}const approvalButton=$('approve');if(approvalButton&&!approvalButton.disabled)approvalButton.textContent=i?.approved?'✓ Approved':'Mark Approved';loadVideoForSelection();document.dispatchEvent(new CustomEvent('bima:episode-selected',{detail:{id:i?.id||null}}))}
@@ -955,7 +993,7 @@ render();
  });
  document.getElementById('dayList').addEventListener('click',e=>{if(e.target.closest('.item'))setView('desk')});
  document.getElementById('newContent').addEventListener('click',()=>setView('desk'));
- document.getElementById('calendar').addEventListener('click',e=>{if(e.target.closest('.day'))route('kalender')});
+ document.getElementById('calendar').addEventListener('click',e=>{if(!e.target.closest('.day'))return;if(getSelected())setView('desk');else route('kalender')});
  for(const id of ['prev','next'])document.getElementById(id).addEventListener('click',()=>route('kalender'));
  const todayButton=document.createElement('button');todayButton.type='button';todayButton.className='btn ghost';todayButton.textContent='Hari ini';
  document.getElementById('next').after(todayButton);
