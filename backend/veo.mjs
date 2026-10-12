@@ -64,6 +64,7 @@ async function download(uri,key,file){
 }
 export function createVeoWorker({db,persist,logEvent,mediaDir}){
   db.veoJobs ||= {};
+  db.veoQueue ||= [];
   db.veoBudgetUsedCents ||= Object.values(db.veoJobs).reduce((s,j)=>s+(j.cents||0),0);
   const key=process.env.GEMINI_API_KEY||"";
   const enabled=process.env.ENABLE_VEO_GENERATION==="true"&&key.length>12;
@@ -73,7 +74,8 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
   const total=()=>db.veoBudgetUsedCents;
   const sanitized=j=>{if(!j)return null;const {operation,filename,...rest}=j;return rest;};
   const overview=()=>({configured:key.length>12,enabled,limitUsd:cap/100,reservedUsd:total()/100,
-    remainingUsd:Math.max(0,cap-total())/100,jobs:Object.values(db.veoJobs).map(sanitized).slice(-50)});
+    remainingUsd:Math.max(0,cap-total())/100,jobs:Object.values(db.veoJobs).map(sanitized).slice(-50),
+    queue:db.veoQueue.slice(-12).map(({prompt,description,...safe})=>safe)});
   async function start(data){
     if(!enabled)throw Error("veo_disabled_or_api_key_missing");
     if(data.confirmCost!==true)throw Error("owner_cost_confirmation_required");
@@ -98,6 +100,46 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
         throw Error("provider_submission_ambiguous_inspect_before_retry");
       j.operation=o.name;j.status="running";await persist();return sanitized(j);
     }catch(e){j.status="failed";j.error=String(e.message||e).slice(0,170);await persist();throw e;}
+  }
+  async function queueBatch(entries){
+    if(!enabled)throw Error("veo_disabled_or_api_key_missing");
+    if(!Array.isArray(entries)||entries.length<1||entries.length>4)throw Error("queue_requires_1_to_4_shorts");
+    if(Object.values(db.veoJobs).some(j=>["submitting","running","downloading","auditing"].includes(j.status)))throw Error("generation_in_progress_queue_later");
+    const seen=new Set();let cost=0;
+    const accepted=entries.map(input=>{
+      const id=String(input.id||"");
+      if(!/^[a-zA-Z0-9_-]{3,80}$/.test(id)||seen.has(id))throw Error("invalid_or_duplicate_queue_id");
+      seen.add(id);
+      if(db.veoQueue.some(x=>x.id===id&&["queued","submitting","submitted"].includes(x.status)))throw Error("already_in_autonomous_queue");
+      if(db.veoJobs[id])throw Error("existing_video_needs_review_no_regeneration");
+      const model=input.model||"veo-3.1-fast-generate-preview",resolution=input.resolution||"1080p";
+      const modelCents=RATES[model]?.[resolution];
+      if(!modelCents)throw Error("invalid_model");
+      storyboard(input);
+      cost+=modelCents+qaReserveCents;
+      return {id,title:input.title,prompt:input.prompt,description:String(input.description||""),
+        voiceover:String(input.voiceover||""),model,resolution,status:"queued",createdAt:new Date().toISOString()};
+    });
+    const pending=db.veoQueue.filter(x=>x.status==="queued").reduce((sum,x)=>sum+(RATES[x.model]?.[x.resolution]||0)+qaReserveCents,0);
+    if(total()+pending+cost>cap)throw Error("pilot_budget_cannot_cover_queue");
+    db.veoQueue.push(...accepted);
+    logEvent("veo_autonomous_batch_authorized","pilot",{count:accepted.length,maxReservedCents:cost});
+    await persist();
+    return accepted.map(({prompt,description,...safe})=>safe);
+  }
+  let pumping=false;
+  async function pump(){
+    if(!enabled||pumping)return;
+    if(Object.values(db.veoJobs).some(j=>["submitting","running","downloading","auditing"].includes(j.status)))return;
+    const next=db.veoQueue.find(x=>x.status==="queued");
+    if(!next)return;
+    pumping=true;next.status="submitting";await persist();
+    try{
+      await start({...next,confirmCost:true});
+      next.status="submitted";next.submittedAt=new Date().toISOString();
+    }catch(e){
+      next.status="failed";next.error=String(e.message||e).slice(0,150);
+    }finally{await persist();pumping=false;}
   }
   async function poll(){
     if(!enabled)return;
@@ -154,6 +196,7 @@ export function createVeoWorker({db,persist,logEvent,mediaDir}){
     if(j.status==="submitting"){j.status="failed";j.error="ambiguous_submission_on_restart_do_not_retry_automatically";}
     if(["downloading","auditing"].includes(j.status))j.status="running";
   }
-  const timer=setInterval(()=>void poll(),20000);timer.unref();
-  return {overview,start,poll,reject,accept,job:id=>db.veoJobs[id],sanitized};
+  const timer=setInterval(()=>{void poll().then(()=>pump()).catch(e=>console.warn("veo_tick_failed",String(e.message||e).slice(0,100)));},20000);
+  timer.unref();
+  return {overview,start,poll,pump,queueBatch,reject,accept,job:id=>db.veoJobs[id],sanitized};
 }
