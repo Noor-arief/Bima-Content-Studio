@@ -41,3 +41,20 @@ test("passes fully cited, timed and reviewed short only",()=>{
   });
   assert.deepEqual(r.issues,[]);assert.equal(r.passed,true);
 });
+
+test("does not require owner approval for research-stage generation, but gates final publishing",()=>{
+ const basic={
+  format:"Shorts",targetSeconds:8,rightsCleared:true,
+  sources:[{id:"s",type:"book",title:"Verified Book",edition:"1",page:"42",verified:true}],
+  claims:[{text:"Scientifically verified statement",sourceId:"s"}],
+  scenes:[{start:0,end:2,purpose:"hook"},{start:2,end:6,purpose:"mechanism"},{start:6,end:8,purpose:"payoff"}],
+  voiceover:"A tiny creature reveals an amazing adaptation that helps it survive underwater.",
+  thumbnail:{ratio:"9:16",concept:"accurate macro subject"}
+ };
+ const research=validateEditorial({...basic,phase:"research"});
+ assert.equal(research.passed,true);
+ const publish=validateEditorial({...basic,phase:"publish"});
+ assert.equal(publish.passed,false);
+ assert.ok(publish.issues.some(x=>x.includes("Owner review")));
+ assert.ok(publish.issues.some(x=>x.includes("finish before final frame")));
+});
