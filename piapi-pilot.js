@@ -54,9 +54,9 @@
  }
  const safe=async(fn)=>{button.disabled=true;refresh.disabled=true;try{await fn();}catch(e){say("Belum berhasil: "+e.message);}finally{refresh.disabled=false;button.disabled=!active;}};
  button.onclick=()=>safe(async()=>{
-   const item=typeof getSelected==="function"?getSelected():null;
-   if(!item)throw Error("Pilih konten draft di kalender.");
-   const id=item.id,title=$("fTitle")?.value?.trim()||item.title;
+   const item=(typeof state!=="undefined"?state.items?.youtube?.find(x=>x.id==="yt26-20261013-piapi-pilot"):null);
+   if(!item)throw Error("Draft Venus Test Only belum ditemukan di kalender. Refresh halaman.");
+   const id=item.id,title=item.title;
    // The full 24s episode brief is >4k chars and is NOT a single 8s video prompt.
    // For PiAPI's 8s pilot, use ONLY scene 1 of the saved episode workflow.
    const plan=item.episodePlan;
@@ -75,13 +75,11 @@
      "Never show logos, watermarks or unrelated visuals."
    ].join("\n");
    if(prompt.length>3900)throw Error("Scene 1 terlalu panjang untuk pilot. Ringkas storyboard.");
-   const description=$("fCaption")?.value||item.caption||"";
+   const description=item.caption||"";
    if(item.approved||item.youtubeId||item.mediaName)
      throw Error("Konten ini sudah approved/di-upload. Pilih draft Test Only.");
-   if(item.id!=="yt26-20261013-piapi-pilot")
-     throw Error("Pilot hanya untuk draft Venus Test Only tanggal 13 Okt.");
    if(prompt.trim().length<40)throw Error("Scene 1 belum cukup detail.");
-   const date=$("fDate")?.value||item.date,time=$("fTime")?.value||item.time||"19:30";
+   const date=item.date,time=item.time||"19:30";
    const publishAt=new Date(date+"T"+time+":00+07:00").toISOString();
    const before=await status();
    if(!before.enabled)throw Error("Backend PiAPI belum aktif.");
