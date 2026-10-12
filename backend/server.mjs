@@ -364,7 +364,7 @@ async function handler(req,res){
     let data;try{data=await readJSON(req,10000);}catch{return error(res,400,"invalid_generation_payload");}
     if(!db.content[data?.id])return error(res,404,"draft_not_registered_on_server");
     const item=db.content[data.id];
-    if(["uploading","scheduled","published","private_uploaded","needs_review","approved"].includes(item.status))
+    if(["uploading","scheduled","published","private_uploaded","needs_review","approved"].includes(item.status)||item.filePath)
       return error(res,409,"content_locked_for_generation");
     // Prevent a client from generating for a different title than the saved server draft.
     if(data.title!==item.title)return error(res,409,"draft_title_mismatch");
@@ -398,19 +398,27 @@ async function handler(req,res){
       const item=db.content[id];
       if(!item||!["draft","draft_with_video"].includes(item.status))
         return error(res,409,"draft_locked_or_missing");
-      let result;
-      try{result=await veoWorker.accept(id);}catch(e){return error(res,409,String(e.message||e));}
+      // Copy and verify first. Never mark a video accepted when its MP4 could not
+      // be copied to the persistent publishing vault.
+      const candidate=veoWorker.job(id);
+      if(!candidate||candidate.status!=="needs_owner_review"||!candidate.qa?.technicalPass||
+         !candidate.qa?.semanticPass||!candidate.filename||!candidate.hash)
+        return error(res,409,"generation_failed_quality_gate");
       const final=path.join(MEDIA_DIR,id+"-veo-"+Date.now()+".mp4");
       try{
-        await fs.copyFile(result.filename,final);
-        if(item.filePath)await fs.unlink(item.filePath).catch(()=>{});
-        item.filePath=final;item.mediaHash=result.job.hash;item.mediaSize=result.job.bytes;
+        await fs.copyFile(candidate.filename,final);
+        const verifiedHash=await fileSha256(final);
+        if(verifiedHash!==candidate.hash)throw Error("generated_video_hash_mismatch");
+        const result=await veoWorker.accept(id);
+        const previous=item.filePath;
+        item.filePath=final;item.mediaHash=verifiedHash;item.mediaSize=(await fs.stat(final)).size;
         item.mediaName="BIMA Veo "+result.job.revision+".mp4";
         item.status="draft_with_video";item.approvedMediaHash=null;item.approvedAt=null;
         item.containsSyntheticMedia=true;
         item.updatedAt=new Date().toISOString();
         logEvent("veo_video_imported_for_owner_approval",id,{revision:result.job.revision});
         await persist();
+        if(previous&&previous!==final)await fs.unlink(previous).catch(()=>{});
         return respond(res,200,{job:result.job,item:publicEntry(item)});
       }catch(e){await fs.unlink(final).catch(()=>{});return error(res,500,"veo_media_import_failed");}
     }
