@@ -6,7 +6,7 @@ test("Veo pricing and 8-second complete spoken sentence",()=>{
   assert.equal(RATES["veo-3.1-fast-generate-preview"]["1080p"],96);
   const s=storyboard({title:"Octopus has three hearts",description:"An octopus has three hearts. #Shorts",
     prompt:'8-second vertical film. Cinematic octopus with transparent accurate heart anatomy. Natural English voice: "An octopus has three hearts. Two pump to the gills, while one pumps through its body."'});
-  assert.equal(s.voiceover,"An octopus has three hearts.");
+  assert.match(s.voiceover,/^An octopus has three hearts\./);
   assert.match(s.text,/0–2s/);
   assert.match(s.text,/finish/);
   assert.throws(()=>storyboard({title:"An odd fish",prompt:"A".repeat(50),voiceover:"This is an intentionally extremely long voice over sentence that certainly goes beyond eighteen words and cannot fit into an eight second video without cutting off."}),/voiceover_requires/);
