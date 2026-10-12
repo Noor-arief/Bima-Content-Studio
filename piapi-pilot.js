@@ -53,7 +53,24 @@
    try{await api("/api/venus-production/start","POST",{confirmPaidProduction:true,maximumUsd:2.18});await refreshFull();}
    catch(e){fullStatus.textContent="Production not started: "+e.message;await refreshFull().catch(()=>{});}
  };
- if(token())refreshFull().catch(e=>{fullStatus.textContent="Production not ready: "+e.message;});
+ if(token())(async()=>{
+   // Owner previously selected Scene 1. Complete the server-side archive silently;
+   // this downloads an existing finished video and creates NO paid PiAPI task.
+   try{
+     let d=await refreshFull();
+     if(!d.scene1Archived){
+       const pilotId="yt26-20261013-piapi-pilot";
+       const saved=localStorage.getItem("bima_piapi_scene1_"+pilotId);
+       const jobs=await api("/api/piapi/status");
+       const match=jobs.jobs?.find(j=>j.id===pilotId&&j.taskId===saved&&j.status==="review_required");
+       if(match){
+         fullStatus.textContent="Archiving approved Scene 1 (no API generation charge)…";
+         await api("/api/piapi/use-scene1","POST",{id:pilotId});
+         d=await refreshFull();
+       }
+     }
+   }catch(e){fullStatus.textContent="Scene archive needs attention: "+e.message;}
+ })();
 
 
  const reference=$("piapiReferenceUrl"),approved=$("piapiReferenceApproved"),image=$("piapiReferencePreview");
