@@ -35,21 +35,21 @@ test("pilot budget hard cap cannot be bypassed by revisions or API failures",asy
     const db={},worker=createVeoWorker({db,persist:async()=>{},logEvent:()=>{},mediaDir:"/tmp"});
     const input={id:"video1",title:"An octopus has three hearts",prompt:"A dramatic underwater cinematic octopus demonstrates its three hearts with a clear educational ending.",description:"An octopus has three hearts.",confirmCost:true};
     await worker.start(input);
-    assert.equal(worker.overview().remainingUsd,4.04);
-    assert.equal(db.veoBudgetUsedCents,96);
+    assert.equal(worker.overview().remainingUsd,3.94);
+    assert.equal(db.veoBudgetUsedCents,106);
     db.veoJobs.video1.status="rejected";
     await worker.start(input); // paid revision, must retain cumulative cost
-    assert.equal(db.veoBudgetUsedCents,192);
-    assert.equal(worker.overview().remainingUsd,3.08);
-    for(let i=2;i<=4;i++){
+    assert.equal(db.veoBudgetUsedCents,212);
+    assert.equal(worker.overview().remainingUsd,2.88);
+    for(let i=2;i<=3;i++){
       db.veoJobs.video1.status="rejected";
       await worker.start(input);
     }
-    assert.equal(worker.overview().reservedUsd,4.8);
+    assert.equal(worker.overview().reservedUsd,4.24);
     db.veoJobs.video1.status="rejected";
     await assert.rejects(worker.start(input),/budget_exhausted/);
-    assert.equal(calls,5);
-    assert.equal(db.veoBudgetUsedCents,480);
+    assert.equal(calls,4);
+    assert.equal(db.veoBudgetUsedCents,424);
   }finally{
     globalThis.fetch=originalFetch;
     for(const [k,v] of Object.entries(previous)){if(v===undefined)delete process.env[k];else process.env[k]=v;}
