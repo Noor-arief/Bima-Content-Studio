@@ -1,5 +1,7 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
 // Owner-only PiAPI pilot worker. No upload, publishing, or autonomous scheduling.
-export function createPiapiWorker({db,persist}){
+export function createPiapiWorker({db,persist,mediaDir}){
   const key=process.env.PIAPI_API_KEY||"";
   const base=(process.env.PIAPI_BASE_URL||"https://api.piapi.ai").replace(/\/$/,"");
   const enabled=process.env.VIDEO_PROVIDER==="piapi"&&key.length>10;
@@ -65,14 +67,39 @@ export function createPiapiWorker({db,persist}){
     if(!job||job.status!=="review_required"||job.rejectedAt||!job.videoUrl)
       throw Error("completed_preview_required");
     if(!job.videoUrl.startsWith("https://"))throw Error("invalid_provider_video_url");
+    // Store a local copy before promising reuse; external PiAPI URLs may expire.
+    const target=path.join(mediaDir,"piapi-scene1-"+id+".mp4");
+    let stat=await fs.stat(target).catch(()=>null);
+    if(!stat||stat.size<1024){
+      const u=new URL(job.videoUrl);
+      if(u.protocol!=="https:"||u.username||u.password)throw Error("invalid_video_source");
+      const response=await fetch(u,{signal:AbortSignal.timeout(120000),redirect:"error"});
+      if(!response.ok||!response.body)throw Error("video_download_failed");
+      const type=response.headers.get("content-type")||"";
+      if(!type.includes("video")&&!type.includes("octet-stream"))throw Error("invalid_video_content_type");
+      const limit=60*1024*1024;
+      const tmp=target+".part";
+      let n=0;
+      const out=await fs.open(tmp,"w",0o600);
+      try{
+        for await(const chunk of response.body){
+          n+=chunk.length;if(n>limit)throw Error("scene1_exceeds_60mb");
+          await out.write(chunk);
+        }
+      }catch(e){await out.close();await fs.rm(tmp,{force:true}).catch(()=>{});throw e;}
+      await out.close();
+      if(n<1024){await fs.rm(tmp,{force:true});throw Error("scene1_empty");}
+      await fs.rename(tmp,target);
+      stat=await fs.stat(target);
+    }
     db.piapiProduction ||= {};
     db.piapiProduction[id]={
-      scene1:{taskId:job.taskId,videoUrl:job.videoUrl,durationSeconds:8,status:"reference_selected",
+      scene1:{taskId:job.taskId,videoUrl:job.videoUrl,storedFile:target,bytes:stat.size,durationSeconds:8,status:"archived",
         selectedAt:new Date().toISOString()},
       status:"planning_only",autoPublish:false
     };
     await persist();
-    return {id,scene1Selected:true,taskId:job.taskId,status:"planning_only"};
+    return {id,scene1Selected:true,taskId:job.taskId,status:"archived",bytes:stat.size};
   }
   async function reject(id){
     const j=db.piapiJobs[id];
