@@ -8,6 +8,7 @@ import { Transform } from "node:stream";
 import { convertShortsVideo } from "./shorts.mjs";
 import { MIX_2026, validateEditorial } from "./editorial.mjs";
 import { createVeoWorker } from "./veo.mjs";
+import { createPiapiWorker } from "./piapi.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -38,6 +39,7 @@ let db = {oauth:null,oauthStates:{},sessions:{},content:{},events:[]};
 let pendingWrite = Promise.resolve();
 const submitting = new Set();
 let veoWorker=null;
+let piapiWorker=null;
 
 const logEvent=(action,id,extra={})=>{
   db.events.push({at:new Date().toISOString(),action,id,...extra});
@@ -224,7 +226,9 @@ async function handler(req,res){
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING,
     thumbnailUploadsEnabled:ENABLE_THUMBNAIL_UPLOADS,
     veoConfigured:veoWorker?.overview().configured||false,
-    veoEnabled:veoWorker?.overview().enabled||false
+    veoEnabled:veoWorker?.overview().enabled||false,
+    piapiConfigured:piapiWorker?.overview().configured||false,
+    piapiEnabled:piapiWorker?.overview().enabled||false
   });
   // Public-safe YouTube counters for the channel dashboard.
   // Expose no OAuth data, titles, descriptions, schedules, video IDs or draft metadata.
@@ -337,6 +341,19 @@ async function handler(req,res){
       shortsConversionBusy=false;
     }
     return;
+  }
+  // PiAPI pilot: owner-authenticated, no publishing endpoint, explicit budget consent.
+  if(req.method==="GET"&&u.pathname==="/api/piapi/status")
+    return respond(res,200,await piapiWorker.refresh());
+  if(req.method==="POST"&&u.pathname==="/api/piapi/generate"){
+    let data;try{data=await readJSON(req,10000);}catch{return error(res,400,"invalid_generation_payload");}
+    const item=db.content[data?.id];
+    if(!item)return error(res,404,"draft_not_registered_on_server");
+    if(item.title!==data.title)return error(res,409,"draft_title_mismatch");
+    if(item.filePath||["uploading","scheduled","published","private_uploaded"].includes(item.status))
+      return error(res,409,"content_locked_for_generation");
+    try{return respond(res,202,{job:await piapiWorker.start(data)});}
+    catch(e){return error(res,409,String(e.message||e).slice(0,170));}
   }
   // Owner-only autonomous video pipeline; generation has explicit cost confirmation and hard cap.
   if(req.method==="GET"&&u.pathname==="/api/veo/status")
@@ -534,6 +551,7 @@ async function handler(req,res){
 }
 await init();
 veoWorker=createVeoWorker({db,persist,logEvent,mediaDir:MEDIA_DIR});
+piapiWorker=createPiapiWorker({db,persist});
 let pollBusy=false;
 setInterval(async ()=>{
   if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
