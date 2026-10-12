@@ -5,7 +5,7 @@ import { createNarration,retrieveNarration,VENUS_NARRATION,TTS_ESTIMATE_USD } fr
 import { buildVenusShort } from "./venus-assembly.mjs";
 const id="yt26-20261013-piapi-pilot";
 const scenes=[
- {duration:11,description:"Show the same pale golden cloud-covered terrestrial Venus, with a clearly visible slow counterclockwise reference arrow seen from above its north pole. Use a restrained celestial motion graphic overlay to illustrate that one axial rotation takes 243 Earth days. NO Jupiter bands, no fake storm eyes, no text or narration. Start with the established Venus artwork, smooth motion, fade into complete transition."},
+ {duration:11,description:"Show the same pale golden cloud-covered terrestrial Venus, with a clearly visible slow clockwise retrograde rotation reference arrow seen from above its north pole. Use a restrained celestial motion graphic overlay to illustrate that one axial rotation takes 243 Earth days. NO Jupiter bands, no fake storm eyes, no text or narration. Start with the established Venus artwork, smooth motion, fade into complete transition."},
  {duration:11,description:"Continue the same style and identical Venus. Pull back to a scientifically explanatory diagram with Venus travelling once around the Sun while a smaller rotation marker turns more slowly in retrograde direction. Venus orbit is 225 Earth days versus 243 Earth days for one sidereal spin. Complete the conclusion with a held final frame, no on-screen writing or narrator. Avoid Jupiter-like gas textures."}
 ];
 export function createVenusProduction({db,persist,mediaDir}){
@@ -18,7 +18,7 @@ export function createVenusProduction({db,persist,mediaDir}){
   const j=await r.json().catch(()=>({}));if(!r.ok||j.code!==200)throw Error("provider_request_failed_"+r.status);return j.data;
  };
  async function begin({ownerApproved,capUsd}){
-  if(ownerApproved!==true||capUsd<budget().totalEstimateUsd)throw Error("full_episode_budget_approval_required");
+  if(ownerApproved!==true||capUsd<budget().totalEstimateUsd||capUsd>2.18)throw Error("full_episode_budget_approval_required");
   if(db.venusProduction.status!=="not_started")throw Error("episode_already_started");
   const first=db.piapiProduction?.[id]?.scene1;
   if(!first?.storedFile||!await fs.stat(first.storedFile).catch(()=>null))throw Error("archive_scene1_before_production");
