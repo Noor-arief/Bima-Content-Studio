@@ -606,6 +606,29 @@ await init();
 veoWorker=createVeoWorker({db,persist,logEvent,mediaDir:MEDIA_DIR});
 piapiWorker=createPiapiWorker({db,persist,mediaDir:MEDIA_DIR});
 venusProduction=createVenusProduction({db,persist,mediaDir:MEDIA_DIR});
+// One-off BIMA-owned Moon review video job. Explicitly limited to one 15s PiAPI task,
+ // never retried after an ambiguous submission or failed generation, never uploaded.
+ const MOON_REVIEW_ID="yt26-20261013-moon-single";
+ const MOON_REVIEW_PROMPT="ONE complete 15-second 9:16 720p premium animated science short with coherent beginning, explanation, and resolved ending. SUBJECT: lunar phases, WHY THE MOON CHANGES APPARENT SHAPE. Consistent scientifically accurate grey cratered Moon and blue Earth, fixed incoming sunlight from the Sun. 0-4 seconds: a cinematic Moon in Earth's night sky gradually appears crescent, first quarter, then full with a compelling visual question. 4-11 seconds: elegant overhead animation of the Moon orbiting Earth with sunlight illuminating half the lunar sphere; demonstrate the different sunlit fractions visible from Earth, explicitly NOT the Earth's shadow or eclipse, no Venus. 11-15 seconds: smoothly return to the observer looking at a crescent then full Moon, finish on complete gorgeous held final frame. Educational but visually captivating with clear motion, no written words, no subtitles, no humans. ONE finished video, NO separate clips, ambient sound only.";
+ let moonWatchBusy=false;
+ async function moonAutoReview(){
+   if(moonWatchBusy||process.env.PIAPI_AUTO_MOON_APPROVED!=="true")return;
+   moonWatchBusy=true;
+   try{
+     if(!db.piapiJobs?.[MOON_REVIEW_ID]){
+       await piapiWorker.startSingle({id:MOON_REVIEW_ID,title:"Why Does the Moon Change Shape?",prompt:MOON_REVIEW_PROMPT,duration:15,confirmCost:true,maxChargeUsd:1.44});
+       console.log("bima_moon_single_video_job_submitted");
+     }else{
+       const job=db.piapiJobs[MOON_REVIEW_ID];
+       if(job.taskId&&!["review_required","rejected","failed"].includes(job.status))
+         await piapiWorker.refresh();
+     }
+   }catch(e){console.warn("bima_moon_auto_review",String(e.message||e).slice(0,150));}
+   finally{moonWatchBusy=false;}
+ }
+ // Trigger once shortly after boot, then poll existing jobs without ever resubmitting.
+ setTimeout(()=>{void moonAutoReview();},3000).unref();
+ setInterval(()=>{void moonAutoReview();},60000).unref();
 let pollBusy=false;
 setInterval(async ()=>{
   if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
