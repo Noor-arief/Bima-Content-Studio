@@ -106,8 +106,10 @@ function extract(item){
 }
 function createPlan(item){
  const saved=item.episodePlan;
- if(saved&&[16,24,32].includes(saved.duration)&&Array.isArray(saved.scenes)&&typeof saved.voice==='string')return JSON.parse(JSON.stringify(saved));
+ if(saved&&saved.sourceItemId===item.id&&saved.sourceTitle===item.title&&[16,24,32].includes(saved.duration)&&Array.isArray(saved.scenes)&&typeof saved.voice==='string')return JSON.parse(JSON.stringify(saved));
  const old=extract(item),curated=CUSTOM[item.id];
+ // Plans saved before episode identity checks may be cross-contaminated.
+ // Do not reuse them without an explicit source ID and matching title.
  return {
  duration:24,
  objective:curated?.objective||'Teach one verified fact: '+(item.caption||item.title).replace(/#\w+/g,'').trim(),
@@ -257,6 +259,7 @@ $('ewApply').addEventListener('click',()=>{
  if(words<10||words>Math.floor(plan.duration*2.5)){show('Narration length '+words+' words does not fit '+plan.duration+' seconds. Adjust length/duration.',true);return;}
  $('fFormat').value='Shorts · 15–60s';
  $('fPrompt').value=brief(item,plan);
+ plan.sourceItemId=item.id;plan.sourceTitle=item.title;
  item.episodePlan=JSON.parse(JSON.stringify(plan));
  // Explicit owner action reuses the existing Save Draft guard and requires another Mark Approved after editing.
  saveDraft();
