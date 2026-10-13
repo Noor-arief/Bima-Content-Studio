@@ -229,6 +229,10 @@ function locked(item){
 }
 function render(){
  const item=getSelected();if(!item){panel.hidden=true;active='';plan=null;return;}
+ // Do not replace 180s 16:9 editorial long-form drafts with a 24s 9:16 Shorts workflow.
+ if(item.format?.startsWith("Video · 180s")){
+   panel.hidden=true;active='';plan=null;return;
+ }
  panel.hidden=false;if(item.id===active&&dirty)return;
  active=item.id;plan=createPlan(item);dirty=false;
  $('ewDuration').value=String(plan.duration);$('ewVoice').value=plan.voice;
