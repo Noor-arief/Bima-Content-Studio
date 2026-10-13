@@ -55,6 +55,16 @@ planStep.addEventListener('click',()=>{panel.scrollIntoView({behavior:'smooth',b
 $('productionStepper').prepend(planStep);
 const STYLE='Orbit & Ocean animated science short. Bright, charming premium stylized 3D cartoon with rounded characters, expressive eyes and clear playful movement. Never photorealistic; no exposed anatomy, blood, x-rays, surgery or visible internal organs. Any science explanation uses glowing icons, simple arrows or diagrams OUTSIDE the animal. Compose portrait 9:16 and center important objects within the middle 60% of frame. Keep the same character colors, size, lighting and background in every clip. No onscreen text, watermark, captions or dialogue.';
 const CUSTOM={
+'yt-mantis-002':{
+ objective:'Explain the mantis shrimp strike: specialized spring-loaded appendages accelerate rapidly and can create cavitation bubbles in water.',
+ scenes:[
+ 'HOOK: Show a brightly colored stylized mantis shrimp peeking out of its coral burrow. Tight close-up on its folded striking appendage, with a clear visual anticipation beat. No planet visuals.',
+ 'EXPLANATION: Same shrimp launches its spring-loaded striking club toward a small empty shell. Use a brief exaggerated slow-motion cutaway showing the spring action with external icons, then a single clear cavitation bubble. No gore or anatomy.',
+ 'PAYOFF: Bubble collapses in a tiny shockwave ripple beside the shell. The shrimp settles back into its reef burrow. Resolve the fact, hold last 1.5 seconds cleanly. Do not introduce other species or unrelated subjects.'
+ ],
+ voice:'A mantis shrimp packs an astonishing punch. Its spring-loaded club strikes so fast that it creates tiny cavitation bubbles in water. When those bubbles collapse, they release an extra shockwave. One small shrimp, two powerful impacts.'
+},
+
 'yt-octopus-001':{
  objective:'Explain why an octopus needs three hearts: two pump blood to the gills; the third pumps oxygen-rich blood through the body.',
  scenes:[
