@@ -11,6 +11,7 @@ import { createVeoWorker } from "./veo.mjs";
 import { createPiapiWorker } from "./piapi.mjs";
 import { createVenusProduction } from "./venus-production.mjs";
 import { createMoonVoice } from "./moon-voice.mjs";
+import { createButterflyVoice } from "./butterfly-voice.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -377,6 +378,17 @@ async function handler(req,res){
     }catch{return error(res,404,"final_video_unavailable");}
   }
   // PiAPI pilot: owner-authenticated, no publishing endpoint, explicit budget consent.
+  if(req.method==="GET"&&u.pathname==="/api/butterfly-review/status"){
+    const job=db.piapiJobs?.[BUTTERFLY_ID]||null;
+    return respond(res,200,{job:job?{status:job.status,error:job.error||job.lastPollError||null,videoUrl:job.status==="review_required"?job.videoUrl:null}:null,voice:butterflyVoice.state()});
+  }
+  if(req.method==="GET"&&u.pathname==="/api/butterfly-review/video"){
+    if(!butterflyVoice.state().ready)return error(res,404,"butterfly_voice_not_ready");
+    const f=db.butterflyVoice?.file;
+    if(!f||path.dirname(f)!==MEDIA_DIR||path.basename(f)!=="butterfly-voice-review.mp4")return error(res,404,"invalid_butterfly_asset");
+    try{const stat=await fs.stat(f);res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":stat.size,"Cache-Control":"private,no-store","Content-Disposition":"inline; filename=butterfly-voice-review.mp4"});return createReadStream(f).pipe(res);}
+    catch{return error(res,404,"butterfly_file_missing");}
+  }
   if(req.method==="GET"&&u.pathname==="/api/moon-voice/status")return respond(res,200,moonVoice.state());
   if(req.method==="GET"&&u.pathname==="/api/moon-voice/video"){
     const state=moonVoice.state();if(!state.ready||!db.moonVoice?.file)return error(res,404,"moon_voice_not_ready");
@@ -690,6 +702,29 @@ venusProduction=createVenusProduction({db,persist,mediaDir:MEDIA_DIR});
  }
  setTimeout(()=>{void finalizeApprovedMoon();},5000).unref();
  setInterval(()=>{void finalizeApprovedMoon();},60000).unref();
+// Next Orbit & Ocean episode: one 15s PiAPI video plus English narration.
+// Separate review state; never publish or retry a paid job automatically.
+const BUTTERFLY_ID="yt26-20261014-butterfly-single";
+const butterflyVoice=createButterflyVoice({db,persist,mediaDir:MEDIA_DIR});
+const butterflyPrompt="ONE finished 15-second vertical 9:16 high-quality animated science video. Topic: Butterflies Taste With Their Feet. Premium polished 3D animation, colorful friendly stylized butterfly, vibrant sunlit flower meadow, believable butterfly anatomy, no humans, no text, no voice. 0-4s intriguing cinematic close-up: vivid butterfly lands on a large green leaf with its tiny feet. 4-11s educational camera close-up on the SAME butterfly and leaf; tasteful glowing dots at its feet illustrate external contact taste receptors; subtle particles represent recognizing plant chemicals, no x-ray or exposed anatomy. 11-15s butterfly chooses the appropriate healthy host plant leaf, calmly places a tiny cluster of eggs and lifts off; hold complete beautiful final frame. Explain with visual storytelling that butterflies sense plants through their feet and this helps some species choose egg-laying plants. One coherent video with finished ending, no unrelated objects, no ocean planets or Venus.";
+let butterflyBusy=false;
+async function butterflyReviewCycle(){
+ if(butterflyBusy||process.env.PIAPI_AUTO_BUTTERFLY_APPROVED!=="true")return;
+ butterflyBusy=true;
+ try{
+  const j=db.piapiJobs?.[BUTTERFLY_ID];
+  if(!j){
+   await piapiWorker.startSingle({id:BUTTERFLY_ID,title:"Butterflies Taste With Their Feet",prompt:butterflyPrompt,duration:15,confirmCost:true,maxChargeUsd:1.44});
+   console.log("bima_butterfly_single_video_job_submitted");
+  }else{
+   if(j.taskId&&!["review_required","rejected","failed"].includes(j.status))await piapiWorker.refresh();
+   if(db.piapiJobs[BUTTERFLY_ID]?.status==="review_required")await butterflyVoice.process();
+  }
+ }catch(e){console.warn("bima_butterfly_review",String(e.message||e).slice(0,160));}
+ finally{butterflyBusy=false;}
+}
+setTimeout(()=>void butterflyReviewCycle(),4000).unref();
+setInterval(()=>void butterflyReviewCycle(),60000).unref();
 let pollBusy=false;
 setInterval(async ()=>{
   if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
