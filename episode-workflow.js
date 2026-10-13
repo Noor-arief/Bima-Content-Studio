@@ -55,6 +55,16 @@ planStep.addEventListener('click',()=>{panel.scrollIntoView({behavior:'smooth',b
 $('productionStepper').prepend(planStep);
 const STYLE='Orbit & Ocean animated science short. Bright, charming premium stylized 3D cartoon with rounded characters, expressive eyes and clear playful movement. Never photorealistic; no exposed anatomy, blood, x-rays, surgery or visible internal organs. Any science explanation uses glowing icons, simple arrows or diagrams OUTSIDE the animal. Compose portrait 9:16 and center important objects within the middle 60% of frame. Keep the same character colors, size, lighting and background in every clip. No onscreen text, watermark, captions or dialogue.';
 const CUSTOM={
+'yt26-20261013-moon':{
+ objective:'Explain lunar phases accurately: the Moon stays round, while its orbit changes how much of the sunlit half we see from Earth. Ordinary phases are NOT Earth\'s shadow.',
+ scenes:[
+ 'HOOK, 0–8s: Start on an expressive stylized Earth night skyline. The SAME realistically cratered grey Moon appears successively as a thin crescent, a quarter Moon and a full Moon in one clear visual progression. Ask why it seems to change shape; show no eclipses or other planets.',
+ 'EXPLANATION, 8–16s: Move to one clean overhead educational diagram of Sunlight arriving from a fixed Sun, Earth in the center and the Moon orbiting Earth. Highlight the half of the Moon illuminated by sunlight at three orbital positions. Earth does NOT cast a shadow during normal lunar phases.',
+ 'PAYOFF, 16–24s: Return to a viewer on Earth, clearly match the orbital geometry to crescent, first quarter and full Moon views. Complete the explanation with a calm full Moon over the skyline; HOLD the last 1.5 seconds. No abrupt cutoff.'
+ ],
+ voice:'Why does the Moon seem to change shape? It actually stays round. The Sun always lights up half of it. As the Moon orbits Earth, we see different amounts of that bright half. Those are the Moon’s phases.'
+},
+
 'yt-mantis-002':{
  objective:'Explain the mantis shrimp strike: specialized spring-loaded appendages accelerate rapidly and can create cavitation bubbles in water.',
  scenes:[
