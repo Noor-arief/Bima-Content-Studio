@@ -1,6 +1,16 @@
 /* Isolated PiAPI pilot controls. Never upload or approve YouTube content. */
 (()=>{"use strict";
  const root=document.getElementById("piapiPilot");if(!root)return;
+ // The Venus pilot is attached ONLY to the 13 Oct test draft.
+ // Never show its plan alongside unrelated calendar episodes.
+ const syncEpisodeScope=()=>{
+   const current=typeof getSelected==="function"?getSelected():null;
+   root.hidden=!current||current.id!=="yt26-20261013-piapi-pilot";
+   root.style.display=root.hidden?"none":"";
+ };
+ document.addEventListener("bima:episode-selected",syncEpisodeScope);
+ syncEpisodeScope();
+
  const $=id=>document.getElementById(id);
  const server="https://content-studio-api-production-3fe2.up.railway.app";
  const token=()=>sessionStorage.getItem("bima_content_server_session")||"";
