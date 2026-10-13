@@ -6,6 +6,7 @@
  const $=id=>document.getElementById(id);
  if(typeof getSelected!=='function'||typeof items!=='function')return;
  const entries=[
+ ['Pufferfish','PUFFERFISH DEFENSE','🐡','ocean','#073d54','#6adfe8','OCEAN'],
  ['Venus','VENUS vs TIME','🟠','space','#161a52','#ef8a4a','SPACE'],
  ['Fireflies','HOW FIREFLIES GLOW','🪲','nature','#082940','#1acbaf','NATURE'],
  ['Fly Backward','FLY BACKWARD?!','🐦','nature','#18355b','#ffb457','WILDLIFE'],
@@ -41,7 +42,7 @@
  ['Leap Days','WHY LEAP DAYS?','🌍','space','#14325c','#ffc278','SPACE']
  ];
  const customByDate={
-  '2026-10-19':['VENUS vs TIME','🟠'], '2026-10-21':['HOW FIREFLIES GLOW','🪲'],
+  '2026-10-19':['PUFFERFISH DEFENSE','🐡'], '2026-10-21':['HOW FIREFLIES GLOW','🪲'],
   '2026-10-23':['FLY BACKWARD?!','🐦'], '2026-10-26':['FLOATING ROCK?!','🪨'],
   '2026-10-28':['SILENT FLYERS','🦉'], '2026-10-30':['FROZEN BUT ALIVE','🐸'],
   '2026-11-02':['NO BRAIN?!','🪼'],'2026-11-04':['BLACK SKIN?!','🐻‍❄️'],
@@ -77,7 +78,8 @@
      ? SCHEDULE_2026.find(i=>i.id===item.id):null;
    const original=!!planned&&planned.title===title&&planned.date===item.date;
    const preset=original?customByDate[item.date]:null;
-   return {headline:item.thumbnailHeadline||preset?.[0]||smartHeadline(title),
+   const attachedHeadline=(item.thumbnailHeadlineSourceTitle===title&&item.thumbnailHeadline)||null;
+   return {headline:attachedHeadline||preset?.[0]||hints[1]||smartHeadline(title),
      icon:preset?.[1]||hints[2],category:hints[6],kind:hints[3],dark:hints[4],light:hints[5]};
  }
  function wrapTitle(value){
@@ -140,7 +142,7 @@
  const pending=new Map();
  let selectedId='',shownPreviewUrl='',session=0;
  function signature(item){
-   return [item?.id,item?.title,item?.date,item?.mediaName,item?.mediaSize,'actual-frame-v1'].join('|');
+   return [item?.id,item?.title,item?.date,item?.mediaName,item?.mediaSize,theme(item).headline,'actual-frame-v2'].join('|');
  }
  function src(item){return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg(item));}
  function openCoverDB(){
