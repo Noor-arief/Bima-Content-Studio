@@ -40,7 +40,17 @@
    const j=(result.jobs||[]).find(x=>x.id===moonSingleId);
    singleStatus.textContent=j?("MOON ONLY · "+j.status+" · "+(j.error||j.lastPollError||"15s PiAPI generation")):"Moon job not visible yet. No Venus video is shown as its replacement.";
    singleBtn.disabled=!!j;
-   if(j?.videoUrl&&j.status==="review_required"){
+   const voice=await api("/api/moon-voice/status");
+   if(voice.ready){
+     if(!singlePlayer.dataset.voiceLoaded){
+       const resp=await fetch(server+"/api/moon-voice/video",{headers:{Authorization:"Bearer "+token()}});
+       if(!resp.ok)throw Error("voice_mp4_fetch_failed");
+       singlePlayer.src=URL.createObjectURL(await resp.blob());singlePlayer.dataset.voiceLoaded="true";
+     }
+     singlePlayer.style.display="block";
+     singleStatus.textContent="MOON + ENGLISH VOICEOVER · Ready for your review";
+   }else if(j?.videoUrl&&j.status==="review_required"){
+     singleStatus.textContent="Moon visuals complete · voiceover: "+voice.status+(voice.error?" ("+voice.error+")":"");
      singlePlayer.src=j.videoUrl;singlePlayer.style.display="block";
    }
  };
