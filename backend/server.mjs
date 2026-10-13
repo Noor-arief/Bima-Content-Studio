@@ -10,6 +10,7 @@ import { MIX_2026, validateEditorial } from "./editorial.mjs";
 import { createVeoWorker } from "./veo.mjs";
 import { createPiapiWorker } from "./piapi.mjs";
 import { createVenusProduction } from "./venus-production.mjs";
+import { createMoonVoice } from "./moon-voice.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -376,6 +377,15 @@ async function handler(req,res){
     }catch{return error(res,404,"final_video_unavailable");}
   }
   // PiAPI pilot: owner-authenticated, no publishing endpoint, explicit budget consent.
+  if(req.method==="GET"&&u.pathname==="/api/moon-voice/status")return respond(res,200,moonVoice.state());
+  if(req.method==="GET"&&u.pathname==="/api/moon-voice/video"){
+    const state=moonVoice.state();if(!state.ready||!db.moonVoice?.file)return error(res,404,"moon_voice_not_ready");
+    try{
+      const f=db.moonVoice.file;if(path.dirname(f)!==MEDIA_DIR||path.basename(f)!=="moon-voice-review.mp4")throw Error("invalid_asset");
+      const stat=await fs.stat(f);res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":stat.size,"Cache-Control":"private,no-store","Content-Disposition":"inline; filename=moon-voice-review.mp4"});
+      return createReadStream(f).pipe(res);
+    }catch{return error(res,404,"moon_voice_file_missing");}
+  }
   if(req.method==="GET"&&u.pathname==="/api/piapi/status")
     return respond(res,200,await piapiWorker.refresh());
   if(req.method==="POST"&&u.pathname==="/api/piapi/use-scene1"){
@@ -610,6 +620,7 @@ venusProduction=createVenusProduction({db,persist,mediaDir:MEDIA_DIR});
  // never retried after an ambiguous submission or failed generation, never uploaded.
  const MOON_REVIEW_ID="yt26-20261013-moon-single";
  const MOON_REVIEW_PROMPT="ONE complete 15-second 9:16 720p premium animated science short with coherent beginning, explanation, and resolved ending. SUBJECT: lunar phases, WHY THE MOON CHANGES APPARENT SHAPE. Consistent scientifically accurate grey cratered Moon and blue Earth, fixed incoming sunlight from the Sun. 0-4 seconds: a cinematic Moon in Earth's night sky gradually appears crescent, first quarter, then full with a compelling visual question. 4-11 seconds: elegant overhead animation of the Moon orbiting Earth with sunlight illuminating half the lunar sphere; demonstrate the different sunlit fractions visible from Earth, explicitly NOT the Earth's shadow or eclipse, no Venus. 11-15 seconds: smoothly return to the observer looking at a crescent then full Moon, finish on complete gorgeous held final frame. Educational but visually captivating with clear motion, no written words, no subtitles, no humans. ONE finished video, NO separate clips, ambient sound only.";
+ const moonVoice=createMoonVoice({db,persist,mediaDir:MEDIA_DIR});
  let moonWatchBusy=false;
  async function moonAutoReview(){
    if(moonWatchBusy||process.env.PIAPI_AUTO_MOON_APPROVED!=="true")return;
@@ -622,6 +633,7 @@ venusProduction=createVenusProduction({db,persist,mediaDir:MEDIA_DIR});
        const job=db.piapiJobs[MOON_REVIEW_ID];
        if(job.taskId&&!["review_required","rejected","failed"].includes(job.status))
          await piapiWorker.refresh();
+       if(db.piapiJobs[MOON_REVIEW_ID]?.status==="review_required")await moonVoice.process();
      }
    }catch(e){console.warn("bima_moon_auto_review",String(e.message||e).slice(0,150));}
    finally{moonWatchBusy=false;}
