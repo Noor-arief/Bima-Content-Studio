@@ -7,9 +7,12 @@ const ID="yt26-20261013-moon-single";
 const SCRIPT="Why does the Moon change shape? It stays round. As it orbits Earth, we see different portions of its sunlit half. That's what creates the Moon's phases.";
 export function createMoonVoice({db,persist,mediaDir}){
  db.moonVoice||={status:"not_started"};
+ // Recover the pre-submission failure caused by function-name shadowing of Node process.
+ // Only this exact failure can reset safely: no TTS request was sent.
+ if(db.moonVoice.status==="failed"&&String(db.moonVoice.error||"").includes("PIAPI_MOON_TTS_APPROVED")){db.moonVoice.status="not_started";db.moonVoice.error=null;}
  let busy=false;
  const state=()=>({status:db.moonVoice.status,error:db.moonVoice.error||null,ready:db.moonVoice.status==="ready_for_review",estimatedTtsUsd:0.06});
- async function process(){
+ async function runVoice(){
   if(busy)return state();busy=true;
   try{
    const source=db.piapiJobs?.[ID];
@@ -46,5 +49,5 @@ export function createMoonVoice({db,persist,mediaDir}){
   finally{busy=false;}
   return state();
  }
- return {state,process};
+ return {state,process:runVoice};
 }
