@@ -35,7 +35,7 @@ export function createMoonVoice({db,persist,mediaDir}){
    const original=path.join(mediaDir,"moon-original.mp4"),output=path.join(mediaDir,"moon-voice-review.mp4");
    await fs.writeFile(original,buffer);
    await new Promise((resolve,reject)=>{
-    const proc=spawn(ffmpegPath,["-y","-i",original,"-i",audio,"-filter_complex","[0:a]volume=0.15[bg];[1:a]apad,atrim=0:15,volume=1.5[vo];[bg][vo]amix=inputs=2:duration=first[a]","-map","0:v:0","-map","[a]","-c:v","copy","-c:a","aac","-t","15","-movflags","+faststart",output],{stdio:["ignore","ignore","pipe"]});
+    const proc=spawn(ffmpegPath,["-y","-i",original,"-i",audio,"-filter_complex","[1:a]apad,atrim=0:15,volume=1.5[a]","-map","0:v:0","-map","[a]","-c:v","copy","-c:a","aac","-t","15","-movflags","+faststart",output],{stdio:["ignore","ignore","pipe"]});
     let err="";proc.stderr.on("data",b=>err=(err+b.toString()).slice(-800));const timer=setTimeout(()=>proc.kill("SIGKILL"),180000);
     proc.on("error",e=>{clearTimeout(timer);reject(e)});
     proc.on("close",code=>{clearTimeout(timer);code===0?resolve():reject(Error("moon_mux_failed_"+code+"_"+err.slice(-200)))});
