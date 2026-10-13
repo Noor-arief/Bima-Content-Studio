@@ -52,10 +52,24 @@
  root.prepend(single);
  // Legacy Venus pilot controls/videos are historical assets, not today's Moon output.
  // Isolate production review entirely by task ID to prevent stale Venus previews.
- for(const child of [...root.children])if(child!==single){
+ for(const child of [...root.children])if(child!==single&&child!==butterflyPanel){
    child.hidden=true;
    child.style.display="none";
  }
+ // Bind review panels to the selected episode, never globally across dates.
+ const syncEpisodeReview=()=>{
+   const selected=typeof getSelected==="function"?getSelected():null;
+   const date=selected?.date||"";
+   const moon=date==="2026-10-13"&&/moon/i.test(selected?.title||"");
+   const butterfly=date==="2026-10-14"&&/butterfl/i.test(selected?.title||"");
+   single.hidden=!moon;single.style.display=moon?"":"none";
+   butterflyPanel.hidden=!butterfly;butterflyPanel.style.display=butterfly?"":"none";
+   if(!moon){singlePlayer.pause();}
+   if(!butterfly){butterflyPlayer.pause();}
+ };
+ document.addEventListener("bima:episode-selected",syncEpisodeReview);
+ document.addEventListener("bima:mixed-calendar-synced",syncEpisodeReview);
+ syncEpisodeReview();
 
  const moonSingleId="yt26-20261013-moon-single";
  const moonPrompt="ONE continuous 15-second vertical 9:16 educational 3D animation, fully resolved. Topic: why the Moon changes apparent shape. Premium stylized science visuals, highly accurate smooth grey cratered Moon and blue Earth, stable Sun illumination, no people, no text or subtitles. 0-4s compelling night-sky views of crescent then quarter Moon. 4-11s an unambiguous overhead Sun-Earth-Moon orbit diagram, fixed sunlight direction, Moon always a round sphere with one hemisphere illuminated, camera follows the changing portion visible from Earth; no Earth's shadow, no eclipse and no Venus. 11-15s return to Earth's sky, show crescent, quarter and full Moon as a visual progression; finish the full explanation with a complete held last frame. Smooth cinematic transitions, clear scientific mechanism, no additional scene generation. Ambient sound only; no speech.";
