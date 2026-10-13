@@ -55,6 +55,16 @@ planStep.addEventListener('click',()=>{panel.scrollIntoView({behavior:'smooth',b
 $('productionStepper').prepend(planStep);
 const STYLE='Orbit & Ocean animated science short. Bright, charming premium stylized 3D cartoon with rounded characters, expressive eyes and clear playful movement. Never photorealistic; no exposed anatomy, blood, x-rays, surgery or visible internal organs. Any science explanation uses glowing icons, simple arrows or diagrams OUTSIDE the animal. Compose portrait 9:16 and center important objects within the middle 60% of frame. Keep the same character colors, size, lighting and background in every clip. No onscreen text, watermark, captions or dialogue.';
 const CUSTOM={
+'yt26-20261019':{
+ objective:'Explain how pufferfish inflate by rapidly swallowing water into an expandable stomach to deter predators; never depict inflation by breathing air.',
+ scenes:[
+ 'HOOK 0–8s: In one bright, lively coral reef, a small cute yellow cartoon pufferfish swims normally. A shadow of a larger predator approaches. Show the fish noticing the threat; keep the same spots and colors for all three clips. Build suspense clearly, no anatomy cutaways.',
+ 'EXPLANATION 8–16s: The SAME pufferfish rapidly gulps water through its mouth and expands into a round spiny ball. Use tasteful simple blue motion arrows outside the body to show WATER entering and stretching its stomach, never air or visible organs. The predator finds the inflated fish difficult to swallow and backs away.',
+ 'PAYOFF 16–24s: The predator swims off, then the SAME pufferfish gradually expels water and returns to ordinary size. Follow it gliding through beautiful coral and hold a settled, complete final composition for 1.5 seconds. No repetition or unfinished ending.'
+ ],
+ voice:'How does a pufferfish turn into a spiky ball? When danger approaches, it quickly gulps water into an expandable stomach. Its swollen shape makes it much harder for predators to swallow. Once the threat is gone, it releases the water and swims away.'
+},
+
 'yt26-20261013-moon':{
  objective:'Explain lunar phases accurately: the Moon stays round, while its orbit changes how much of the sunlit half we see from Earth. Ordinary phases are NOT Earth\'s shadow.',
  scenes:[
