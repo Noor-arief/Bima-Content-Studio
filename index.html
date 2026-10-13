@@ -735,13 +735,19 @@ function getSelected(){return items().find(i=>i.id===state.selectedItem)||null}
 function renderEditor(){const i=getSelected();$('draftStatus').textContent=i?.status||'No draft';$('fTitle').value=i?.title||'';$('fDate').value=i?.date||state.selected;$('fTime').value=i?.time||state.channels.youtube.defaultTime;$('fFormat').value=i?.format||'Shorts · 10s';$('fStatus').value=i?.status==='Approved'?'QA Pass':(i?.status||'Draft');$('fPrompt').value=i?.prompt||'';$('fCaption').value=i?.caption||'';$('fNotes').value=i?.notes||'';const approval=$('approvalState');if(approval){approval.textContent=i?.approved?'Approved · Saved locally':'Awaiting approval';approval.style.color=i?.approved?'#9deecb':'#ffdcad';}const approvalButton=$('approve');if(approvalButton&&!approvalButton.disabled)approvalButton.textContent=i?.approved?'✓ Approved':'Mark Approved';loadVideoForSelection();document.dispatchEvent(new CustomEvent('bima:episode-selected',{detail:{id:i?.id||null}}))}
 function renderQueue(){
  const body=$('queueBody');body.replaceChildren();
- const rows=[...items()].sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
+ const moonPublished=window.BIMA_REMOTE_CONTENT?.["yt26-20261013-moon-final-with-voice"]||window.BIMA_PUBLIC_UPLOADS?.["yt26-20261013-moon-final-with-voice"];
+ const moonStatus=moonPublished?.status;
+ const moonUploaded=["scheduled","published","private_uploaded"].includes(moonStatus);
+ const rows=[...items()].filter(i=>!moonUploaded||!(i.date==="2026-10-13"&&/moon.*chang.*shape/i.test(i.title)));
+ if(moonUploaded)rows.push({id:"yt26-20261013-moon-final-with-voice",date:"2026-10-13",time:"19:30",title:"Why Does the Moon Change Shape?",status:moonStatus,approved:true,mediaName:"moon-voice-review.mp4"});
+ rows.sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
  if(!rows.length){const tr=document.createElement('tr');tr.innerHTML='<td colspan="5">No YouTube drafts yet.</td>';body.append(tr)}
  for(const i of rows){
    const fromOwner=window.BIMA_REMOTE_CONTENT?.[i.id]||null;
    const fromPublic=window.BIMA_PUBLIC_UPLOADS?.[i.id]||null;
    const remote=fromOwner||fromPublic?{...(fromOwner||{}),...(fromPublic||{})}:null;
    const remoteStatus=remote?.status||null;
+   if(i.id==="yt26-20261013-moon-final-with-voice"&&remoteStatus==="scheduled")i.status="Scheduled";
    const statusText=remoteStatus==='published'?'Published · Public confirmed'
      :remoteStatus==='scheduled'?'Uploaded by BIMA · Scheduled'
      :remoteStatus==='private_uploaded'?'Uploaded by BIMA · Private'
@@ -756,9 +762,10 @@ function renderQueue(){
      const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
    }
    const titleCell=tr.children[1];titleCell.replaceChildren();const open=document.createElement('button');open.type='button';open.className='queue-open';open.dataset.openItem=i.id;open.textContent=i.title;open.setAttribute('aria-label','Buka konten: '+i.title);titleCell.append(open);
-   if(remote?.youtubeId){
+   if(remote?.youtubeId||i.id==="yt26-20261013-moon-final-with-voice"&&moonUploaded){
+     const youtubeId=remote?.youtubeId||(i.id==="yt26-20261013-moon-final-with-voice"?"DTesOXrUmME":null);
      const link=document.createElement('a');
-     link.href='https://studio.youtube.com/video/'+encodeURIComponent(remote.youtubeId)+'/edit';
+     link.href='https://studio.youtube.com/video/'+encodeURIComponent(youtubeId)+'/edit';
      link.target='_blank';link.rel='noopener noreferrer';link.textContent=' · Open in Studio ↗';
      tr.lastElementChild.append(link);
    }
