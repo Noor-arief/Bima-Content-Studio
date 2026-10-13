@@ -79,7 +79,7 @@
    const original=!!planned&&planned.title===title&&planned.date===item.date;
    const preset=original?customByDate[item.date]:null;
    const attachedHeadline=(item.thumbnailHeadlineSourceTitle===title&&item.thumbnailHeadline)||null;
-   return {headline:attachedHeadline||preset?.[0]||hints[1]||smartHeadline(title),
+   return {headline:attachedHeadline||preset?.[0]||(matched?matched[1]:smartHeadline(title)),
      icon:preset?.[1]||hints[2],category:hints[6],kind:hints[3],dark:hints[4],light:hints[5]};
  }
  function wrapTitle(value){
