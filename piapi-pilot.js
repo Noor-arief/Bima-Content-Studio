@@ -52,6 +52,7 @@
  // audio synchronizer and fresh owner budget approval are implemented.
  const planBox=document.createElement("section");
  planBox.id="piapiFullEpisodePlan";
+ planBox.hidden=true; // Legacy Venus 3-scene assembly is archived; primary desk is one-video generation.
  planBox.style.cssText="border:1px solid rgba(148,163,255,.27);border-radius:12px;padding:16px;margin:16px 0;color:#dbe5ff";
  const planTitle=document.createElement("h3");planTitle.textContent="Venus Shorts 30s — Automated Production";
  const planText=document.createElement("p");planText.textContent="Use the third 8-second PiAPI test as an opening candidate (owner visual review); create unique 11s explanation and 11s payoff clips, then record and sync ONE continuous English narration. Generation starts only after you approve the additional cost; BIMA then assembles one review MP4.";
