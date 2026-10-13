@@ -780,9 +780,9 @@ function preflightDraftQA(item,fields){
  if(!item)return ["No draft selected"];
  const title=(fields.title||item.title||"").toLowerCase();
  const text=[fields.caption||"",fields.prompt||"",item.episodePlan?.objective||"",item.episodePlan?.voice||"",...(item.episodePlan?.scenes||[])].join(" ").toLowerCase();
- const venus=/\\bvenus\\b/.test(title),mantis=/\\bmantis shrimp\\b/.test(title);
- if(venus&&/\\bmantis shrimp\\b/.test(text))problems.push("Venus title mixed with mantis shrimp content");
- if(mantis&&/\\bvenus\\b/.test(text))problems.push("Mantis shrimp title mixed with Venus content");
+ const venus=/\bvenus\b/.test(title),mantis=/\bmantis shrimp\b/.test(title);
+ if(venus&&/\bmantis shrimp\b/.test(text))problems.push("Venus title mixed with mantis shrimp content");
+ if(mantis&&/\bvenus\b/.test(text))problems.push("Mantis shrimp title mixed with Venus content");
  if(item.episodePlan&&(item.episodePlan.sourceItemId!==item.id||item.episodePlan.sourceTitle!==item.title))
    problems.push("Saved storyboard belongs to an old or unidentified draft; review and re-save its workflow");
  if(item.sourceSchedule==="mixed-81"&&/research required/i.test(item.status||""))
