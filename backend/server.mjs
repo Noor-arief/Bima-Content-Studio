@@ -390,6 +390,14 @@ async function handler(req,res){
     try{return respond(res,200,{job:await piapiWorker.reject(data.id)});}
     catch(e){return error(res,409,String(e.message||e).slice(0,140));}
   }
+  if(req.method==="POST"&&u.pathname==="/api/piapi/single-video"){
+    let data;try{data=await readJSON(req,10000);}catch{return error(res,400,"invalid_single_video_payload");}
+    // Independent production job. No publishing, no scene concatenation.
+    if(!/^yt26-20261013-moon-single$/.test(String(data?.id||"")))return error(res,403,"single_video_draft_not_allowed");
+    if(data?.title!=="Why Does the Moon Change Shape?")return error(res,409,"draft_title_mismatch");
+    try{return respond(res,202,{job:await piapiWorker.startSingle(data)});}
+    catch(e){return error(res,409,String(e.message||e).slice(0,170));}
+  }
   if(req.method==="POST"&&u.pathname==="/api/piapi/generate"){
     let data;try{data=await readJSON(req,10000);}catch{return error(res,400,"invalid_generation_payload");}
     const item=db.content[data?.id];
