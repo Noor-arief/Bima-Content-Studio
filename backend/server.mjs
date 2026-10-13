@@ -150,7 +150,7 @@ async function uploadToYoutube(item){
   if(item.id!=="yt26-20261019" && item.publishAt>="2026-10-19" && item.thumbnailPath &&
      item.thumbnailForMediaHash===item.approvedMediaHash && existsSync(item.thumbnailPath)){
     youtubeFilePath=await createShortsCoverVideo(item.filePath,item.thumbnailPath);
-    logEvent("shorts_cover_embedded",item.id,{source:"approved_video_frame",durationSeconds:0.9});
+    logEvent("shorts_cover_embedded",item.id,{source:"approved_video_frame",transition:"crossfade",holdSeconds:0.20,fadeSeconds:0.80});
     await persist();
   }else if(item.id!=="yt26-20261019" && item.publishAt>="2026-10-19"){
     throw Error("future_shorts_cover_missing_or_mismatched");
