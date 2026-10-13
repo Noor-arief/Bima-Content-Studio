@@ -740,6 +740,23 @@ function renderQueue(){
  const moonUploaded=["scheduled","published","private_uploaded"].includes(moonStatus);
  const rows=[...items()].filter(i=>!moonUploaded||!(i.date==="2026-10-13"&&/moon.*chang.*shape/i.test(i.title)));
  if(moonUploaded)rows.push({id:"yt26-20261013-moon-final-with-voice",date:"2026-10-13",time:"19:30",title:"Why Does the Moon Change Shape?",status:moonStatus,approved:true,mediaName:"moon-voice-review.mp4"});
+ // Deduplicate equivalent titles on the same calendar date, including legacy
+ // browser drafts and backend-published copies. Distinct topics remain separate.
+ const canonicalTitle=t=>String(t||"").toLowerCase()
+   .replace(/\\b(?:why|does|do|the|a|an|how|what|is|have|has)\\b/g,"")
+   .replace(/[^a-z0-9]/g,"");
+ const rank=i=>{
+   const remote=window.BIMA_REMOTE_CONTENT?.[i.id]||window.BIMA_PUBLIC_UPLOADS?.[i.id];
+   const status=remote?.status||i.status;
+   return ({published:100,scheduled:95,private_uploaded:90,approved:70,Approved:70,"Prompt Ready":20,"Research Required":5})[status]||10;
+ };
+ const dedup=new Map();
+ for(const item of rows){
+   const key=item.date+"|"+canonicalTitle(item.title);
+   const old=dedup.get(key);
+   if(!old||rank(item)>rank(old))dedup.set(key,item);
+ }
+ rows.splice(0,rows.length,...dedup.values());
  rows.sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
  if(!rows.length){const tr=document.createElement('tr');tr.innerHTML='<td colspan="5">No YouTube drafts yet.</td>';body.append(tr)}
  for(const i of rows){
