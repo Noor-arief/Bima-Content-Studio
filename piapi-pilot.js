@@ -26,12 +26,19 @@
  const singlePlayer=document.createElement("video");singlePlayer.controls=true;singlePlayer.playsInline=true;singlePlayer.style.cssText="display:none;max-height:560px;width:min(100%,320px);margin-top:12px";
  single.append(singleHeading,singleHelp,singleBtn,singleRefresh,singleStatus,singlePlayer);
  root.prepend(single);
+ // Legacy Venus pilot controls/videos are historical assets, not today's Moon output.
+ // Isolate production review entirely by task ID to prevent stale Venus previews.
+ for(const child of [...root.children])if(child!==single){
+   child.hidden=true;
+   child.style.display="none";
+ }
+
  const moonSingleId="yt26-20261013-moon-single";
  const moonPrompt="ONE continuous 15-second vertical 9:16 educational 3D animation, fully resolved. Topic: why the Moon changes apparent shape. Premium stylized science visuals, highly accurate smooth grey cratered Moon and blue Earth, stable Sun illumination, no people, no text or subtitles. 0-4s compelling night-sky views of crescent then quarter Moon. 4-11s an unambiguous overhead Sun-Earth-Moon orbit diagram, fixed sunlight direction, Moon always a round sphere with one hemisphere illuminated, camera follows the changing portion visible from Earth; no Earth's shadow, no eclipse and no Venus. 11-15s return to Earth's sky, show crescent, quarter and full Moon as a visual progression; finish the full explanation with a complete held last frame. Smooth cinematic transitions, clear scientific mechanism, no additional scene generation. Ambient sound only; no speech.";
  const checkSingle=async()=>{
    const result=await api("/api/piapi/status");
    const j=(result.jobs||[]).find(x=>x.id===moonSingleId);
-   singleStatus.textContent=j?(j.status+" · "+(j.error||j.lastPollError||"single 15s generation")):"Ready for one new Moon generation (paid)";
+   singleStatus.textContent=j?("MOON ONLY · "+j.status+" · "+(j.error||j.lastPollError||"15s PiAPI generation")):"Moon job not visible yet. No Venus video is shown as its replacement.";
    singleBtn.disabled=!!j;
    if(j?.videoUrl&&j.status==="review_required"){
      singlePlayer.src=j.videoUrl;singlePlayer.style.display="block";
