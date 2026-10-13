@@ -15,6 +15,30 @@
    const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||"HTTP "+r.status);return data;
  };
  const button=$("piapiGenerate");const refresh=$("piapiRefresh");
+ // Butterfly production is backend-driven. Owner reviews the final voiced MP4.
+ const butterflyPanel=document.createElement("section");butterflyPanel.style.cssText="border:1px solid #5b80ff;border-radius:12px;padding:16px;margin:12px 0;color:#e9efff";
+ const butterflyHeading=document.createElement("h3");butterflyHeading.textContent="Butterflies Taste With Their Feet · BIMA Production";
+ const butterflyStatus=document.createElement("p");butterflyStatus.className="hint";butterflyStatus.textContent="Checking PiAPI and dubbing status…";
+ const butterflyPlayer=document.createElement("video");butterflyPlayer.controls=true;butterflyPlayer.playsInline=true;butterflyPlayer.style.cssText="display:none;max-height:560px;width:min(100%,320px);margin-top:12px";
+ const butterflyRefresh=document.createElement("button");butterflyRefresh.type="button";butterflyRefresh.className="btn";butterflyRefresh.textContent="Check Butterfly review";
+ butterflyPanel.append(butterflyHeading,butterflyRefresh,butterflyStatus,butterflyPlayer);root.prepend(butterflyPanel);
+ async function checkButterfly(){
+   const d=await api("/api/butterfly-review/status");
+   butterflyStatus.textContent="Butterfly video: "+(d.job?.status||"not started")+" · English dubbing: "+(d.voice?.status||"not started")+(d.job?.error?" · "+d.job.error:"")+(d.voice?.error?" · "+d.voice.error:"");
+   if(d.voice?.ready&&!butterflyPlayer.dataset.loaded){
+     const v=await fetch(server+"/api/butterfly-review/video",{headers:{Authorization:"Bearer "+token()}});
+     if(!v.ok)throw Error("butterfly_mp4_unavailable");
+     butterflyPlayer.src=URL.createObjectURL(await v.blob());butterflyPlayer.style.display="block";butterflyPlayer.dataset.loaded="true";
+     butterflyStatus.textContent="Butterflies with English voiceover · Ready for owner review (not uploaded)";
+   }
+ }
+ butterflyRefresh.onclick=async()=>{butterflyRefresh.disabled=true;try{await checkButterfly();}catch(e){butterflyStatus.textContent="Review unavailable: "+e.message;}finally{butterflyRefresh.disabled=false;}};
+ if(token()){
+   checkButterfly().catch(()=>{});
+   const timer=setInterval(()=>{if(document.visibilityState==="visible")checkButterfly().catch(()=>{});},30000);
+   window.addEventListener("pagehide",()=>clearInterval(timer),{once:true});
+ }
+
  // Single-video workflow: ONE provider task, ONE MP4. No scene stitching.
  const single=document.createElement("section");
  single.style.cssText="border:1px solid #5b80ff;border-radius:12px;padding:16px;margin:12px 0;color:#e9efff";
