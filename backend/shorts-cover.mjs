@@ -3,16 +3,16 @@ import { existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 import ffmpegPath from "ffmpeg-static";
 
-// Burn the already-approved, video-derived PNG into the first 0.9 seconds.
+// Burn the already-approved, video-derived PNG into the first second with a soft dissolve into moving footage.
 // Write a separate MP4: never replace the owner's original approved video.
 export async function createShortsCoverVideo(videoPath, thumbnailPath) {
   if (!existsSync(videoPath) || !existsSync(thumbnailPath)) throw Error("cover_source_missing");
-  const output = path.join(path.dirname(videoPath), path.basename(videoPath, path.extname(videoPath)) + ".cover-v1.mp4");
+  const output = path.join(path.dirname(videoPath), path.basename(videoPath, path.extname(videoPath)) + ".cover-v2.mp4");
   const temp = output + ".tmp.mp4";
   await fs.rm(temp, {force:true});
   const args = ["-hide_banner","-loglevel","error","-y",
     "-i",videoPath,"-loop","1","-i",thumbnailPath,
-    "-filter_complex","[1:v][0:v]scale2ref=w=iw:h=ih[cover][base];[base][cover]overlay=0:0:enable='lt(t,0.9)':shortest=1,format=yuv420p[v]",
+    "-filter_complex","[1:v][0:v]scale2ref=w=iw:h=ih[cover][base];[cover]format=rgba,fade=t=out:st=0.20:d=0.80:alpha=1[dissolve];[base][dissolve]overlay=0:0:shortest=1:format=auto,format=yuv420p[v]",
     "-map","[v]","-map","0:a?","-c:v","libx264","-preset","veryfast","-crf","20",
     "-c:a","copy","-movflags","+faststart","-max_muxing_queue_size","1024",temp];
   try {
