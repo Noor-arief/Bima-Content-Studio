@@ -641,6 +641,55 @@ venusProduction=createVenusProduction({db,persist,mediaDir:MEDIA_DIR});
  // Trigger once shortly after boot, then poll existing jobs without ever resubmitting.
  setTimeout(()=>{void moonAutoReview();},3000).unref();
  setInterval(()=>{void moonAutoReview();},60000).unref();
+// One approved Moon publication, without owner re-uploading media.
+ // Once handed to YouTube, ambiguous results are NEVER retried automatically.
+ const MOON_PUBLISH_ID="yt26-20261013-moon-final-with-voice";
+ const MOON_PUBLISH_AT="2026-10-13T12:30:00.000Z"; // 19:30 WIB
+ let moonPublishBusy=false;
+ async function finalizeApprovedMoon(){
+   if(moonPublishBusy||process.env.BIMA_MOON_PUBLISH_APPROVED!=="true")return;
+   if(!moonVoice.state().ready||!db.moonVoice?.file)return;
+   if(!ENABLE_UPLOADS||!ENABLE_PUBLIC_SCHEDULING||!activeOauth()||!EXPECTED_CHANNEL_ID){
+     console.warn("moon_publish_waiting_for_youtube_settings");return;
+   }
+   if(Date.now()>=Date.parse(MOON_PUBLISH_AT)-15*60000){
+     console.warn("moon_publish_target_too_close_no_late_automatic_publish");return;
+   }
+   if(Object.values(db.content).some(x=>x.youtubeId&&(x.id===MOON_PUBLISH_ID||x.title==="Why Does the Moon Change Shape?"))){
+     console.log("moon_publish_existing_youtube_video_skip");return;
+   }
+   const existing=db.content[MOON_PUBLISH_ID];
+   if(existing&&existing.status!=="approved")return;
+   if(existing?.attemptedAt||existing?.youtubeResumableSession)return;
+   moonPublishBusy=true;
+   try{
+     const f=db.moonVoice.file;
+     if(path.dirname(f)!==MEDIA_DIR||path.basename(f)!=="moon-voice-review.mp4")throw Error("wrong_source_media");
+     const mediaHash=await fileSha256(f);
+     if(existing&&existing.mediaHash!==mediaHash)throw Error("approved_media_changed");
+     if(!db.content[MOON_PUBLISH_ID]){
+       db.content[MOON_PUBLISH_ID]={
+         id:MOON_PUBLISH_ID,title:"Why Does the Moon Change Shape?",
+         description:"Why does the Moon appear to change shape? As it orbits Earth, we see changing portions of its sunlit half. These are the lunar phases. #OrbitAndOcean #MoonPhases #SpaceScience #Shorts",
+         filePath:f,mediaHash,approvedMediaHash:mediaHash,
+         status:"approved",approvedAt:new Date().toISOString(),publishAt:MOON_PUBLISH_AT,
+         madeForKids:false,containsSyntheticMedia:true,platform:"youtube"
+       };
+       logEvent("moon_owner_approval_recorded",MOON_PUBLISH_ID,{publishAt:MOON_PUBLISH_AT});
+       await persist();
+     }
+     console.log("moon_approved_youtube_schedule_submitting");
+     await uploadToYoutube(db.content[MOON_PUBLISH_ID]);
+     console.log("moon_youtube_schedule_result",JSON.stringify({
+       status:db.content[MOON_PUBLISH_ID].status,
+       videoId:db.content[MOON_PUBLISH_ID].youtubeId||null,
+       error:db.content[MOON_PUBLISH_ID].lastError||null
+     }));
+   }catch(e){console.warn("moon_publish_blocked",String(e.message||e).slice(0,170));}
+   finally{moonPublishBusy=false;}
+ }
+ setTimeout(()=>{void finalizeApprovedMoon();},5000).unref();
+ setInterval(()=>{void finalizeApprovedMoon();},60000).unref();
 let pollBusy=false;
 setInterval(async ()=>{
   if(pollBusy||!activeOauth()||!ENABLE_PUBLIC_SCHEDULING||!EXPECTED_CHANNEL_ID)return;
