@@ -62,6 +62,35 @@ export function createPiapiWorker({db,persist,mediaDir}){
       return safe(j);
     }catch(e){j.status="failed";j.error=String(e.message||e).slice(0,160);await persist();throw e;}
   }
+  // A single Seedance task yields ONE complete video (maximum 15 seconds).
+  // Owner must explicitly approve every paid request.
+  async function startSingle(data){
+    if(!enabled)throw Error("piapi_not_configured");
+    if(data.confirmCost!==true)throw Error("owner_cost_confirmation_required");
+    const id=String(data.id||"");
+    if(!/^[a-zA-Z0-9_-]{3,80}$/.test(id))throw Error("invalid_id");
+    const duration=Number(data.duration||15);
+    if(duration!==15)throw Error("single_video_duration_must_be_15s");
+    const price=Math.ceil(duration*9.6); // $0.096/sec, estimated $1.44
+    if(Number(data.maxChargeUsd||0)<price/100||Number(data.maxChargeUsd||0)>1.45)
+      throw Error("owner_single_video_budget_approval_required");
+    const prompt=String(data.prompt||"").trim();
+    if(prompt.length<60||prompt.length>4000)throw Error("invalid_single_video_prompt");
+    if(db.piapiJobs[id])throw Error("job_already_exists_do_not_charge_twice");
+    if(Object.values(db.piapiJobs).some(j=>["submitting","pending","processing"].includes(j.status)))
+      throw Error("another_piapi_job_in_progress");
+    const j={id,title:String(data.title||"").slice(0,100),prompt,status:"submitting",durationSeconds:15,estimatedCents:price,mode:"single_complete_video",createdAt:new Date().toISOString()};
+    db.piapiJobs[id]=j;await persist();
+    try{
+      const response=await api("/api/v1/task",{method:"POST",body:JSON.stringify({
+        model:"seedance",task_type:"seedance-2-fast",
+        input:{prompt,duration:15,aspect_ratio:"9:16",resolution:"720p"}
+      })});
+      if(!response.task_id)throw Error("ambiguous_provider_submission_do_not_retry");
+      j.taskId=response.task_id;j.status=response.status||"pending";await persist();
+      return safe(j);
+    }catch(e){j.status="failed";j.error=String(e.message||e).slice(0,170);await persist();throw e;}
+  }
   async function useAsScene1(id){
     const job=db.piapiJobs[id];
     if(!job||job.status!=="review_required"||job.rejectedAt||!job.videoUrl)
@@ -126,5 +155,5 @@ export function createPiapiWorker({db,persist,mediaDir}){
   }
   // Do not retry ambiguous POSTs after restart.
   for(const j of Object.values(db.piapiJobs))if(j.status==="submitting"){j.status="failed";j.error="interrupted_submission_do_not_retry";}
-  return {start,reject,useAsScene1,refresh,overview};
+  return {start,startSingle,reject,useAsScene1,refresh,overview};
 }
