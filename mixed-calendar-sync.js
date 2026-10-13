@@ -28,43 +28,42 @@
    };
  }
  async function sync(){
+   // Editorial 81-day plan is an IDEA BANK, not 81 automatic publication slots.
+   // Older versions imported it to the live calendar; clean up only pristine, unedited
+   // imports. Preserve approved, published, media-attached and manually edited drafts.
    const r=await fetch(url,{cache:"no-store"});
-   if(!r.ok)throw Error("Editorial calendar HTTP "+r.status);
+   if(!r.ok)throw Error("Editorial bank HTTP "+r.status);
    const data=await r.json(),records=data.items;
-   if(!Array.isArray(records)||records.length!==81)throw Error("Editorial source is not 81 entries");
-   if(new Set(records.map(e=>e.id)).size!==81)throw Error("Editorial source has duplicate IDs");
-   if(typeof state==="undefined"||!state.items?.youtube||typeof render!=="function")throw Error("Main calendar not loaded");
-   const ids=new Set(state.items.youtube.map(e=>e.id));
-   let added=0,updatedCount=0;const overlaps=[];
-   for(const e of records){
-     const existingAtDate=state.items.youtube.filter(x=>x.date===e.date&&x.id!==e.id);
-     if(existingAtDate.length)overlaps.push({date:e.date,existing:existingAtDate.map(x=>x.title),incoming:e.title});
-     if(!/^2026-(10|11|12)-\d{2}$/.test(e.date)||!e.id||!e.title)throw Error("Invalid editorial entry");
-     if(ids.has(e.id)){
-       // Upgrade only the originally auto-imported, untouched generic brief.
-       // Never overwrite manual changes, completed media, uploads or saved workflows.
-       const existing=state.items.youtube.find(x=>x.id===e.id);
-       const generic=existing&&typeof existing.prompt==="string"&&
-         (existing.prompt.includes("Ask one intriguing scientific question")||existing.prompt.includes("Frame the problem"));
-       if(generic&&!existing.approved&&!existing.youtubeId&&!existing.mediaName&&!existing.episodePlan){
-         const updated=asCalendar(e);
-         existing.prompt=updated.prompt;existing.notes=updated.notes;
-         if(existing.caption==="Editorial research draft — do not publish before verification.")existing.caption=updated.caption;
-         updatedCount++;
-       }
-       continue;
-     }
-     state.items.youtube.push(asCalendar(e));ids.add(e.id);added++;
+   if(!Array.isArray(records)||records.length!==81||new Set(records.map(e=>e.id)).size!==81)throw Error("Editorial bank validation failed");
+   if(typeof state==="undefined"||!state.items?.youtube||typeof render!=="function")throw Error("Calendar unavailable");
+   let removed=0,preserved=0;
+   for(const entry of records){
+     const i=state.items.youtube.findIndex(x=>x.id===entry.id);
+     if(i<0)continue;
+     const existing=state.items.youtube[i],initial=asCalendar(entry);
+     const unedited=existing.title===initial.title&&existing.date===initial.date&&
+       existing.prompt===initial.prompt&&existing.notes===initial.notes&&
+       (!existing.caption||existing.caption===initial.caption||existing.caption==="Editorial research draft — do not publish before verification.")&&
+       (!existing.status||["Research Required","Research required"].includes(existing.status))&&
+       !existing.episodePlan&&!existing.approved&&!existing.mediaName&&!existing.youtubeId&&!existing.filePath;
+     if(unedited){state.items.youtube.splice(i,1);removed++;}
+     else preserved++;
    }
-   if(added||updatedCount){
+   if(removed){
      try{localStorage.setItem("bima-content-studio-v3",JSON.stringify(state));}
-     catch(err){console.warn("81-day calendar merged in memory; browser persistence failed",err);}
+     catch(e){console.warn("Cannot persist editorial bank migration",e);}
      render();
    }
    const summary=document.getElementById("autonomousSummary");
-   if(summary){const note=document.createElement("p");note.style.cssText="margin-top:6px;color:#a3ebd1;font-weight:650";note.textContent="81 editorial schedules are linked to the main calendar ("+added+" newly added, "+updatedCount+" generic briefs refreshed). Existing drafts preserved. No auto publishing.";summary.after(note);}
-   document.dispatchEvent(new CustomEvent("bima:mixed-calendar-synced",{detail:{total:81,added,updatedCount,overlapDates:[...new Set(overlaps.map(x=>x.date))].length}}));
+   if(summary){
+     const note=document.createElement("p");
+     note.style.cssText="margin-top:6px;color:#a3ebd1;font-weight:650";
+     note.textContent="81 ideas in editorial backlog · "+removed+" duplicate schedule imports cleared · "+preserved+" edited drafts preserved. This does NOT schedule 81 uploads.";
+     summary.after(note);
+   }
+   document.dispatchEvent(new CustomEvent("bima:mixed-calendar-synced",{detail:{total:81,removed,preserved,mode:"idea_bank_only"}}));
  }
+
  sync().catch(err=>{
    console.warn("Mixed calendar sync failed",err);
    const root=document.getElementById("autonomousPlanner");
