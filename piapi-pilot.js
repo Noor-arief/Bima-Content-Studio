@@ -37,16 +37,16 @@
      singlePlayer.src=j.videoUrl;singlePlayer.style.display="block";
    }
  };
- singleBtn.onclick=async()=>{
-   if(!confirm("Generate ONE complete 15-second Moon Phases video via PiAPI for an estimated $1.44? This is a paid operation, without voiceover guarantee, and does NOT upload YouTube."))return;
-   singleBtn.disabled=true;
-   try{
-     await api("/api/piapi/single-video","POST",{id:moonSingleId,title:"Why Does the Moon Change Shape?",prompt:moonPrompt,duration:15,confirmCost:true,maxChargeUsd:1.44});
-     singleStatus.textContent="One PiAPI generation submitted. Click Check single video for result.";
-   }catch(e){singleStatus.textContent="Cannot start: "+e.message;await checkSingle().catch(()=>{});}
- };
+ singleBtn.style.display="none";
+ singleHeading.textContent="Moon Phases · BIMA Auto-Production → Owner Review";
+ singleHelp.textContent="BIMA submits ONE complete 15s video via PiAPI when its one-time production budget is authorized on the server. It polls the task automatically; you only review the resulting MP4. No automatic YouTube upload.";
+ singleStatus.textContent="Awaiting server production authorization; no charge has been made.";
  singleRefresh.onclick=async()=>{singleRefresh.disabled=true;try{await checkSingle();}catch(e){singleStatus.textContent=e.message;}finally{singleRefresh.disabled=false;}};
- if(token())checkSingle().catch(e=>{singleStatus.textContent=e.message;});
+ if(token()){
+   checkSingle().catch(e=>{singleStatus.textContent=e.message;});
+   const interval=setInterval(()=>{if(document.visibilityState==="visible")checkSingle().catch(()=>{});},30000);
+   window.addEventListener("pagehide",()=>clearInterval(interval),{once:true});
+ }
 
  // Production planning is intentionally read-only until a full-episode renderer,
  // audio synchronizer and fresh owner budget approval are implemented.
