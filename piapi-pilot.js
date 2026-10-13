@@ -15,6 +15,39 @@
    const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||"HTTP "+r.status);return data;
  };
  const button=$("piapiGenerate");const refresh=$("piapiRefresh");
+ // Single-video workflow: ONE provider task, ONE MP4. No scene stitching.
+ const single=document.createElement("section");
+ single.style.cssText="border:1px solid #5b80ff;border-radius:12px;padding:16px;margin:12px 0;color:#e9efff";
+ const singleHeading=document.createElement("h3");singleHeading.textContent="Moon Phases · Generate ONE complete 15s video";
+ const singleHelp=document.createElement("p");singleHelp.textContent="PiAPI Seedance 2 Fast · 9:16 · 720p · one single request. 24 seconds is NOT supported in one generation by this model. Video has no guaranteed spoken narration.";
+ const singleBtn=document.createElement("button");singleBtn.type="button";singleBtn.className="btn primary";singleBtn.textContent="Generate 1 video · estimate $1.44";
+ const singleRefresh=document.createElement("button");singleRefresh.type="button";singleRefresh.className="btn";singleRefresh.textContent="Check single video";
+ const singleStatus=document.createElement("p");singleStatus.className="hint";singleStatus.textContent="Not requested";
+ const singlePlayer=document.createElement("video");singlePlayer.controls=true;singlePlayer.playsInline=true;singlePlayer.style.cssText="display:none;max-height:560px;width:min(100%,320px);margin-top:12px";
+ single.append(singleHeading,singleHelp,singleBtn,singleRefresh,singleStatus,singlePlayer);
+ root.prepend(single);
+ const moonSingleId="yt26-20261013-moon-single";
+ const moonPrompt="ONE continuous 15-second vertical 9:16 educational 3D animation, fully resolved. Topic: why the Moon changes apparent shape. Premium stylized science visuals, highly accurate smooth grey cratered Moon and blue Earth, stable Sun illumination, no people, no text or subtitles. 0-4s compelling night-sky views of crescent then quarter Moon. 4-11s an unambiguous overhead Sun-Earth-Moon orbit diagram, fixed sunlight direction, Moon always a round sphere with one hemisphere illuminated, camera follows the changing portion visible from Earth; no Earth's shadow, no eclipse and no Venus. 11-15s return to Earth's sky, show crescent, quarter and full Moon as a visual progression; finish the full explanation with a complete held last frame. Smooth cinematic transitions, clear scientific mechanism, no additional scene generation. Ambient sound only; no speech.";
+ const checkSingle=async()=>{
+   const result=await api("/api/piapi/status");
+   const j=(result.jobs||[]).find(x=>x.id===moonSingleId);
+   singleStatus.textContent=j?(j.status+" · "+(j.error||j.lastPollError||"single 15s generation")):"Ready for one new Moon generation (paid)";
+   singleBtn.disabled=!!j;
+   if(j?.videoUrl&&j.status==="review_required"){
+     singlePlayer.src=j.videoUrl;singlePlayer.style.display="block";
+   }
+ };
+ singleBtn.onclick=async()=>{
+   if(!confirm("Generate ONE complete 15-second Moon Phases video via PiAPI for an estimated $1.44? This is a paid operation, without voiceover guarantee, and does NOT upload YouTube."))return;
+   singleBtn.disabled=true;
+   try{
+     await api("/api/piapi/single-video","POST",{id:moonSingleId,title:"Why Does the Moon Change Shape?",prompt:moonPrompt,duration:15,confirmCost:true,maxChargeUsd:1.44});
+     singleStatus.textContent="One PiAPI generation submitted. Click Check single video for result.";
+   }catch(e){singleStatus.textContent="Cannot start: "+e.message;await checkSingle().catch(()=>{});}
+ };
+ singleRefresh.onclick=async()=>{singleRefresh.disabled=true;try{await checkSingle();}catch(e){singleStatus.textContent=e.message;}finally{singleRefresh.disabled=false;}};
+ if(token())checkSingle().catch(e=>{singleStatus.textContent=e.message;});
+
  // Production planning is intentionally read-only until a full-episode renderer,
  // audio synchronizer and fresh owner budget approval are implemented.
  const planBox=document.createElement("section");
