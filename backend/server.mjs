@@ -6,6 +6,7 @@ import path from "node:path";
 import os from "node:os";
 import { Transform } from "node:stream";
 import { convertShortsVideo } from "./shorts.mjs";
+import { createShortsCoverVideo } from "./shorts-cover.mjs";
 import { MIX_2026, validateEditorial } from "./editorial.mjs";
 import { createVeoWorker } from "./veo.mjs";
 import { createPiapiWorker } from "./piapi.mjs";
@@ -144,7 +145,17 @@ async function uploadToYoutube(item){
     status:{privacyStatus:"private",selfDeclaredMadeForKids:!!item.madeForKids,containsSyntheticMedia:!!item.containsSyntheticMedia}
   };
   if(schedule)meta.status.publishAt=new Date(when).toISOString();
-  const st=await fs.stat(item.filePath);
+  // Only future, not-yet-uploaded Shorts. The scheduled Pufferfish stays untouched.
+  let youtubeFilePath=item.filePath;
+  if(item.id!=="yt26-20261019" && item.publishAt>="2026-10-19" && item.thumbnailPath &&
+     item.thumbnailForMediaHash===item.approvedMediaHash && existsSync(item.thumbnailPath)){
+    youtubeFilePath=await createShortsCoverVideo(item.filePath,item.thumbnailPath);
+    logEvent("shorts_cover_embedded",item.id,{source:"approved_video_frame",durationSeconds:0.9});
+    await persist();
+  }else if(item.id!=="yt26-20261019" && item.publishAt>="2026-10-19"){
+    throw Error("future_shorts_cover_missing_or_mismatched");
+  }
+  const st=await fs.stat(youtubeFilePath);
   item.status="uploading";item.lastError=null;item.attemptedAt=new Date().toISOString();logEvent("youtube_upload_started",item.id,{channel:ch.id});await persist();
   let sessionURL;
   try{
@@ -156,7 +167,7 @@ async function uploadToYoutube(item){
     if(!start.ok)throw Error("youtube_session_creation_failed_"+start.status+":"+(await start.text()).slice(0,250));
     sessionURL=start.headers.get("location");if(!sessionURL||!sessionURL.startsWith("https://www.googleapis.com/"))throw Error("invalid_upload_location");
     item.youtubeResumableSession=seal(sessionURL);await persist();
-    const source=createReadStream(item.filePath);
+    const source=createReadStream(youtubeFilePath);
     const done=await fetch(sessionURL,{method:"PUT",headers:{"Content-Type":"video/mp4","Content-Length":String(st.size)},
       body:source,duplex:"half",signal:AbortSignal.timeout(180000)});
     const response=await done.json().catch(()=>({}));
