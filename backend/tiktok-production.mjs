@@ -16,7 +16,7 @@ async function run(args){
  });
 }
 export async function composeTikTokAffiliatePreview({
-  scenes,images,musicPath,outputPath,voiceModel,piperBinary,musicVolume=0.16,
+  scenes,images,clips,musicPath,outputPath,voiceModel,piperBinary,musicVolume=0.16,
   ownerApproved=false,approvedProductAssets=false,musicLicensed=false,voiceLicenseApproved=false
 }={}){
  if(!ownerApproved)throw Error("owner_approval_required");
@@ -42,7 +42,7 @@ export async function composeTikTokAffiliatePreview({
   const graph=audio.map((_,i)=>`[${i}:a]aresample=48000,apad=pad_dur=8,atrim=duration=8,asetpts=PTS-STARTPTS[a${i}]`).join(";")+";[a0][a1][a2]concat=n=3:v=0:a=1[out]";
   args.push("-filter_complex",graph,"-map","[out]","-c:a","pcm_s16le",voicePath);
   await run(args);
-  const result=await renderTikTokAffiliateVideo({images,voicePath,musicPath,subtitlesPath,outputPath,ownerApproved,approvedProductAssets,musicLicensed,musicVolume});
+  const result=await renderTikTokAffiliateVideo({images,clips,voicePath,musicPath,subtitlesPath,outputPath,ownerApproved,approvedProductAssets,musicLicensed,musicVolume});
   return {...result,ttsProvider:"local_piper",voiceDurations:durations,subtitlesSyncedToVoice:true,voiceQualityApproved:false,readyForOwnerReview:true,readyToPublish:false};
  }finally{await fs.rm(dir,{recursive:true,force:true});}
 }

@@ -15,7 +15,9 @@ import { createMoonVoice } from "./moon-voice.mjs";
 import { createButterflyVoice } from "./butterfly-voice.mjs";
 import { composeTikTokAffiliatePreview } from "./tiktok-production.mjs";
 import { quoteTikTokMotion } from "./tiktok-motion-budget.mjs";
-import { submitTikTokLtxPilot, checkTikTokLtxPilot, saveTikTokLtxMedia } from "./tiktok-ltx-pilot.mjs";
+import { submitTikTokLtxPilot } from "./tiktok-ltx-pilot.mjs";
+
+import { createTikTokLtxWorker } from "./tiktok-ltx-worker.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -71,6 +73,7 @@ const submitting = new Set();
 let veoWorker=null;
 let piapiWorker=null;
 let venusProduction=null;
+let tiktokLtxWorker=null;
 
 const logEvent=(action,id,extra={})=>{
   db.events.push({at:new Date().toISOString(),action,id,...extra});
@@ -445,7 +448,9 @@ async function handler(req,res){
   // be approved on the server; browser flags cannot grant audio or product rights.
   if(u.pathname.startsWith("/api/tiktok/production/")){
     if(!access(req))return error(res,401,"owner_login_required");
-    const requiredFiles=[["voiceModel","TIKTOK_PIPER_MODEL"],["image1","TIKTOK_PRODUCT_IMAGE_1"],["image2","TIKTOK_PRODUCT_IMAGE_2"],["image3","TIKTOK_PRODUCT_IMAGE_3"],["music","TIKTOK_MUSIC_PATH"]];
+    const motionConfigured=[1,2,3].every(i=>Boolean(process.env["TIKTOK_PRODUCT_VIDEO_"+i]));
+    const visualKey=motionConfigured?"TIKTOK_PRODUCT_VIDEO_":"TIKTOK_PRODUCT_IMAGE_";
+    const requiredFiles=[["voiceModel","TIKTOK_PIPER_MODEL"],["image1",visualKey+"1"],["image2",visualKey+"2"],["image3",visualKey+"3"],["music","TIKTOK_MUSIC_PATH"]];
     const requirements=Object.fromEntries(await Promise.all(requiredFiles.map(async ([label,key])=>{
       const value=process.env[key];
       const ok=Boolean(value&&path.isAbsolute(value)&&(await fs.stat(value).catch(()=>null))?.isFile());
@@ -457,7 +462,7 @@ async function handler(req,res){
     const configured=requiredFiles.every(([label])=>requirements[label]);
     const approved=requirements.productRights&&requirements.musicRights&&requirements.voiceRights;
     db.tiktokProduction ||= {status:"not_started"};
-    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,revisionMode:db.tiktokProduction.revisionMode||null,published:false});
+    const view=()=>({status:db.tiktokProduction.status,visualSource:motionConfigured?"ai_motion_clips":"still_image_pan_zoom",providers:{ltx:Boolean(process.env.LTX_API_KEY),gemini:Boolean(process.env.GEMINI_API_KEY),piapi:Boolean(process.env.PIAPI_API_KEY)},error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,revisionMode:db.tiktokProduction.revisionMode||null,published:false});
     // Paid pilot: owner-only, server-approved original product image, one job maximum.
     if(req.method==="POST"&&u.pathname==="/api/tiktok/production/ltx-reference"){
       let body;try{body=await readJSON(req,1100000);}catch{return error(res,400,"invalid_reference_payload");}
@@ -477,25 +482,8 @@ async function handler(req,res){
       return respond(res,201,{referenceReady:true,referenceOnly:true,creativeQaPassed:false,costUsd:0});
     }
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/ltx-status"){
-      db.tiktokLtx ||= {status:"not_started"};
-      if(db.tiktokLtx.status==="submitted"&&db.tiktokLtx.id){
-        try{
-          const remote=await checkTikTokLtxPilot({id:db.tiktokLtx.id});
-          db.tiktokLtx={...db.tiktokLtx,status:remote.status,resultAvailable:remote.resultAvailable};
-          if(remote.ready&&remote.videoUrl){
-            const hosts=String(process.env.LTX_VIDEO_DOWNLOAD_HOSTS||"").split(",").map(v=>v.trim().toLowerCase()).filter(Boolean);
-            if(hosts.length){
-              try{
-                await saveTikTokLtxMedia({videoUrl:remote.videoUrl,outputPath:path.join(MEDIA_DIR,"tiktok-ltx-owner-motion.mp4"),allowedHosts:hosts});
-                db.tiktokLtx={...db.tiktokLtx,status:"media_downloaded",technicalMediaReady:true,creativeQaPassed:false};
-              }catch(err){db.tiktokLtx={...db.tiktokLtx,status:"media_download_failed",error:String(err.message||err).slice(0,120)};}
-            }else db.tiktokLtx={...db.tiktokLtx,status:"media_host_approval_required"};
-          }
-          await persist();
-        }catch(e){return respond(res,200,{status:"status_unavailable",reason:String(e.message||e).slice(0,90),canStart:false,published:false});}
-      }
-      return respond(res,200,{status:db.tiktokLtx.status,estimatedUsd:db.tiktokLtx.estimatedUsd||null,
-        referenceReady:db.tiktokLtx.referenceReady===true,resultAvailable:db.tiktokLtx.resultAvailable||false,technicalMediaReady:db.tiktokLtx.technicalMediaReady===true,creativeQaPassed:false,canStart:db.tiktokLtx.status==="not_started",published:false});
+      await tiktokLtxWorker.tick();
+      return respond(res,200,tiktokLtxWorker.state());
     }
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/ltx-preview"){
       if(db.tiktokLtx?.status!=="media_downloaded")return error(res,404,"ltx_media_not_ready");
@@ -515,18 +503,18 @@ async function handler(req,res){
       if(db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_already_attempted");
       const referenceData=db.tiktokLtx.referenceReady?
         "data:"+(db.tiktokLtx.referenceMime||"image/jpeg")+";base64,"+(await fs.readFile(db.tiktokLtx.referenceFile)).toString("base64"):null;
-      db.tiktokLtx={status:"submitting",startedAt:new Date().toISOString(),estimatedUsd:0.24};
+      db.tiktokLtx={...db.tiktokLtx,status:"submitting",startedAt:new Date().toISOString(),estimatedUsd:0.24};
       await persist();
       try{
         const job=await submitTikTokLtxPilot({imageUri:referenceData||process.env.LTX_APPROVED_IMAGE_URI,prompt:process.env.TIKTOK_PRODUCT_MOTION_PROMPT||"A natural commercial tabletop product closeup with subtle realistic camera dolly movement, preserving authentic object geometry without morphing, commercial studio light and gentle parallax.",
           ownerApproved:true,maxUsd:Number(data.maxUsd),verifiedProductImage:true});
-        db.tiktokLtx={...job,startedAt:db.tiktokLtx.startedAt};
+        db.tiktokLtx={...db.tiktokLtx,...job};
         await persist();
         return respond(res,202,{status:"submitted",estimatedUsd:job.estimatedUsd,published:false});
       }catch(e){
         // Submission may have been accepted remotely before a network timeout.
         // Never retry blindly or bill a second job.
-        db.tiktokLtx={status:"requires_reconciliation",error:String(e.message||e).slice(0,120)};
+        db.tiktokLtx={...db.tiktokLtx,status:"requires_reconciliation",error:"ltx_submission_needs_reconciliation"};
         await persist();
         return error(res,502,"ltx_submission_needs_reconciliation");
       }
@@ -558,7 +546,8 @@ async function handler(req,res){
         const nextVolume=quieter?0.06:0.22;
         const outputPath=path.join(MEDIA_DIR,"tiktok-owner-preview.mp4");
         void composeTikTokAffiliatePreview({
-          scenes:previous.scenes,images:[1,2,3].map(i=>process.env["TIKTOK_PRODUCT_IMAGE_"+i]),
+          scenes:previous.scenes,images:motionConfigured?undefined:[1,2,3].map(i=>process.env["TIKTOK_PRODUCT_IMAGE_"+i]),
+          clips:motionConfigured?[1,2,3].map(i=>process.env["TIKTOK_PRODUCT_VIDEO_"+i]):undefined,
           musicPath:process.env.TIKTOK_MUSIC_PATH,outputPath,voiceModel:process.env.TIKTOK_PIPER_MODEL,
           piperBinary:process.env.TIKTOK_PIPER_BINARY||"piper",musicVolume:nextVolume,
           ownerApproved:true,approvedProductAssets:true,musicLicensed:true,voiceLicenseApproved:true
@@ -576,7 +565,8 @@ async function handler(req,res){
       db.tiktokProduction={status:"processing",scenes:data.scenes,startedAt:new Date().toISOString(),error:null};await persist();
       const outputPath=path.join(MEDIA_DIR,"tiktok-owner-preview.mp4");
       void composeTikTokAffiliatePreview({
-        scenes:data.scenes,images:[1,2,3].map(i=>process.env["TIKTOK_PRODUCT_IMAGE_"+i]),musicPath:process.env.TIKTOK_MUSIC_PATH,
+        scenes:data.scenes,images:motionConfigured?undefined:[1,2,3].map(i=>process.env["TIKTOK_PRODUCT_IMAGE_"+i]),
+          clips:motionConfigured?[1,2,3].map(i=>process.env["TIKTOK_PRODUCT_VIDEO_"+i]):undefined,musicPath:process.env.TIKTOK_MUSIC_PATH,
         outputPath,voiceModel:process.env.TIKTOK_PIPER_MODEL,piperBinary:process.env.TIKTOK_PIPER_BINARY||"piper",
         ownerApproved:true,approvedProductAssets:true,musicLicensed:true,voiceLicenseApproved:true
       }).then(async result=>{db.tiktokProduction={status:"ready_for_review",scenes:data.scenes,finishedAt:new Date().toISOString(),voiceDurations:result.voiceDurations};await persist();})
@@ -864,6 +854,10 @@ async function handler(req,res){
   return error(res,405,"method_not_allowed");
 }
 await init();
+tiktokLtxWorker=createTikTokLtxWorker({db,persist,mediaDir:MEDIA_DIR,
+ onState:state=>console.log("tiktok_motion_worker",JSON.stringify(state))});
+setTimeout(()=>void tiktokLtxWorker.tick().catch(()=>{}),2000).unref();
+setInterval(()=>void tiktokLtxWorker.tick().catch(()=>{}),15000).unref();
 veoWorker=createVeoWorker({db,persist,logEvent,mediaDir:MEDIA_DIR});
 piapiWorker=createPiapiWorker({db,persist,mediaDir:MEDIA_DIR});
 venusProduction=createVenusProduction({db,persist,mediaDir:MEDIA_DIR});

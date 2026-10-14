@@ -27,20 +27,21 @@ const motionStatus=motionPanel.querySelector('#tt-motion-status');
 const motionCheck=motionPanel.querySelector('#tt-motion-check');
 const motionVideo=motionPanel.querySelector('#tt-motion-preview');
 let motionUrl=null;
+let motionLoaded=false;
 async function checkMotion(){
  motionCheck.disabled=true;
  try{
   const data=await renderRequest('/api/tiktok/production/ltx-status');
-  const statuses={not_started:'Belum ada video. LTX memerlukan gambar referensi terverifikasi dan persetujuan anggaran.',submitting:'BIMA sedang mengirim job.',submitted:'LTX sedang memproses video.',processing:'LTX sedang memproses video.',completed:'Generasi selesai; menunggu download aman.',media_host_approval_required:'BIMA belum mengizinkan host download video.',media_download_failed:'Video gagal diverifikasi atau diunduh.',media_downloaded:'Video uji tersedia. Creative QA belum PASS.',requires_reconciliation:'Status job perlu direkonsiliasi sebelum percobaan baru.'};
+  const statuses={not_started:'Belum ada video. LTX memerlukan gambar referensi terverifikasi dan persetujuan anggaran.',submitting:'BIMA sedang mengirim job.',submitted:'LTX sedang memproses video.',pending:'LTX sedang mengantre video.',processing:'LTX sedang memproses video.',completed:'Generasi selesai; menunggu download aman.',media_host_approval_required:'BIMA belum mengizinkan host download video.',media_download_failed:'Video gagal diverifikasi atau diunduh.',media_downloaded:'Video uji tersedia. Creative QA belum PASS.',requires_reconciliation:'Status job perlu direkonsiliasi sebelum percobaan baru.'};
   motionStatus.textContent=statuses[data.status]||('Status: '+String(data.status||'unknown'));
-  if(data.technicalMediaReady){
+  if(data.technicalMediaReady&&!motionLoaded){
    const token=auth();
    const res=await fetch(endpoint+'/api/tiktok/production/ltx-preview',{headers:{Authorization:'Bearer '+token}});
    if(!res.ok)throw Error('MP4 belum bisa dimuat');
    const video=await res.blob();
    if(motionUrl)URL.revokeObjectURL(motionUrl);
    motionUrl=URL.createObjectURL(video);
-   motionVideo.src=motionUrl;motionVideo.style.display='block';
+   motionVideo.src=motionUrl;motionVideo.style.display='block';motionLoaded=true;
   }
  }catch(e){motionStatus.textContent='Belum dapat membaca status pilot: '+String(e.message||e);}
  finally{motionCheck.disabled=false;}
@@ -74,13 +75,14 @@ async function refreshRenderStatus(){
  renderLabel.textContent=state.videoReady?'MP4 siap untuk review (belum dipublikasikan).':state.busy?'Sedang merender MP4…':state.ready?'Renderer siap. Pilih draft, lalu generate video untuk review.':state.configured?'Izin aset atau musik belum terverifikasi di server.':'Belum siap: model suara, tiga aset produk dan musik harus dipasang di backend.';
  if(state.requirements&&!state.ready){
    const labels={voiceModel:'Model suara Indonesia',image1:'Foto produk 1',image2:'Foto produk 2',image3:'Foto produk 3',music:'File musik',productRights:'Izin penggunaan foto produk',musicRights:'Lisensi musik komersial',voiceRights:'Lisensi model suara'};
+   if(state.visualSource==='ai_motion_clips'){labels.image1='Klip AI produk 1';labels.image2='Klip AI produk 2';labels.image3='Klip AI produk 3';}
    const missing=Object.entries(labels).filter(([key])=>state.requirements[key]!==true).map(([,name])=>name);
    if(missing.length)renderLabel.textContent='Belum siap: '+missing.join(' · ')+'.';
  }
  if(state.reviewStatus==='approved')renderLabel.textContent='Approved by owner · NOT published.';
  if(state.reviewStatus==='revision_requested')renderLabel.textContent=state.revisionMode==='regeneration_failed'?'Revisi otomatis gagal: '+(state.error||'unknown'): 'Revisi tercatat; perubahan visual/voice belum didukung engine.';
  if(state.error)renderLabel.textContent+=' Error: '+state.error;
- if(state.videoReady){const response=await fetch(endpoint+'/api/tiktok/production/video',{headers:{Authorization:'Bearer '+auth()}});if(response.ok){const video=await response.blob();if(renderVideo.dataset.url)URL.revokeObjectURL(renderVideo.dataset.url);const url=URL.createObjectURL(video);renderVideo.dataset.url=url;renderVideo.src=url;renderVideo.style.display='block';}}
+ if(state.videoReady&&!renderVideo.dataset.url){const response=await fetch(endpoint+'/api/tiktok/production/video',{headers:{Authorization:'Bearer '+auth()}});if(response.ok){const video=await response.blob();if(renderVideo.dataset.url)URL.revokeObjectURL(renderVideo.dataset.url);const url=URL.createObjectURL(video);renderVideo.dataset.url=url;renderVideo.src=url;renderVideo.style.display='block';}}
  }catch(err){renderLabel.textContent=String(err.message||err);generateRender.disabled=true;}
  finally{refreshRender.disabled=false;}
 }
@@ -88,6 +90,7 @@ async function refreshRenderStatus(){
 async function sendReview(decision,notes=''){
  try{
   const state=await renderRequest('/api/tiktok/production/review',{method:'POST',body:JSON.stringify({decision,notes})});
+  if(state.busy&&renderVideo.dataset.url){URL.revokeObjectURL(renderVideo.dataset.url);delete renderVideo.dataset.url;renderVideo.removeAttribute('src');renderVideo.style.display='none';}
   reviewActions.hidden=true;reviewNoteWrap.hidden=true;reviewSubmit.hidden=true;
   renderLabel.textContent=state.reviewStatus==='approved'?'Owner approved · NOT published.':state.busy?'BIMA sedang membuat ulang video. Klik Periksa kesiapan untuk hasilnya.':'Revisi diterima. Jika jenis revisi belum didukung, BIMA tidak akan mengklaim selesai.';
  }catch(e){renderLabel.textContent='Review failed: '+String(e.message||e);}
@@ -106,6 +109,7 @@ generateRender.addEventListener('click',async()=>{
 });
 refreshRenderStatus();
 checkMotion();
+setInterval(()=>{if(!document.hidden&&auth()&&root.getClientRects().length){if(!motionCheck.disabled)checkMotion();if(!refreshRender.disabled)refreshRenderStatus();}},15000);
 const result=panel.querySelector('#tt-pack-status'), voiceEl=panel.querySelector('#tt-pack-voice'),storyEl=panel.querySelector('#tt-pack-story');
 let last=null;
 const productionBlockedReason='AUTO BLOCKED: BIMA belum memiliki sumber katalog Affiliate Creator yang terotorisasi dan belum dapat memverifikasi product attachment/keranjang kuning. Draft boleh ditinjau, tetapi bukan kandidat otomatis yang siap diproduksi atau dipublikasikan.';
