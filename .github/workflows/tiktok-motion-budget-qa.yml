@@ -1,0 +1,20 @@
+name: TikTok Motion Budget QA
+on:
+  pull_request:
+    paths:
+      - 'backend/tiktok-motion-budget.mjs'
+      - 'backend/server.mjs'
+      - 'qa/tiktok-motion-budget.test.mjs'
+      - '.github/workflows/tiktok-motion-budget-qa.yml'
+permissions:
+  contents: read
+jobs:
+  quote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check backend/server.mjs
+      - run: node --test qa/tiktok-motion-budget.test.mjs
