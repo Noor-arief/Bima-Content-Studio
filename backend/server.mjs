@@ -443,10 +443,19 @@ async function handler(req,res){
   // be approved on the server; browser flags cannot grant audio or product rights.
   if(u.pathname.startsWith("/api/tiktok/production/")){
     if(!access(req))return error(res,401,"owner_login_required");
-    const configured=Boolean(process.env.TIKTOK_PIPER_MODEL&&process.env.TIKTOK_PRODUCT_IMAGE_1&&process.env.TIKTOK_PRODUCT_IMAGE_2&&process.env.TIKTOK_PRODUCT_IMAGE_3&&process.env.TIKTOK_MUSIC_PATH);
-    const approved=process.env.TIKTOK_PRODUCT_ASSETS_APPROVED==="true"&&process.env.TIKTOK_MUSIC_LICENSE_APPROVED==="true"&&process.env.TIKTOK_VOICE_LICENSE_APPROVED==="true";
+    const requiredFiles=[["voiceModel","TIKTOK_PIPER_MODEL"],["image1","TIKTOK_PRODUCT_IMAGE_1"],["image2","TIKTOK_PRODUCT_IMAGE_2"],["image3","TIKTOK_PRODUCT_IMAGE_3"],["music","TIKTOK_MUSIC_PATH"]];
+    const requirements=Object.fromEntries(await Promise.all(requiredFiles.map(async ([label,key])=>{
+      const value=process.env[key];
+      const ok=Boolean(value&&path.isAbsolute(value)&&(await fs.stat(value).catch(()=>null))?.isFile());
+      return [label,ok];
+    })));
+    requirements.productRights=process.env.TIKTOK_PRODUCT_ASSETS_APPROVED==="true";
+    requirements.musicRights=process.env.TIKTOK_MUSIC_LICENSE_APPROVED==="true";
+    requirements.voiceRights=process.env.TIKTOK_VOICE_LICENSE_APPROVED==="true";
+    const configured=requiredFiles.every(([label])=>requirements[label]);
+    const approved=requirements.productRights&&requirements.musicRights&&requirements.voiceRights;
     db.tiktokProduction ||= {status:"not_started"};
-    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:db.tiktokProduction.status==="ready_for_review",published:false});
+    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:db.tiktokProduction.status==="ready_for_review",published:false});
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/status")return respond(res,200,view());
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/video"){
       if(db.tiktokProduction.status!=="ready_for_review")return error(res,404,"tiktok_video_not_ready");
