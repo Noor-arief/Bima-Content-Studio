@@ -1,0 +1,20 @@
+name: TikTok Shop Callback QA
+on:
+  pull_request:
+    paths:
+      - 'backend/server.mjs'
+      - 'qa/tiktok-shop-callback.test.mjs'
+      - '.github/workflows/tiktok-shop-callback-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check backend/server.mjs
+      - run: node --test qa/tiktok-shop-callback.test.mjs
