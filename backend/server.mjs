@@ -455,7 +455,7 @@ async function handler(req,res){
     const configured=requiredFiles.every(([label])=>requirements[label]);
     const approved=requirements.productRights&&requirements.musicRights&&requirements.voiceRights;
     db.tiktokProduction ||= {status:"not_started"};
-    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,published:false});
+    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,revisionMode:db.tiktokProduction.revisionMode||null,published:false});
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/status")return respond(res,200,view());
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/video"){
       if(!["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status))return error(res,404,"tiktok_video_not_ready");
@@ -489,11 +489,6 @@ async function handler(req,res){
         }).then(async result=>{db.tiktokProduction={status:"ready_for_review",scenes:previous.scenes,finishedAt:new Date().toISOString(),voiceDurations:result.voiceDurations,revisionMode:"music_gain",revisionNotes:notes,revisionCount:(previous.revisionCount||0)+1};await persist();})
           .catch(async err=>{db.tiktokProduction={...previous,status:"revision_requested",error:String(err.message||err).slice(0,160),revisionNotes:notes,revisionMode:"regeneration_failed"};await persist();});
       }
-      return respond(res,200,view());
-      // Approval is NOT publishing. TikTok Shop creator posting is not authorized.
-        revisionNotes:data.decision==="request_revision"?data.notes.trim().slice(0,600):null,reviewedAt:new Date().toISOString()};
-      await persist();
-      // Approval is NOT publishing. TikTok Shop creator posting is not authorized.
       return respond(res,200,view());
     }
     if(req.method==="POST"&&u.pathname==="/api/tiktok/production/generate"){
