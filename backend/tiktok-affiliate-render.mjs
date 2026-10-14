@@ -24,8 +24,7 @@ export async function renderTikTokAffiliateVideo({
   const stat=await fs.stat(subtitlesPath);
   if(stat.size>20000)throw Error("subtitles_too_large");
   const srt=await fs.readFile(subtitlesPath,"utf8");
-  if(!/00:00:0[0-9],\d{3} --> 00:00:0[0-9],\d{3}/.test(srt)||!/00:00:1\d,\d{3} --> 00:00:2[0-4],\d{3}/.test(srt))
-    throw Error("expected_24_second_srt_timeline");
+  // Validate cue boundaries below; narrated subtitles may finish before the 24s video ends.
   const blocks=srt.trim().split(/\r?\n\s*\r?\n/);
   const cues=blocks.map(block=>{
     const lines=block.split(/\r?\n/);
