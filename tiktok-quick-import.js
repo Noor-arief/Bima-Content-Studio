@@ -33,5 +33,6 @@
    status.textContent='Draft dibuat dari tautan TikTok. Nama produk perlu dicek di listing; fakta, harga, komisi belum diverifikasi. BIMA tidak akan mengarang datanya.';
    source.value='';
    root.dispatchEvent(new Event('change',{bubbles:true}));
+   document.dispatchEvent(new CustomEvent('bima:tiktok-imported'));
  });
 })();
