@@ -11,3 +11,13 @@ test('TikTok render panel is honest, secure and isolated to production workspace
  await page.locator('#channelBar [data-channel="shopee"]').click();
  await expect(page.locator('#tt-render-card')).toBeHidden();
 });
+
+test('TikTok private source pilot cannot spend without owner login',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+ await page.locator('#channelBar [data-channel="tiktok"]').click();
+ await expect(page.locator('#tt-reference-file')).toBeAttached();
+ await expect(page.locator('#tt-reference-stage')).toBeAttached();
+ await expect(page.locator('#tt-motion-pilot')).toBeDisabled();
+ await page.locator('#tt-reference-stage').click();
+ await expect(page.locator('#tt-motion-status')).toContainText('File harus PNG/JPG/WebP');
+});
