@@ -304,6 +304,11 @@ async function handler(req,res){
       return error(res,502,"tiktok_authorization_exchange_failed");
     }
   }
+  // Boolean-only public connection state. Never exposes account identifiers or tokens.
+  if(req.method==="GET"&&u.pathname==="/public/tiktok/sandbox/status"){
+    return respond(res,200,{environment:"sandbox",configured:TIKTOK_SANDBOX_READY,
+      connected:Boolean(db.tiktokSandbox?.openId),shopAffiliateConnected:false,postingConnected:false});
+  }
   if(req.method==="GET"&&u.pathname==="/health")return respond(res,200,{
     service:"bima-content-studio-api",status:"online",oauthConfigured:HAVE_OAUTH,
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
