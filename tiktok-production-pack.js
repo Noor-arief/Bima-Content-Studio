@@ -14,6 +14,45 @@ const voicePreview=document.createElement('div');
 voicePreview.id='tt-voice-preview';
 voicePreview.innerHTML='<h4 style="margin:12px 0 6px">Voice-over · Dengar & evaluasi</h4><p class="aff-muted">Preview suara menggunakan speech synthesis dari browser. Ini bukan file VO final dan belum dirender ke MP4.</p><div class="aff-actions"><button type="button" id="tt-voice-play">▶ Dengarkan narasi</button><button type="button" id="tt-voice-stop">■ Stop</button></div><p id="tt-voice-status" role="status" aria-live="polite"></p><p class="aff-muted">Tahapan TikTok: 1 Status → 2 Kalender → 3 Produk & Produksi → 4 Publikasi. Produksi MP4 otomatis masih menunggu integrasi aset, suara dan musik berlisensi.</p>';
 panel.append(voicePreview);
+const renderCard=document.createElement('div');
+renderCard.id='tt-render-card';
+renderCard.innerHTML='<h4>Final MP4 · Owner Review</h4><p class="aff-muted">Membutuhkan aset produk terverifikasi, musik berlisensi, dan model suara Indonesia yang dikonfigurasi di server. Tidak menggunakan kredit Gemini atau PiAPI.</p><p id="tt-render-status" role="status" aria-live="polite">Memeriksa kesiapan renderer…</p><div class="aff-actions"><button type="button" id="tt-render-refresh">Periksa kesiapan</button><button type="button" id="tt-render-start" disabled>Generate MP4 untuk review</button></div><video id="tt-render-video" controls playsinline style="display:none;width:100%;max-width:320px;margin-top:12px" aria-label="Preview video TikTok"></video>';
+panel.append(renderCard);
+const renderLabel=renderCard.querySelector('#tt-render-status');
+const refreshRender=renderCard.querySelector('#tt-render-refresh');
+const generateRender=renderCard.querySelector('#tt-render-start');
+const renderVideo=renderCard.querySelector('#tt-render-video');
+const endpoint='https://content-studio-api-production-3fe2.up.railway.app';
+const auth=()=>sessionStorage.getItem('bima_content_server_session');
+async function renderRequest(path,options={}){
+ const token=auth();
+ if(!token)throw Error('Login owner BIMA belum aktif.');
+ const res=await fetch(endpoint+path,{...options,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',...options.headers}});
+ const data=await res.json().catch(()=>({}));
+ if(!res.ok)throw Error(data.error||'HTTP '+res.status);
+ return data;
+}
+async function refreshRenderStatus(){
+ refreshRender.disabled=true;
+ try{
+ const state=await renderRequest('/api/tiktok/production/status');
+ generateRender.disabled=!state.ready||state.busy||state.videoReady;
+ renderLabel.textContent=state.videoReady?'MP4 siap untuk review (belum dipublikasikan).':state.busy?'Sedang merender MP4…':state.ready?'Renderer siap. Pilih draft, lalu generate video untuk review.':state.configured?'Izin aset atau musik belum terverifikasi di server.':'Belum siap: model suara, tiga aset produk dan musik harus dipasang di backend.';
+ if(state.error)renderLabel.textContent+=' Error: '+state.error;
+ if(state.videoReady){const response=await fetch(endpoint+'/api/tiktok/production/video',{headers:{Authorization:'Bearer '+auth()}});if(response.ok){const video=await response.blob();if(renderVideo.dataset.url)URL.revokeObjectURL(renderVideo.dataset.url);const url=URL.createObjectURL(video);renderVideo.dataset.url=url;renderVideo.src=url;renderVideo.style.display='block';}}
+ }catch(err){renderLabel.textContent=String(err.message||err);generateRender.disabled=true;}
+ finally{refreshRender.disabled=false;}
+}
+refreshRender.addEventListener('click',refreshRenderStatus);
+generateRender.addEventListener('click',async()=>{
+ if(!last)build();
+ if(!last){renderLabel.textContent='Pilih produk dan siapkan storyboard terlebih dahulu.';return;}
+ if(!confirm('Buat MP4 hanya untuk owner review? Pastikan produk, aset, musik dan izin sudah sesuai.'))return;
+ generateRender.disabled=true;
+ try{await renderRequest('/api/tiktok/production/generate',{method:'POST',body:JSON.stringify({confirmProduction:true,scenes:last.scenes.map(s=>s.voice)})});renderLabel.textContent='Job diterima. Klik Periksa kesiapan untuk memantau hasil.';}
+ catch(err){renderLabel.textContent=String(err.message||err);}
+});
+refreshRenderStatus();
 const result=panel.querySelector('#tt-pack-status'), voiceEl=panel.querySelector('#tt-pack-voice'),storyEl=panel.querySelector('#tt-pack-story');
 let last=null;
 const productionBlockedReason='AUTO BLOCKED: BIMA belum memiliki sumber katalog Affiliate Creator yang terotorisasi dan belum dapat memverifikasi product attachment/keranjang kuning. Draft boleh ditinjau, tetapi bukan kandidat otomatis yang siap diproduksi atau dipublikasikan.';
