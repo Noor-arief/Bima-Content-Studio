@@ -35,8 +35,10 @@ const make=(d)=>{
  ];
  const stamp=s=>`00:00:${String(s).padStart(2,'0')},000`;
  const srt=scenes.map((s,i)=>`${i+1}\n${stamp(s.start)} --> ${stamp(s.end)}\n${s.voice}\n`).join('\n');
+ const genre=(()=>{const txt=(name+' '+facts).toLowerCase();if(/skincare|serum|parfum|perfume|makeup|kosmetik|beauty/.test(txt))return {mood:'clean, soft, chic',bpm:[85,110]};if(/fashion|baju|hijab|sepatu|tas|ootd|dress/.test(txt))return {mood:'stylish, upbeat',bpm:[105,125]};if(/kipas|charger|gadget|headset|powerbank|elektronik|lampu/.test(txt))return {mood:'sleek, modern, punchy',bpm:[100,120]};if(/dapur|rumah|organizer|storage|kitchen/.test(txt))return {mood:'cozy, satisfying',bpm:[85,105]};return {mood:'light, rhythmic, product-focused',bpm:[90,115]};})();
+ const music={mode:'hybrid-vo-first',mood:genre.mood,bpmRange:genre.bpm,source:'Approved commercial-use audio only; no track automatically licensed or downloaded',licenseVerified:false,trackSelected:false,plan:[{from:0,to:2,musicGainDb:-17},{from:2,to:21,musicGainDb:-25,voicePriority:true},{from:21,to:24,musicGainDb:-27,voicePriority:true,fadeOut:true}],qualityChecks:['No lyrics competing with speech','Music follows edit pace','Voice remains clear through CTA','Commercial-use rights verified before final export','No unauthorized trending sound baked into MP4']};
  const caption=`Kenali ${name}. Cek detail produk, pilihan varian, dan harga terbaru di keranjang kuning. Konten affiliate; saya dapat memperoleh komisi dari pembelian. ${factual?'Informasi produk wajib dicocokkan dengan listing. ':''}#TikTokShop #Affiliate`;
- return {id:d.id,product:name,source:d.productUrl,verifiedFacts:factual,missing:factual?['Review kecocokan aset produk','Review narasi dan visual']:['Fakta produk belum diverifikasi','Foto referensi seller belum dikonfirmasi','Review kecocokan aset produk'],durationSeconds:24,aspectRatio:'9:16',scenes,voice:scripts.join(' '),srt,caption,rendered:false};
+ return {id:d.id,product:name,source:d.productUrl,verifiedFacts:factual,missing:factual?['Review kecocokan aset produk','Review narasi dan visual']:['Fakta produk belum diverifikasi','Foto referensi seller belum dikonfirmasi','Review kecocokan aset produk'],durationSeconds:24,aspectRatio:'9:16',scenes,voice:scripts.join(' '),srt,caption,music,rendered:false};
 };
 const download=(name,content,type)=>{const u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
 const build=()=>{
@@ -46,7 +48,7 @@ const build=()=>{
  if(!last){result.textContent='Nama dan tautan produk TikTok belum tersedia di draft.';return;}
  voiceEl.value=last.voice;
  storyEl.value=last.scenes.map((s,i)=>`SCENE ${i+1} · ${s.start}–${s.end}s\nVISUAL: ${s.visual}\nVO: ${s.voice}`).join('\n\n');
- result.textContent=productionBlockedReason+' · Paket konsep siap ditinjau · MP4 belum dibuat · '+(last.verifiedFacts?'Fakta dari draft perlu dicocokkan dengan listing.':'Fakta belum terverifikasi: narasi sengaja tanpa klaim performa produk.');
+ result.textContent=productionBlockedReason+' · Music direction: '+last.music.mood+' ('+last.music.bpmRange.join('–')+' BPM); track/licence belum dipilih. · Paket konsep siap ditinjau · MP4 belum dibuat · '+(last.verifiedFacts?'Fakta dari draft perlu dicocokkan dengan listing.':'Fakta belum terverifikasi: narasi sengaja tanpa klaim performa produk.');
 };
 panel.querySelector('#tt-pack-build').addEventListener('click',build);
 const gate=document.createElement('p');gate.id='tt-automation-gate';gate.setAttribute('role','status');gate.style.cssText='margin:10px 0;font-weight:700';gate.textContent=productionBlockedReason;panel.insertBefore(gate,panel.firstChild.nextSibling);
