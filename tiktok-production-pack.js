@@ -12,6 +12,7 @@ const desk=root.querySelector('[data-secs="desk publishing"]');
 desk?.insertAdjacentElement('afterend',panel);
 const result=panel.querySelector('#tt-pack-status'), voiceEl=panel.querySelector('#tt-pack-voice'),storyEl=panel.querySelector('#tt-pack-story');
 let last=null;
+const productionBlockedReason='AUTO BLOCKED: BIMA belum memiliki sumber katalog Affiliate Creator yang terotorisasi dan belum dapat memverifikasi product attachment/keranjang kuning. Draft boleh ditinjau, tetapi bukan kandidat otomatis yang siap diproduksi atau dipublikasikan.';
 const clean=s=>String(s||'').replace(/[\r\n\t]+/g,' ').trim().slice(0,220);
 const getDraft=()=>{try{const d=JSON.parse(localStorage.getItem(key)||'{}');return {all:d,selected:d.drafts?.find(x=>x.id===d.selected)};}catch{return {all:null,selected:null};}};
 const make=(d)=>{
@@ -45,9 +46,10 @@ const build=()=>{
  if(!last){result.textContent='Nama dan tautan produk TikTok belum tersedia di draft.';return;}
  voiceEl.value=last.voice;
  storyEl.value=last.scenes.map((s,i)=>`SCENE ${i+1} · ${s.start}–${s.end}s\nVISUAL: ${s.visual}\nVO: ${s.voice}`).join('\n\n');
- result.textContent='Production Pack siap ditinjau · MP4 belum dibuat · '+(last.verifiedFacts?'Fakta dari draft perlu dicocokkan dengan listing.':'Fakta belum terverifikasi: narasi sengaja tanpa klaim performa produk.');
+ result.textContent=productionBlockedReason+' · Paket konsep siap ditinjau · MP4 belum dibuat · '+(last.verifiedFacts?'Fakta dari draft perlu dicocokkan dengan listing.':'Fakta belum terverifikasi: narasi sengaja tanpa klaim performa produk.');
 };
 panel.querySelector('#tt-pack-build').addEventListener('click',build);
+const gate=document.createElement('p');gate.id='tt-automation-gate';gate.setAttribute('role','status');gate.style.cssText='margin:10px 0;font-weight:700';gate.textContent=productionBlockedReason;panel.insertBefore(gate,panel.firstChild.nextSibling);
 panel.querySelector('#tt-pack-srt').addEventListener('click',()=>{if(!last)build();if(last)download('tiktok-'+last.id+'.srt',last.srt,'text/plain');});
 panel.querySelector('#tt-pack-json').addEventListener('click',()=>{if(!last)build();if(last)download('tiktok-'+last.id+'-storyboard.json',JSON.stringify(last,null,2),'application/json');});
 document.addEventListener('bima:tiktok-imported',()=>{build();});
