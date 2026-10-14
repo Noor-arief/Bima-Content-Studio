@@ -516,7 +516,7 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
 }
 
 body[data-channel]:not([data-channel="youtube"]) #ytWorkspace,body[data-channel]:not([data-channel="youtube"]) #serverAutomation,body[data-channel]:not([data-channel="youtube"]) #autonomousPlanner{display:none!important}
-body[data-channel="tiktok"] #futureWorkspace{display:none!important}
+body[data-channel="tiktok"] #futureWorkspace,body[data-channel="shopee"] #futureWorkspace{display:none!important}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -741,7 +741,7 @@ function persist(){try{localStorage.setItem(STORAGE,JSON.stringify(state));}catc
 function today(){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const v={};parts.forEach(x=>{v[x.type]=x.value});return `${v.year}-${v.month}-${v.day}`}
 function human(d){return new Date(d+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}
 function gotoChannel(ch){state.active=ch;render();try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){}}
-function renderChannels(){const bar=$('channelBar');bar.replaceChildren();for(const ch of CHANNEL_ORDER){const cfg=PLATFORM_COPY[ch],b=document.createElement('button');b.className='channel'+(state.active===ch?' active':'');b.type='button';b.dataset.channel=ch;const img=document.createElement('img');img.src=ASSETS[ch]||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><rect width="72" height="72" rx="18" fill="#ee661e"/><path d="M22 27h28l3 30H19z" fill="white"/><path d="M29 27v-7a7 7 0 0 1 14 0v7" fill="none" stroke="white" stroke-width="5"/><text x="36" y="48" font-family="Arial" font-size="21" font-weight="bold" text-anchor="middle" fill="#ee661e">S</text></svg>');img.alt='';const name=document.createElement('span');name.innerHTML=`<strong>${cfg.name}</strong><small>${ch==='youtube'?'Faceless Shorts':ch==='tiktok'?'Affiliate · yellow basket':ch==='shopee'?'Affiliate · shared video':'Not active yet'}</small>`;const badge=document.createElement('span');badge.className='tag';badge.textContent=cfg.label;b.append(img,name,badge);b.addEventListener('click',()=>gotoChannel(ch));bar.appendChild(b)}}
+function renderChannels(){const bar=$('channelBar');bar.replaceChildren();for(const ch of CHANNEL_ORDER){const cfg=PLATFORM_COPY[ch],b=document.createElement('button');b.className='channel'+(state.active===ch?' active':'');b.type='button';b.dataset.channel=ch;const img=document.createElement('img');img.src=ASSETS[ch]||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><rect width="72" height="72" rx="18" fill="#ee661e"/><path d="M22 27h28l3 30H19z" fill="white"/><path d="M29 27v-7a7 7 0 0 1 14 0v7" fill="none" stroke="white" stroke-width="5"/><text x="36" y="48" font-family="Arial" font-size="21" font-weight="bold" text-anchor="middle" fill="#ee661e">S</text></svg>');img.alt='';const name=document.createElement('span');name.innerHTML=`<strong>${cfg.name}</strong><small>${ch==='youtube'?'Faceless Shorts':ch==='tiktok'?'TikTok Shop':ch==='shopee'?'Shopee Video':'Not active yet'}</small>`;const badge=document.createElement('span');badge.className='tag';badge.textContent=cfg.label;b.append(img,name,badge);b.addEventListener('click',()=>gotoChannel(ch));bar.appendChild(b)}}
 function remoteFor(id){
  const alias=id==='yt26-20261013-moon'?'yt26-20261013-moon-final-with-voice':id;
  const owner=window.BIMA_REMOTE_CONTENT?.[alias]||window.BIMA_REMOTE_CONTENT?.[id];
@@ -861,7 +861,7 @@ document.addEventListener('change',event=>{
 });
 function renderFuture(){
  const isYT=state.active==='youtube';$('ytWorkspace').classList.toggle('hidden',!isYT);$('futureWorkspace').classList.toggle('hidden',isYT);if(isYT)return;
- const ch=state.active;if(ch==='shopee')affiliateDesk(ch);else $('affiliateProductionDesk').classList.add('hidden');
+ const ch=state.active;$('affiliateProductionDesk').classList.add('hidden');
  if(ch==='shopee'||ch==='tiktok'){$('futureTitle').textContent=(ch==='shopee'?'Shopee Video':'TikTok Shop')+' — Independent Affiliate Workflow';$('futureText').textContent='Riset produk, video, caption, dan status upload per platform. Reuse video dari platform lain hanya jika produk yang sama lolos validasi.';$('futurePlan').innerHTML='<b>Workflow:</b> Research → Validated → Production → Review → Manual publish → Performance tracking. <p class="muted-note">Konten lama dan data campaign tidak dihapus. Integrasi akun dan auto-upload belum diaktifkan.</p>'}
  else{$('futureTitle').textContent=PLATFORM_COPY[ch].name+' — Later';$('futureText').textContent='Platform belum terhubung.';$('futurePlan').textContent='Belum ada workflow aktif.'}
 }
@@ -1203,7 +1203,9 @@ render();
 <script src="bima-public-status.js?v=20261014-sync1" defer></script>
 <script src="episode-workflow.js?v=20261014-sync1" defer></script>
 <script src="auto-thumbnails.js?v=20261013-topic-bound-cache-v2" defer></script>
-<script src="tiktok-affiliate.js?v=20261014-isolate" defer></script>
+<script src="affiliate-workspace.js?v=20261014-split1" defer></script>
+<script src="tiktok-affiliate.js?v=20261014-split1" defer></script>
+<script src="shopee-affiliate.js?v=20261014-split1" defer></script>
 <script src="channel-navigation.js?v=20261014-isolate" defer></script>
 <script src="autonomous-planner.js?v=20261014-sync1" defer></script>
 <script src="mixed-calendar-sync.js?v=20261013-idea-bank-cleanup1" defer></script>

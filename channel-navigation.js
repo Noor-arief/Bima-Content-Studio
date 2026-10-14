@@ -10,7 +10,7 @@ sidebar.insertBefore(channelLabel,menuLabel);sidebar.insertBefore(channels,menuL
 const context=document.createElement('div');context.className='channel-menu-context';context.setAttribute('aria-live','polite');
 context.innerHTML='<span class="channel-menu-dot" aria-hidden="true"></span><div><strong></strong><small></small></div>';
 sidebar.insertBefore(context,menuLabel);
-const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'Ringkasan Affiliate',kalender:'Jadwal Affiliate',desk:'Produk & Video AI',publishing:'Review & Keranjang'},shopee:{ringkasan:'Ringkasan Shopee',kalender:'Riset & Jadwal',desk:'Produksi Shopee Video',publishing:'Publikasi Shopee'}};
+const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'Ringkasan',kalender:'Jadwal TikTok',desk:'Produk & Video AI',publishing:'Keranjang & Performa'},shopee:{ringkasan:'Ringkasan',kalender:'Jadwal Shopee Video',desk:'Riset & Produksi',publishing:'Publikasi & Performa'}};
 let tiktokSection='ringkasan',shopeeSection='ringkasan';
 for(const button of menu.querySelectorAll('[data-go]')){
  const icon=button.querySelector('.ico');const text=document.createElement('span');text.className='channel-menu-name';
@@ -44,7 +44,6 @@ const style=document.createElement('style');style.textContent=`
 channels.addEventListener('click',()=>queueMicrotask(sync));
 document.addEventListener('bima:episode-selected',()=>queueMicrotask(sync));
 document.addEventListener('bima:channel-section',e=>{if(state.active==='shopee')shopeeSection=e.detail;else tiktokSection=e.detail;sync();});
-menu.addEventListener('click',e=>{if(state.active!=='shopee')return;const b=e.target.closest('[data-go]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();shopeeSection=b.dataset.go;sync();const selectors={ringkasan:'#futureWorkspace',kalender:'#shopeeResearch',desk:'#shopeeResearch',publishing:'#shopeePublishing'};document.querySelector(selectors[shopeeSection])?.scrollIntoView({behavior:'smooth',block:'start'});},true);
 document.addEventListener('click',e=>{if(e.target.closest('[data-go]'))queueMicrotask(sync);});
 window.addEventListener('popstate',()=>queueMicrotask(sync));
 sync();
