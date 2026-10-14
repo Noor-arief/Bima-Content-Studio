@@ -18,7 +18,7 @@ test('channel isolation and TikTok navigation', async ({ page }) => {
   const sections = ['ringkasan', 'kalender', 'desk', 'publishing'];
   for (const sec of sections) {
     console.log('NAV section',sec);
-    await page.locator('#tiktokWorkspace [data-sec-go="'+sec+'"]').click({timeout:4000});
+    await page.locator('.sidebar .menu-item[data-go="'+sec+'"]').click({timeout:4000});
     await expect(page.locator('#tiktokWorkspace')).toHaveAttribute('data-sec',sec);
     await expect(page.locator('#shopeeWorkspace')).toBeHidden();
   }
@@ -43,14 +43,14 @@ test('draft persists after reload; zero side effects in Shopee store', async ({ 
   expect(await page.evaluate(() => localStorage.getItem('bima-shopee-affiliate-v1'))).toBeNull();
   await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('#channelBar [data-channel="tiktok"]').click();
-  await page.locator('#tiktokWorkspace [data-sec-go="desk"]').click();
+  await page.locator('.sidebar .menu-item[data-go="desk"]').click();
   await expect(page.locator('#aff-tiktok-f-product')).toHaveValue('QA SAMPLE - DO NOT PUBLISH');
 });
 
 test('publishing remains manual; incomplete product cannot be marked ready', async ({ page }) => {
   await page.locator('#tiktokWorkspace [data-act="new"]').first().click();
   console.log('PUBLISH section');
-  await page.locator('#tiktokWorkspace [data-sec-go="publishing"]').click({timeout:4000});
+  await page.locator('.sidebar .menu-item[data-go="publishing"]').click({timeout:4000});
   await page.locator('#tiktokWorkspace [data-act="ready"]').click();
   const stage = await page.evaluate(() => {
     const d=JSON.parse(localStorage.getItem('bima-tiktok-affiliate-v1')||'{}');
