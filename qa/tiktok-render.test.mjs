@@ -4,7 +4,8 @@ import {spawn} from "node:child_process";
 import {mkdtemp,readFile,stat,writeFile,rm} from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import ffmpeg from "ffmpeg-static";
+import {createRequire} from "node:module";
+const ffmpeg=createRequire(new URL("../backend/server.mjs",import.meta.url))("ffmpeg-static");
 import {renderTikTokAffiliateVideo} from "../backend/tiktok-affiliate-render.mjs";
 const run=(args)=>new Promise((resolve,reject)=>{const p=spawn(ffmpeg,args,{stdio:"ignore"});p.on("close",n=>n===0?resolve():reject(Error("fixture_ffmpeg_failed_"+n)));p.on("error",reject);});
 test("renderer requires owner approval and verified images/music",async()=>{
