@@ -514,6 +514,9 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  .controls{flex-wrap:wrap;justify-content:flex-start}
  #episodeWorkflow .ew-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+body[data-channel]:not([data-channel="youtube"]) #ytWorkspace,body[data-channel]:not([data-channel="youtube"]) #serverAutomation,body[data-channel]:not([data-channel="youtube"]) #autonomousPlanner{display:none!important}
+body[data-channel="tiktok"] #futureWorkspace{display:none!important}
 </style>
 </head>
 <body data-view="ringkasan">
@@ -832,15 +835,15 @@ function affiliateDesk(channel){
  const rows=affiliateRead(),title=channel==='shopee'?'Shopee Video':'TikTok Shop';
  const own=rows.filter(r=>r.platform===channel||(!r.platform&&(channel==='shopee'?!!r.shopeeUrl:!!r.tiktokUrl)));
  root.innerHTML='<div class="line"><div><h2>'+title+' · Product Research & Production</h2><p class="sub">Kandidat produk dan video khusus platform; tidak otomatis cross-post.</p></div><button class="btn" id="affExport">Export JSON</button></div>'
- +'<div class="fields">'+
+ +'<div class="fields" id="shopeeResearch">'+
  [['affName','Nama produk / campaign','text'],['affProductUrl','Link produk '+title,'url'],['affPrice','Harga (Rp)','number'],['affCommission','Komisi (%) sesuai akun affiliate','number'],['affSales','Penjualan (jika tersedia)','number'],['affRating','Rating produk (0–5)','number'],['affDate','Tanggal rencana posting','date'],['affVideo','Nama file video 9:16','text']].map(([id,label,type])=>'<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+type+'"'+(type==='number'?' min="0" step="any"':'')+'></div>').join('')
  +'<div class="field full"><label>Bukti riset & alasan produk layak diuji</label><textarea id="affAngle" rows="2"></textarea></div>'
  +'<div class="field full"><label>Storyboard & voice-over</label><textarea id="affScript" rows="3"></textarea></div>'
  +'<div class="field full"><label>Caption '+title+'</label><textarea id="affCaption" rows="2"></textarea></div></div>'
  +'<p class="hint">Catat bukti penjualan, komisi, review, dan sumbernya. Tidak ada klaim winning otomatis. Semua data tersimpan lokal di browser.</p>'
- +'<button class="btn primary" id="affAdd">+ Simpan kandidat '+title+'</button><h3 style="margin-top:22px">Research / Production / Publishing Queue ('+own.length+')</h3>'
+ +'<button class="btn primary" id="affAdd">+ Simpan kandidat '+title+'</button><h3 id="shopeeQueue" style="margin-top:22px">Research / Production / Publishing Queue ('+own.length+')</h3>'
  +(own.length?'<div class="queue"><table><thead><tr><th>Produk</th><th>Produksi & jadwal</th><th>Status '+title+'</th><th>Brief</th></tr></thead><tbody>'+own.map(r=>{const status=r.platform?r.status||'research':r[channel]||'draft';return '<tr><td><b>'+escapeHTML(r.name)+'</b><div class="hint">'+escapeHTML(r.commission||'—')+'% komisi · '+escapeHTML(r.price||'—')+' Rp</div></td><td>'+escapeHTML(r.video||'Belum ada MP4')+'<div class="hint">'+escapeHTML(r.date||'Belum dijadwalkan')+'</div></td><td><select data-aff-stage="'+escapeHTML(r.id)+'" data-aff-platform="'+channel+'">'+[['research','Research'],['validated','Validated'],['production','Production'],['review','Awaiting review'],['ready','Ready for manual upload'],['published','Published (manual)']].map(([v,label])=>'<option value="'+v+'"'+(status===v?' selected':'')+'>'+label+'</option>').join('')+'</select></td><td><button class="btn" data-aff-copy="'+escapeHTML(r.id)+'">Copy Brief</button></td></tr>'}).join('')+'</tbody></table></div>':'<p class="hint">Belum ada produk. Mulai dari riset dan validasi.</p>')
- +'<div style="margin-top:16px;padding:16px;border:1px solid rgba(148,163,255,.22);border-radius:14px"><b>Checklist publikasi '+title+'</b><p class="hint">'+(channel==='shopee'?'Akun Shopee Affiliate aktif → unggah ke Shopee Video → tambah produk relevan → cek caption/tag produk → posting → konfirmasi manual.':'Akun TikTok Shop Creator Affiliate aktif → cek produk dalam showcase → unggah video → tag produk/keranjang kuning bila memenuhi syarat → posting → konfirmasi manual.')+'</p><p class="hint">Belum ada auto-upload, sinkronisasi komisi, atau koneksi platform. Video lintas platform dapat digunakan ulang hanya setelah kecocokan produk dan materi diperiksa.</p></div>';
+ +'<div id="shopeePublishing" style="margin-top:16px;padding:16px;border:1px solid rgba(148,163,255,.22);border-radius:14px"><b>Checklist publikasi '+title+'</b><p class="hint">'+(channel==='shopee'?'Akun Shopee Affiliate aktif → unggah ke Shopee Video → tambah produk relevan → cek caption/tag produk → posting → konfirmasi manual.':'Akun TikTok Shop Creator Affiliate aktif → cek produk dalam showcase → unggah video → tag produk/keranjang kuning bila memenuhi syarat → posting → konfirmasi manual.')+'</p><p class="hint">Belum ada auto-upload, sinkronisasi komisi, atau koneksi platform. Video lintas platform dapat digunakan ulang hanya setelah kecocokan produk dan materi diperiksa.</p></div>';
 }
 document.addEventListener('click',event=>{
  if(event.target?.id==='affAdd'){
@@ -858,7 +861,7 @@ document.addEventListener('change',event=>{
 });
 function renderFuture(){
  const isYT=state.active==='youtube';$('ytWorkspace').classList.toggle('hidden',!isYT);$('futureWorkspace').classList.toggle('hidden',isYT);if(isYT)return;
- const ch=state.active;affiliateDesk(ch);
+ const ch=state.active;if(ch==='shopee')affiliateDesk(ch);else $('affiliateProductionDesk').classList.add('hidden');
  if(ch==='shopee'||ch==='tiktok'){$('futureTitle').textContent=(ch==='shopee'?'Shopee Video':'TikTok Shop')+' — Independent Affiliate Workflow';$('futureText').textContent='Riset produk, video, caption, dan status upload per platform. Reuse video dari platform lain hanya jika produk yang sama lolos validasi.';$('futurePlan').innerHTML='<b>Workflow:</b> Research → Validated → Production → Review → Manual publish → Performance tracking. <p class="muted-note">Konten lama dan data campaign tidak dihapus. Integrasi akun dan auto-upload belum diaktifkan.</p>'}
  else{$('futureTitle').textContent=PLATFORM_COPY[ch].name+' — Later';$('futureText').textContent='Platform belum terhubung.';$('futurePlan').textContent='Belum ada workflow aktif.'}
 }
@@ -1200,8 +1203,8 @@ render();
 <script src="bima-public-status.js?v=20261014-sync1" defer></script>
 <script src="episode-workflow.js?v=20261014-sync1" defer></script>
 <script src="auto-thumbnails.js?v=20261013-topic-bound-cache-v2" defer></script>
-<script src="tiktok-affiliate.js?v=20261012-3" defer></script>
-<script src="channel-navigation.js?v=20261012-1" defer></script>
+<script src="tiktok-affiliate.js?v=20261014-isolate" defer></script>
+<script src="channel-navigation.js?v=20261014-isolate" defer></script>
 <script src="autonomous-planner.js?v=20261014-sync1" defer></script>
 <script src="mixed-calendar-sync.js?v=20261013-idea-bank-cleanup1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
