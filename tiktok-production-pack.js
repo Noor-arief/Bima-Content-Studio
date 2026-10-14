@@ -38,6 +38,11 @@ async function refreshRenderStatus(){
  const state=await renderRequest('/api/tiktok/production/status');
  generateRender.disabled=!state.ready||state.busy||state.videoReady;
  renderLabel.textContent=state.videoReady?'MP4 siap untuk review (belum dipublikasikan).':state.busy?'Sedang merender MP4…':state.ready?'Renderer siap. Pilih draft, lalu generate video untuk review.':state.configured?'Izin aset atau musik belum terverifikasi di server.':'Belum siap: model suara, tiga aset produk dan musik harus dipasang di backend.';
+ if(state.requirements&&!state.ready){
+   const labels={voiceModel:'Model suara Indonesia',image1:'Foto produk 1',image2:'Foto produk 2',image3:'Foto produk 3',music:'File musik',productRights:'Izin penggunaan foto produk',musicRights:'Lisensi musik komersial',voiceRights:'Lisensi model suara'};
+   const missing=Object.entries(labels).filter(([key])=>state.requirements[key]!==true).map(([,name])=>name);
+   if(missing.length)renderLabel.textContent='Belum siap: '+missing.join(' · ')+'.';
+ }
  if(state.error)renderLabel.textContent+=' Error: '+state.error;
  if(state.videoReady){const response=await fetch(endpoint+'/api/tiktok/production/video',{headers:{Authorization:'Bearer '+auth()}});if(response.ok){const video=await response.blob();if(renderVideo.dataset.url)URL.revokeObjectURL(renderVideo.dataset.url);const url=URL.createObjectURL(video);renderVideo.dataset.url=url;renderVideo.src=url;renderVideo.style.display='block';}}
  }catch(err){renderLabel.textContent=String(err.message||err);generateRender.disabled=true;}
