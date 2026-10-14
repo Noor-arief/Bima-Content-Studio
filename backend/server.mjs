@@ -258,6 +258,12 @@ async function handler(req,res){
   }
   if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}
 
+  // TikTok Shop Open Platform callback is distinct from TikTok Login Kit.
+  // Registration-only until Affiliate API app key, secret, and consent flow are approved.
+  // Do not process incoming codes without one-time owner-initiated state verification.
+  if(req.method==="GET"&&u.pathname==="/auth/tiktok-shop/callback"){
+    return error(res,400,"tiktok_shop_creator_authorization_not_configured");
+  }
   // TikTok access is separate from the YouTube OAuth and upload state.
   // Only an authenticated BIMA owner can initiate a new account connection.
   if(req.method==="GET"&&(u.pathname==="/auth/tiktok/status"||u.pathname==="/auth/tiktok/sandbox/status")){
