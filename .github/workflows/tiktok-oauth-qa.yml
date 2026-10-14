@@ -1,0 +1,19 @@
+name: TikTok OAuth Backend QA
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/tiktok-oauth-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  node-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check backend/server.mjs
+      - run: cd backend && npm test
