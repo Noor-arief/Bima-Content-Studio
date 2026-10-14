@@ -512,10 +512,12 @@ async function handler(req,res){
       if(!db.tiktokLtx?.referenceReady&&!process.env.LTX_APPROVED_IMAGE_URI)return error(res,409,"product_reference_missing");
       db.tiktokLtx ||= {status:"not_started"};
       if(db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_already_attempted");
+      const referenceData=db.tiktokLtx.referenceReady?
+        "data:image/jpeg;base64,"+(await fs.readFile(db.tiktokLtx.referenceFile)).toString("base64"):null;
       db.tiktokLtx={status:"submitting",startedAt:new Date().toISOString(),estimatedUsd:0.24};
       await persist();
       try{
-        const job=await submitTikTokLtxPilot({imageUri:db.tiktokLtx.referenceReady?"data:image/jpeg;base64,"+(await fs.readFile(db.tiktokLtx.referenceFile)).toString("base64"):process.env.LTX_APPROVED_IMAGE_URI,prompt:process.env.TIKTOK_PRODUCT_MOTION_PROMPT||"A natural commercial tabletop product closeup with subtle realistic camera dolly movement, preserving authentic object geometry without morphing, commercial studio light and gentle parallax.",
+        const job=await submitTikTokLtxPilot({imageUri:referenceData||process.env.LTX_APPROVED_IMAGE_URI,prompt:process.env.TIKTOK_PRODUCT_MOTION_PROMPT||"A natural commercial tabletop product closeup with subtle realistic camera dolly movement, preserving authentic object geometry without morphing, commercial studio light and gentle parallax.",
           ownerApproved:true,maxUsd:Number(data.maxUsd),verifiedProductImage:true});
         db.tiktokLtx={...job,startedAt:db.tiktokLtx.startedAt};
         await persist();
