@@ -455,12 +455,24 @@ async function handler(req,res){
     const configured=requiredFiles.every(([label])=>requirements[label]);
     const approved=requirements.productRights&&requirements.musicRights&&requirements.voiceRights;
     db.tiktokProduction ||= {status:"not_started"};
-    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:db.tiktokProduction.status==="ready_for_review",published:false});
+    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,published:false});
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/status")return respond(res,200,view());
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/video"){
-      if(db.tiktokProduction.status!=="ready_for_review")return error(res,404,"tiktok_video_not_ready");
+      if(!["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status))return error(res,404,"tiktok_video_not_ready");
       const file=path.join(MEDIA_DIR,"tiktok-owner-preview.mp4");
       try{const stat=await fs.stat(file);res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":stat.size,"Cache-Control":"private,no-store","Content-Disposition":"inline; filename=tiktok-owner-preview.mp4"});return createReadStream(file).pipe(res);}catch{return error(res,404,"tiktok_preview_missing");}
+    }
+    if(req.method==="POST"&&u.pathname==="/api/tiktok/production/review"){
+      let data;try{data=await readJSON(req,2000);}catch{return error(res,400,"invalid_owner_review_payload");}
+      if(db.tiktokProduction.status!=="ready_for_review")return error(res,409,"video_not_awaiting_review");
+      if(data?.decision!=="approve"&&data?.decision!=="request_revision")return error(res,422,"invalid_review_decision");
+      if(data.decision==="request_revision"&&(typeof data.notes!=="string"||data.notes.trim().length<5||data.notes.length>600))
+        return error(res,422,"revision_notes_required");
+      db.tiktokProduction={...db.tiktokProduction,status:data.decision==="approve"?"approved":"revision_requested",
+        revisionNotes:data.decision==="request_revision"?data.notes.trim().slice(0,600):null,reviewedAt:new Date().toISOString()};
+      await persist();
+      // Approval is NOT publishing. TikTok Shop creator posting is not authorized.
+      return respond(res,200,view());
     }
     if(req.method==="POST"&&u.pathname==="/api/tiktok/production/generate"){
       let data;try{data=await readJSON(req,5000);}catch{return error(res,400,"invalid_tiktok_production_payload");}
