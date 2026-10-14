@@ -1,0 +1,21 @@
+name: TikTok Offline Indonesian Voice QA
+on:
+  pull_request:
+    paths:
+      - 'backend/tiktok-voice.mjs'
+      - 'qa/tiktok-voice.test.mjs'
+      - '.github/workflows/tiktok-voice-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix backend --no-audit --no-fund
+      - run: node --check backend/tiktok-voice.mjs
+      - run: node --test qa/tiktok-voice.test.mjs
