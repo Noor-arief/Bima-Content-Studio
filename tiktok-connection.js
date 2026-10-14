@@ -24,11 +24,17 @@ async function status(){
  check.disabled=true;
  label.textContent='Memeriksa status koneksi TikTok…';
  try{
-  const s=await request('/auth/tiktok/sandbox/status');
-  label.textContent=s.connected?'Sandbox Connected: '+(s.displayName||'TikTok account'):s.configured?'Sandbox siap. Klik Connect TikTok untuk otorisasi.':'Kredensial Sandbox belum lengkap di Railway.';
-  connect.disabled=!s.configured||s.connected;
- }catch(e){label.textContent=e.message;connect.disabled=true;}
- finally{check.disabled=false;ownerLogin.hidden=Boolean(sessionStorage.getItem(tokenKey));}
+  const response=await fetch(api+'/public/tiktok/sandbox/status',{cache:'no-store'});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error(data.error||'Status backend tidak tersedia');
+  const hasOwner=Boolean(sessionStorage.getItem(tokenKey));
+  label.textContent=data.connected?'Sandbox Connected · Login Kit aktif (TikTok Shop belum terhubung)':data.configured?'Sandbox siap · login owner diperlukan untuk menghubungkan akun':'Kredensial Sandbox belum lengkap di Railway.';
+  connect.disabled=Boolean(data.connected)||!data.configured||!hasOwner;
+  ownerLogin.hidden=hasOwner;
+ }catch(e){
+  label.textContent='Gagal memeriksa backend: '+e.message;
+  connect.disabled=true;
+ }finally{check.disabled=false;}
 }
 connect.addEventListener('click',async()=>{
  connect.disabled=true;
