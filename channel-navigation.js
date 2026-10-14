@@ -10,7 +10,7 @@ sidebar.insertBefore(channelLabel,menuLabel);sidebar.insertBefore(channels,menuL
 const context=document.createElement('div');context.className='channel-menu-context';context.setAttribute('aria-live','polite');
 context.innerHTML='<span class="channel-menu-dot" aria-hidden="true"></span><div><strong></strong><small></small></div>';
 sidebar.insertBefore(context,menuLabel);
-const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'Ringkasan',kalender:'Jadwal TikTok',desk:'Produk & Video AI',publishing:'Keranjang & Performa'},shopee:{ringkasan:'Ringkasan',kalender:'Jadwal Shopee Video',desk:'Riset & Produksi',publishing:'Publikasi & Performa'}};
+const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'1. Status & Panduan',kalender:'2. Kalender Video',desk:'3. Produk & Produksi',publishing:'4. Publikasi & Penjualan'},shopee:{ringkasan:'Ringkasan',kalender:'Jadwal Shopee Video',desk:'Riset & Produksi',publishing:'Publikasi & Performa'}};
 let tiktokSection='ringkasan',shopeeSection='ringkasan';
 for(const button of menu.querySelectorAll('[data-go]')){
  const icon=button.querySelector('.ico');const text=document.createElement('span');text.className='channel-menu-name';
@@ -20,7 +20,7 @@ function sync(){
  const ch=state.active,known=!!names[ch],yt=ch==='youtube';
  sidebar.dataset.menuChannel=ch;
  context.querySelector('strong').textContent=PLATFORM_COPY[ch]?.name||ch;
- context.querySelector('small').textContent=yt?'Orbit & Ocean · Faceless Shorts':ch==='tiktok'?'AI product videos · Affiliate':ch==='shopee'?'Shopee Video · Affiliate':'Workspace belum dibuka';
+ context.querySelector('small').textContent=yt?'Orbit & Ocean · Faceless Shorts':ch==='tiktok'?'Urutan: status → jadwal → produksi → publikasi':ch==='shopee'?'Shopee Video · Affiliate':'Workspace belum dibuka';
  menuLabel.textContent='Menu '+(PLATFORM_COPY[ch]?.name||ch);
  menuLabel.hidden=!known;menu.hidden=!known;
  menu.setAttribute('aria-label','Menu '+(PLATFORM_COPY[ch]?.name||ch));
