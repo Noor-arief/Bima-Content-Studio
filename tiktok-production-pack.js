@@ -16,12 +16,16 @@ voicePreview.innerHTML='<h4 style="margin:12px 0 6px">Voice-over · Dengar & eva
 panel.append(voicePreview);
 const renderCard=document.createElement('div');
 renderCard.id='tt-render-card';
-renderCard.innerHTML='<h4>Final MP4 · Owner Review</h4><p class="aff-muted">Membutuhkan aset produk terverifikasi, musik berlisensi, dan model suara Indonesia yang dikonfigurasi di server. Tidak menggunakan kredit Gemini atau PiAPI.</p><p id="tt-render-status" role="status" aria-live="polite">Memeriksa kesiapan renderer…</p><div class="aff-actions"><button type="button" id="tt-render-refresh">Periksa kesiapan</button><button type="button" id="tt-render-start" disabled>Generate MP4 untuk review</button></div><video id="tt-render-video" controls playsinline style="display:none;width:100%;max-width:320px;margin-top:12px" aria-label="Preview video TikTok"></video>';
+renderCard.innerHTML='<h4>Final MP4 · Owner Review</h4><p class="aff-muted">Membutuhkan aset produk terverifikasi, musik berlisensi, dan model suara Indonesia yang dikonfigurasi di server. Tidak menggunakan kredit Gemini atau PiAPI.</p><p id="tt-render-status" role="status" aria-live="polite">Memeriksa kesiapan renderer…</p><div class="aff-actions"><button type="button" id="tt-render-refresh">Periksa kesiapan</button><button type="button" id="tt-render-start" disabled>Generate MP4 untuk review</button></div><video id="tt-render-video" controls playsinline style="display:none;width:100%;max-width:320px;margin-top:12px" aria-label="Preview video TikTok"></video><div id="tt-review-actions" class="aff-actions" hidden><button id="tt-review-approve" type="button">Approve</button><button id="tt-review-revise" type="button">Request Revision</button></div><label id="tt-review-note-wrap" hidden>Revision notes<textarea id="tt-review-notes" maxlength="600" rows="3"></textarea></label><button id="tt-review-submit" type="button" hidden>Submit Revision</button>';
 panel.append(renderCard);
 const renderLabel=renderCard.querySelector('#tt-render-status');
 const refreshRender=renderCard.querySelector('#tt-render-refresh');
 const generateRender=renderCard.querySelector('#tt-render-start');
 const renderVideo=renderCard.querySelector('#tt-render-video');
+const reviewActions=renderCard.querySelector('#tt-review-actions');
+const reviewNotes=renderCard.querySelector('#tt-review-notes');
+const reviewNoteWrap=renderCard.querySelector('#tt-review-note-wrap');
+const reviewSubmit=renderCard.querySelector('#tt-review-submit');
 const endpoint='https://content-studio-api-production-3fe2.up.railway.app';
 const auth=()=>sessionStorage.getItem('bima_content_server_session');
 async function renderRequest(path,options={}){
@@ -37,17 +41,31 @@ async function refreshRenderStatus(){
  try{
  const state=await renderRequest('/api/tiktok/production/status');
  generateRender.disabled=!state.ready||state.busy||state.videoReady;
+ reviewActions.hidden=state.reviewStatus!=='pending_review';
  renderLabel.textContent=state.videoReady?'MP4 siap untuk review (belum dipublikasikan).':state.busy?'Sedang merender MP4…':state.ready?'Renderer siap. Pilih draft, lalu generate video untuk review.':state.configured?'Izin aset atau musik belum terverifikasi di server.':'Belum siap: model suara, tiga aset produk dan musik harus dipasang di backend.';
  if(state.requirements&&!state.ready){
    const labels={voiceModel:'Model suara Indonesia',image1:'Foto produk 1',image2:'Foto produk 2',image3:'Foto produk 3',music:'File musik',productRights:'Izin penggunaan foto produk',musicRights:'Lisensi musik komersial',voiceRights:'Lisensi model suara'};
    const missing=Object.entries(labels).filter(([key])=>state.requirements[key]!==true).map(([,name])=>name);
    if(missing.length)renderLabel.textContent='Belum siap: '+missing.join(' · ')+'.';
  }
+ if(state.reviewStatus==='approved')renderLabel.textContent='Approved by owner · NOT published.';
+ if(state.reviewStatus==='revision_requested')renderLabel.textContent='Revision requested · automatic regeneration pending.';
  if(state.error)renderLabel.textContent+=' Error: '+state.error;
  if(state.videoReady){const response=await fetch(endpoint+'/api/tiktok/production/video',{headers:{Authorization:'Bearer '+auth()}});if(response.ok){const video=await response.blob();if(renderVideo.dataset.url)URL.revokeObjectURL(renderVideo.dataset.url);const url=URL.createObjectURL(video);renderVideo.dataset.url=url;renderVideo.src=url;renderVideo.style.display='block';}}
  }catch(err){renderLabel.textContent=String(err.message||err);generateRender.disabled=true;}
  finally{refreshRender.disabled=false;}
 }
+
+async function sendReview(decision,notes=''){
+ try{
+  const state=await renderRequest('/api/tiktok/production/review',{method:'POST',body:JSON.stringify({decision,notes})});
+  reviewActions.hidden=true;reviewNoteWrap.hidden=true;reviewSubmit.hidden=true;
+  renderLabel.textContent=state.reviewStatus==='approved'?'Owner approved · NOT published.':'Revision requested · BIMA regeneration not yet available.';
+ }catch(e){renderLabel.textContent='Review failed: '+String(e.message||e);}
+}
+renderCard.querySelector('#tt-review-approve').addEventListener('click',()=>sendReview('approve'));
+renderCard.querySelector('#tt-review-revise').addEventListener('click',()=>{reviewNoteWrap.hidden=false;reviewSubmit.hidden=false;reviewNotes.focus();});
+reviewSubmit.addEventListener('click',()=>{const notes=reviewNotes.value.trim();if(notes.length<5){renderLabel.textContent='Tuliskan instruksi revisi minimal 5 karakter.';return;}sendReview('request_revision',notes);});
 refreshRender.addEventListener('click',refreshRenderStatus);
 generateRender.addEventListener('click',async()=>{
  if(!last)build();
