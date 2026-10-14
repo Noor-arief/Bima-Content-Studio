@@ -96,7 +96,7 @@
     latest=data;
     currentItems=Object.fromEntries((data.items||[]).map(item=>[item.id,item]));
     window.BIMA_REMOTE_CONTENT=currentItems;
-    window.BIMA_REMOTE_STALE=false;
+    window.BIMA_REMOTE_STALE=false;window.BIMA_REMOTE_AT=Date.now();
     saveStatusCache(data);
     document.dispatchEvent(new CustomEvent('bima:remote-status',{detail:data}));
     if(typeof renderQueue==='function')renderQueue();
@@ -131,10 +131,10 @@
   }
   function detailFor(item){
     if(!item)return 'Belum ada konten terpilih.';
-    const entry=currentItems[item.id];
+    const entry=remoteFor(item.id);
     const stale=window.BIMA_REMOTE_STALE?' · Last verified state; sign in to refresh.':'';
     if(entry?.status==='published')return '✓ Published on YouTube · '+(entry.youtubeId||'')+' · BIMA selesai.'+thumbDescription(entry)+stale;
-    if(entry?.status==='scheduled')return '✓ BIMA sudah upload & schedule · '+wib(entry.publishAt)+' · Video ID '+(entry.youtubeId||'')+'. Menunggu konfirmasi Public.'+thumbDescription(entry)+stale;
+    if(entry?.status==='scheduled')return '✓ BIMA sudah upload & schedule · '+(entry.publishAt?wib(entry.publishAt):item.date+' '+item.time+' WIB · jadwal lokal, login untuk detail server')+' · Video ID '+(entry.youtubeId||'')+'. Menunggu konfirmasi Public.'+thumbDescription(entry)+stale;
     if(entry?.status==='private_uploaded')return '✓ BIMA berhasil upload Private · '+(entry.youtubeId||'')+'. Publikasi Public belum terjadwal atau terkonfirmasi.'+thumbDescription(entry);
     if(entry?.status==='uploading')return 'BIMA sedang upload… jangan klik ulang.';
     if(entry?.status==='needs_review')return 'Upload perlu investigasi; BIMA tidak akan mencoba ulang agar tidak menduplikasi video.';
@@ -144,7 +144,7 @@
   }
   function syncUI(){
     const item=getSelected();
-    const entry=currentItems[item?.id];
+    const entry=remoteFor(item?.id);
     const authenticated=!!token();
     const terminal=entry&&finalStatuses.includes(entry.status);
     const ready=!!item?.approved;
@@ -242,6 +242,7 @@
   main.addEventListener('click',action);
   editorButton.addEventListener('click',action);
   document.addEventListener('bima:render-status',syncUI);
+  document.addEventListener('bima:episode-selected',()=>{message.dataset.kind='info';syncUI();});
   document.addEventListener('bima:server-state',e=>{
     // Existing back-end controls can update the same status without a reload.
     const arr=e.detail?.items;

@@ -9,7 +9,7 @@
  const make=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=String(value);return e;};
  const formatDate=d=>new Date(d+"T12:00:00Z").toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
  const brief=e=>[ "ORBIT & OCEAN — EDITORIAL BRIEF (NOT FACT-CHECKED)",
- "Date: "+e.date+" 19:30 WIB", "Format: "+e.type+", "+e.targetSeconds+"s, "+e.aspect,
+ "Schedule: unscheduled research idea", "Format: "+e.type+", "+e.targetSeconds+"s, "+e.aspect,
  "Title: "+e.title, "Subject: "+e.category, "Mechanism: "+e.mechanism,
  "Reference candidate (NOT yet verified): "+e.referenceCandidate,
  "Before generation: verify exact book title, edition and page; verify facts and rights; create unique script and voice track; confirm accurate diagrams/anatomy.",
@@ -20,7 +20,7 @@
  "PRODUCTION STATE: RESEARCH REQUIRED. Do NOT upload automatically." ].join("\n");
  function select(e){
   current=e;selected.value=e.id;story.replaceChildren();details.replaceChildren();
-  const header=make("div","",e.type+" · "+formatDate(e.date)+" · "+e.time+" WIB");
+  const header=make("div","",e.type+" · Ide riset, belum dijadwalkan");
   header.style.cssText="font-weight:700;color:#93dcff;margin:4px 0 9px";
   details.append(header,make("h3","",e.title),make("p","",e.mechanism+" · "+e.targetSeconds+"s · "+e.aspect));
   const ref=make("p","","Buku untuk riset (BELUM diverifikasi): "+e.referenceCandidate+". Harus ditambah judul/edisi/halaman asli sebelum produksi.");
@@ -43,18 +43,18 @@
  function renderRows(){
   list.replaceChildren();
   for(const item of entries){
-    const btn=make("button","",formatDate(item.date)+" · "+(item.type==="Shorts"?"SHORTS":"VIDEO")+" · "+item.title);
+    const btn=make("button","",(item.type==="Shorts"?"SHORTS":"VIDEO")+" · "+item.title);
     btn.type="button";btn.dataset.id=item.id;btn.style.cssText="text-align:left;background:rgba(116,139,255,.09);border:1px solid rgba(153,172,255,.15);color:#ecf0ff;border-radius:10px;padding:10px 12px;cursor:pointer;min-height:41px";
     btn.addEventListener("click",()=>select(item));list.append(btn);
-    const option=make("option","",item.date+" · "+item.type+" · "+item.title);option.value=item.id;selected.append(option);
+    const option=make("option","",item.type+" · "+item.title);option.value=item.id;selected.append(option);
   }
  }
  selected.addEventListener("change",()=>{const v=entries.find(x=>x.id===selected.value);if(v)select(v);});
  copy.addEventListener("click",async()=>{if(!current)return;try{await navigator.clipboard.writeText(brief(current));summary.textContent="Brief copied. Source still requires verification."; }catch{summary.textContent="Browser copy permission denied; choose HTTPS / copy manually."; }});
- dateJump.addEventListener("click",()=>{if(!current)return;location.hash="#view=calendar&date="+current.date;});
+ dateJump.addEventListener("click",()=>{if(!current)return;window.BIMA_NAVIGATE?.('kalender');});
  fetch("./autonomous-calendar-2026.json",{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("calendar JSON HTTP "+r.status);return r.json()}).then(data=>{
   entries=data.items||[];if(!entries.length)throw Error("empty calendar");
-  by("autonomousCount").textContent=entries.length+" drafts · "+entries.filter(x=>x.type==="Shorts").length+" Shorts / "+entries.filter(x=>x.type==="Video").length+" Videos";
+  by("autonomousCount").textContent=entries.length+" ide · "+entries.filter(x=>x.type==="Shorts").length+" Shorts / "+entries.filter(x=>x.type==="Video").length+" Videos";
   renderRows();select(entries[0]);
  }).catch(err=>summary.textContent="Calendar could not be loaded: "+String(err.message||err));
 })();

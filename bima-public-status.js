@@ -8,7 +8,7 @@
   function apply(data,{cached=false}={}){
     if(!data||!Number.isInteger(data.uploaded)||!Number.isInteger(data.scheduled)||
       !Number.isInteger(data.published)||!Array.isArray(data.uploadIndicators))return;
-    latest=data;
+    latest=data;window.BIMA_PUBLIC_AT=cached?0:Date.now();
     window.BIMA_PUBLIC_UPLOADS=Object.fromEntries(
       data.uploadIndicators.filter(i=>i&&typeof i.id==='string'&&
         ['scheduled','published','private_uploaded','uploading','needs_review'].includes(i.status))
@@ -22,6 +22,7 @@
       info.style.color='#9deecb';
     }
     if(typeof renderQueue==='function')renderQueue();
+    if(typeof renderCalendar==='function')renderCalendar();
   }
   function restore(){
     try{

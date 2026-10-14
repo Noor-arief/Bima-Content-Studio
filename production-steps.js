@@ -68,7 +68,7 @@
   });
   let lastSelectedId = null;
   function currentServerItem(id) {
-    return serverItems.find(item => item.id === id) || null;
+    return remoteFor(id) || serverItems.find(item => item.id === id) || null;
   }
   function updateSteps() {
     const item = getSelected();
@@ -82,7 +82,7 @@
     sendButton.disabled=!ownerReady||!approved||!!server&&['private_uploaded','scheduled','published','uploading','needs_review'].includes(server.status);
     approveServerButton.disabled=!ownerReady||!approved||server?.status!=='draft_with_video'; 
     approveServerButton.textContent=server?.status==='approved'?'✓ Server Approved — Completed':'2 · Approve server-side schedule';
-    badge.textContent=server?.status==='approved'?'✓ Server Approved':server?.status==='draft_with_video'?'Video on Railway':approved?'Approved · Local only':'Awaiting local approval';
+    badge.textContent=uploaded?itemStatus(item):server?.status==='approved'?'✓ Server Approved':server?.status==='draft_with_video'?'Video on Railway':approved?'Approved · Local only':'Awaiting local approval';
     badge.style.color=server?.status==='approved'||approved?'#9deecb':'#ffdcad';
     const confirmed=document.getElementById('serverApprovalConfirmed');
     if(confirmed){
@@ -115,9 +115,9 @@
       : server?.status==='approved'?'Server approved; next step is one Upload Private / Schedule action via BIMA, not a manual upload.':
         'Upload and scheduling are managed by BIMA. Complete local and Railway approval first.';
     selected.textContent= item
-      ? ('Selected: '+item.title+' · '+(item.mediaName?'MP4 attached':'No MP4')+' · '+(approved?'Approved locally':'Not approved')+(server?' · Railway: '+server.status:' · Not stored on Railway'))
+      ? ('Selected: '+item.title+' · '+(uploaded?'YouTube upload confirmed':item.mediaName?'MP4 attached locally':'No local MP4')+' · '+(uploaded?itemStatus(item):approved?'Approved locally':'Awaiting local review')+(server?' · Railway: '+server.status:' · Server detail not loaded'))
       : 'No YouTube draft is selected. Open Kalender and select a draft first.';
-    const stage = !media ? 1 : !approved ? 2 : 3;
+    const stage = uploaded ? 3 : !media ? 1 : !approved ? 2 : 3;
     const messages = {
       1:'Tahap 1: pilih dan simpan MP4 final di browser, lalu review videonya.',
       2:'Tahap 2: periksa judul, deskripsi, video dan suara. Klik Mark Approved setelah siap.',
@@ -133,7 +133,7 @@
     hint.textContent = message;
     buttons.forEach(button => {
       const n = Number(button.dataset.productionStep);
-      const done = n === 1 ? media : n === 2 ? approved : uploaded;
+      const done = n === 1 ? media||uploaded : n === 2 ? approved||uploaded : uploaded;
       const active = n === stage && !done;
       button.classList.toggle('done', done);
       button.classList.toggle('active', active);
@@ -213,6 +213,7 @@
     else void checkOwner();
   });
   document.addEventListener('bima:render-status', updateSteps);
+  document.addEventListener('bima:episode-selected', updateSteps);
   document.addEventListener('bima:server-state', event => {
     const data = event.detail || {};
     serverItems = Array.isArray(data.items) ? data.items.filter(item =>

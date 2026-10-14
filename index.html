@@ -624,8 +624,8 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  </div>
  <div class="panel" data-panel="publishing"><div class="line"><div><h2>YouTube Publishing Setup</h2><p class="sub" style="margin-bottom:0">Prepare automated posting, safely.</p></div><span class="chip" id="legacyYoutubeStatus" style="color:#ffdcad">Checking connection…</span></div>
   <div class="note warn" style="margin-top:14px"><strong>BIMA publishing workflow:</strong> Review final MP4, click Publish with BIMA once, and follow its actual YouTube status. Advanced settings are optional. A Google account connection by itself does not publish a video.</div>
-  <div class="fields" style="margin-top:12px"><div class="field"><label>Default publish time · WIB</label><input type="time" id="defaultTime" value="19:30"/></div><div class="field"><label>Timezone</label><input type="text" value="Asia/Jakarta (UTC+7)" disabled/></div></div>
-  <div class="actions"><a class="api-link" href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">Open Google Cloud ↗</a><a class="api-link" href="https://developers.google.com/youtube/v3/guides/auth/server-side-web-apps" target="_blank" rel="noopener noreferrer">OAuth setup guide ↗</a><a class="api-link" href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">YouTube Studio ↗</a></div>
+  <div class="fields" style="margin-top:12px"><div class="field"><label>Default untuk draft baru · WIB</label><input type="time" id="defaultTime" value="19:30" aria-label="Default publish time WIB"/></div><div class="field"><label>Timezone</label><input type="text" value="Asia/Jakarta (UTC+7)" disabled/></div></div>
+  <p class="hint">Default ini hanya untuk draft baru. Jadwal konten aktif mengikuti tanggal dan jam per video; konten yang sudah Scheduled tidak dijadwalkan ulang.</p><div class="actions"><a class="api-link" href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">Open Google Cloud ↗</a><a class="api-link" href="https://developers.google.com/youtube/v3/guides/auth/server-side-web-apps" target="_blank" rel="noopener noreferrer">OAuth setup guide ↗</a><a class="api-link" href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">YouTube Studio ↗</a></div>
   <p class="hint">BIMA uses OAuth and secure Railway storage to submit and schedule the approved video. Keep production credentials on Railway, not inside this HTML file.</p>
  </div></section>
 </div>
@@ -638,7 +638,7 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  <div class="line"><div><h2> BIMA YouTube Automation — Secure Backend </h2><p class="sub">Connect the Google account that owns Orbit & Ocean. Video uploads and Google authorization run on an isolated Railway server, never in this HTML file.</p></div><span class="chip" id="apiStatusChip">Backend not configured</span></div>
  <div class="fields" style="margin-top:14px">
   <div class="field full"><label for="apiEndpoint">Railway backend HTTPS URL</label><input id="apiEndpoint" type="url" placeholder="https://content-studio-api-xxxx.up.railway.app"></div>
-  <div class="field"><label for="apiMadeForKids">Audience classification</label><select id="apiMadeForKids"><option value="false">General audience / Not made for kids</option><option value="true">Made for kids</option></select></div>
+  <div class="field"><label for="apiMadeForKids">Audience classification · selected content</label><select id="apiMadeForKids"><option value="false">General audience / Not made for kids</option><option value="true">Made for kids</option></select></div>
   <div class="field"><label><input id="apiSynthetic" type="checkbox"> Realistic synthetic scenes (requires YouTube disclosure)</label></div>
  </div>
  <div class="actions">
@@ -652,16 +652,16 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
  <p class="note warn" style="margin-top:14px"><strong>Approval safeguard:</strong> Select and save a final MP4 in Shorts Production Desk. Then send it to Railway, approve that exact file, and upload after OAuth setup. Until Google’s API audit and permission checks pass, BIMA may be able to upload Private but cannot promise public scheduling. No action here uploads without a click.</p>
  <p class="hint" id="apiServerMessage" role="status" aria-live="polite">Checking Railway connection. Calendar drafts stay local until explicitly sent.</p>
 </section>
-<section class="panel" id="autonomousPlanner" style="margin:20px 0;border:1px solid rgba(98,220,209,.25)">
- <div class="line"><div><h2>BIMA Autonomous Content — Science Production Planner</h2><p class="sub">Orbit &amp; Ocean · 81 science ideas through December. IDEA BANK only, not daily upload obligations or an active publishing queue.</p></div><span class="chip" id="autonomousCount">Loading mixed schedule…</span></div>
+<details class="panel" data-panel="ringkasan" id="autonomousPlanner" style="margin:20px 0;border:1px solid rgba(98,220,209,.25)">
+ <summary style="cursor:pointer;font-weight:700">Bank ide riset — belum dijadwalkan</summary><div class="line"><div><h2>Bank ide riset</h2><p class="sub">Orbit &amp; Ocean · 81 science ideas through December. IDEA BANK only, not daily upload obligations or an active publishing queue.</p></div><span class="chip" id="autonomousCount">Loading mixed schedule…</span></div>
  <div class="note warn" style="margin:14px 0"><strong>Science and rights:</strong> book titles are research leads, not verified citations. Verify title, edition and page for every claim. No copying copyrighted book figures for monetization without permission. All anatomy labels must be checked independently.</div>
- <div class="fields" style="margin:12px 0"><div class="field full"><label for="autonomousDate">Production date and format</label><select id="autonomousDate" style="max-width:100%;min-height:44px"></select></div></div>
+ <div class="fields" style="margin:12px 0"><div class="field full"><label for="autonomousDate">Pilih ide riset (bukan jadwal aktif)</label><select id="autonomousDate" style="max-width:100%;min-height:44px"></select></div></div>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:16px"><div id="autonomousDetails" style="min-width:0"></div><div id="autonomousStory" style="min-width:0"></div></div>
- <div class="actions"><button class="btn primary" type="button" id="autonomousCopy">Copy Production Brief</button><button class="btn" type="button" id="autonomousJump">Open Date in Calendar</button><button class="btn" type="button" disabled title="AI video API, budget approval, and science QA must pass before activation">Generate Video — Pending Provider</button></div>
+ <div class="actions"><button class="btn primary" type="button" id="autonomousCopy">Copy Production Brief</button><button class="btn" type="button" id="autonomousJump">Buka kalender aktif</button><button class="btn" type="button" disabled title="AI video API, budget approval, and science QA must pass before activation">Generate Video — Pending Provider</button></div>
  <p class="hint" id="autonomousSummary" role="status" aria-live="polite">Book research and scientific QA required before video generation.</p>
  <details style="margin-top:16px"><summary style="cursor:pointer;color:#c6d4ff">Lihat 81 ide konten (belum dijadwalkan)</summary><div id="autonomousDays" style="display:grid;gap:6px;max-height:360px;overflow-y:auto;margin:12px 0"></div></details>
  <p class="hint">Draft aktif tetap dipertahankan. Ide ini hanya bahan riset; tidak otomatis masuk kalender atau memicu upload. Otomatisasi berbayar dan auto-publish belum diaktifkan.</p>
-</section>
+</details>
 <footer class="footer" id="connectionFooter">BIMA Content Studio · Checking YouTube connection…</footer>
 </div>
 </div>
@@ -701,7 +701,7 @@ function migrateLegacyCreativePrompts(data){
 // One-time recovery requested by the owner on 12 October 2026.
 function recoverOctober12Draft(data){
  const recovery='octopus-20261012-owner-request-v1';
- if(data.recoveries?.includes(recovery))return data;
+ if(data.deletedItemIds?.includes('yt-octopus-001')||data.recoveries?.includes(recovery))return data;
  const original=SEED.items.youtube.find(item=>item.id==='yt-octopus-001');
  if(original&&!data.items.youtube.some(item=>item.id===original.id)){
    data.items.youtube.push(clone(original));
@@ -722,7 +722,7 @@ function migrateOct19Pufferfish(data){
  }
  return data;
 }
-function load(){try{const txt=localStorage.getItem(STORAGE);if(txt){const data=JSON.parse(txt);if(data?.version===3&&data?.items?.youtube&&data?.channels){const ids=new Set(data.items.youtube.map(x=>x.id));let newPlanned=0;for(const planned of [INTRO_2026,...SCHEDULE_2026]){if(!ids.has(planned.id)){data.items.youtube.push(clone(planned));newPlanned++;}}if(newPlanned){try{localStorage.setItem(STORAGE,JSON.stringify(data));}catch(e){console.warn("Could not persist new calendar entries",e);}}if(data.selectedItem==="yt26-20261013-piapi-pilot")data.selectedItem="yt26-20261013-moon";return recoverOctober12Draft(migrateOct19Pufferfish(migrateLegacyCreativePrompts(data)))}}}catch(e){console.warn('Local storage unavailable',e)}const initial=clone(SEED);initial.items.youtube.push(clone(SCHEDULE_2026[0]));if(initial.selectedItem==="yt26-20261013-piapi-pilot")initial.selectedItem="yt26-20261013-moon";return recoverOctober12Draft(initial)}
+function load(){try{const txt=localStorage.getItem(STORAGE);if(txt){const data=JSON.parse(txt);if(data?.version===3&&data?.items?.youtube&&data?.channels){const ids=new Set(data.items.youtube.map(x=>x.id));let newPlanned=0;for(const planned of [INTRO_2026,...SCHEDULE_2026]){if(!ids.has(planned.id)&&!data.deletedItemIds?.includes(planned.id)){data.items.youtube.push(clone(planned));newPlanned++;}}if(newPlanned){try{localStorage.setItem(STORAGE,JSON.stringify(data));}catch(e){console.warn("Could not persist new calendar entries",e);}}if(data.selectedItem==="yt26-20261013-piapi-pilot")data.selectedItem="yt26-20261013-moon";return recoverOctober12Draft(migrateOct19Pufferfish(migrateLegacyCreativePrompts(data)))}}}catch(e){console.warn('Local storage unavailable',e)}const initial=clone(SEED);if(initial.selectedItem==="yt26-20261013-piapi-pilot")initial.selectedItem="yt26-20261013-moon";return recoverOctober12Draft(initial)}
 let state=load();let liveFileURL='';let previewId='';let videoSelectionSerial=0;
 const MEDIA_DB_NAME='bima-content-studio-v4-assets';
 function openMediaDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window))return reject(Error('IndexedDB unavailable'));const req=indexedDB.open(MEDIA_DB_NAME,1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('videos'))db.createObjectStore('videos')};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||Error('Database open failed'))})}
@@ -739,12 +739,20 @@ function today(){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jak
 function human(d){return new Date(d+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}
 function gotoChannel(ch){state.active=ch;render();try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){}}
 function renderChannels(){const bar=$('channelBar');bar.replaceChildren();for(const ch of CHANNEL_ORDER){const cfg=PLATFORM_COPY[ch],b=document.createElement('button');b.className='channel'+(state.active===ch?' active':'');b.type='button';b.dataset.channel=ch;const img=document.createElement('img');img.src=ASSETS[ch];img.alt='';const name=document.createElement('span');name.innerHTML=`<strong>${cfg.name}</strong><small>${ch==='youtube'?'Faceless Shorts':ch==='tiktok'?'Affiliate · yellow basket':'Not active yet'}</small>`;const badge=document.createElement('span');badge.className='tag';badge.textContent=cfg.label;b.append(img,name,badge);b.addEventListener('click',()=>gotoChannel(ch));bar.appendChild(b)}}
-function items(){return state.items.youtube.filter(x=>x.id!=="yt26-20261013-piapi-pilot");}
+function remoteFor(id){
+ const alias=id==='yt26-20261013-moon'?'yt26-20261013-moon-final-with-voice':id;
+ const owner=window.BIMA_REMOTE_CONTENT?.[alias]||window.BIMA_REMOTE_CONTENT?.[id];
+ const publicItem=window.BIMA_PUBLIC_UPLOADS?.[alias]||window.BIMA_PUBLIC_UPLOADS?.[id];
+ const ownerNewer=!!owner&&!window.BIMA_REMOTE_STALE&&(window.BIMA_REMOTE_AT||0)>=(window.BIMA_PUBLIC_AT||0);
+ return owner||publicItem?{...(owner||{}),...(!ownerNewer?publicItem||{}:{} )}:null;
+}
+function itemStatus(item){const status=remoteFor(item?.id)?.status;return ({published:'Published',scheduled:'Scheduled',private_uploaded:'Uploaded Private',uploading:'Uploading',needs_review:'Needs review',approved:'Approved on Railway',draft_with_video:'Video on Railway'})[status]||item?.status||'No draft';}
+function items(){return [...new Map(state.items.youtube.filter(x=>x.id!=="yt26-20261013-piapi-pilot").map(x=>[x.id,x])).values()];}
 function displayItemsOn(date){
  const entries=items().filter(i=>i.date===date),chosen=new Map();
  const normalize=t=>String(t||"").toLowerCase().replace(/\b(?:why|does|do|the|a|an|how|what|is|have|has)\b/g,"").replace(/[^a-z0-9]/g,"");
  const score=i=>{
-   const remote=window.BIMA_REMOTE_CONTENT?.[i.id]||window.BIMA_PUBLIC_UPLOADS?.[i.id];
+   const remote=remoteFor(i.id);
    const st=remote?.status||i.status;
    return ({published:100,scheduled:95,private_uploaded:90,approved:70,Approved:70,"Prompt Ready":20})[st]||10;
  };
@@ -755,24 +763,20 @@ function displayItemsOn(date){
  return [...chosen.values()];
 }
 
-function renderCalendar(){const [y,m]=state.month.split('-').map(Number);const label=new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'});$('monthLabel').textContent=label;const grid=$('calendar');grid.replaceChildren();const dow=new Date(y,m-1,1).getDay(),total=new Date(y,m,0).getDate();for(let n=0;n<42;n++){const d=n-dow+1;const inMonth=d>=1&&d<=total;const actual=new Date(y,m-1,d);const date=dateStr(actual.getFullYear(),actual.getMonth()+1,actual.getDate());const list=displayItemsOn(date);const el=document.createElement('button');el.className='day'+(!inMonth?' muted':'')+(date===state.selected?' selected':'')+(date===today()?' today':'');el.type='button';el.setAttribute('aria-label',human(date)+(list.length?' · '+list.length+' konten':''));el.setAttribute('aria-pressed',String(date===state.selected));const day=document.createElement('span');day.className='date';day.textContent=String(actual.getDate());const count=document.createElement('span');count.className='count';count.textContent=list.length?list.length+' video planned':'';el.append(day,count);for(const i of list.slice(0,2)){const bubble=document.createElement('span');bubble.className='event';bubble.dataset.itemId=i.id;bubble.title=i.title;bubble.textContent=i.title;el.append(bubble)}window.BIMA_THUMBNAILS?.calendarTile(el,list);el.addEventListener('click',e=>{state.selected=date;state.month=date.slice(0,7);const clickedId=e.target.closest('[data-item-id]')?.dataset.itemId;const first=items().find(i=>i.date===date&&i.id===clickedId)||items().find(i=>i.date===date);state.selectedItem=first?.id||'';persist()});grid.appendChild(el)}}
-function renderDay(){const dayItems=displayItemsOn(state.selected);$('selectedLabel').textContent=human(state.selected);const list=$('dayList');list.replaceChildren();if(!dayItems.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Belum ada konten YouTube untuk tanggal ini. Klik + New Short untuk membuat draft.';list.appendChild(empty);return}for(const i of dayItems){const remote=window.BIMA_REMOTE_CONTENT?.[i.id]||window.BIMA_PUBLIC_UPLOADS?.[i.id];const confirmed=['published','scheduled','private_uploaded'].includes(remote?.status);const displayStatus=remote?.status==='published'?'Published':remote?.status==='scheduled'?'Scheduled':remote?.status==='private_uploaded'?'Uploaded Private':i.status;const btn=document.createElement('button');btn.type='button';btn.className='item'+(i.id===state.selectedItem?' active':'');btn.innerHTML=`<div class="item-title">${escapeHTML(i.title)}</div><div class="item-meta">${escapeHTML(i.format)} · ${escapeHTML(i.time)} WIB</div><div class="chips"><span class="chip">${escapeHTML(displayStatus)}</span><span class="chip ${i.approved?'green':''}">${confirmed?'YouTube confirmed':i.approved?'Approved':'Awaiting approval'}</span></div>`;window.BIMA_THUMBNAILS?.dayRow(btn,i);btn.addEventListener('click',()=>{state.selectedItem=i.id;render()});list.appendChild(btn)}}
+function renderCalendar(){const [y,m]=state.month.split('-').map(Number);const label=new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'});$('monthLabel').textContent=label;const grid=$('calendar');grid.replaceChildren();const dow=new Date(y,m-1,1).getDay(),total=new Date(y,m,0).getDate();for(let n=0;n<42;n++){const d=n-dow+1;const inMonth=d>=1&&d<=total;const actual=new Date(y,m-1,d);const date=dateStr(actual.getFullYear(),actual.getMonth()+1,actual.getDate());const list=displayItemsOn(date);const el=document.createElement('button');el.className='day'+(!inMonth?' muted':'')+(date===state.selected?' selected':'')+(date===today()?' today':'');el.type='button';el.setAttribute('aria-label',human(date)+(list.length?' · '+list.length+' konten':''));el.setAttribute('aria-pressed',String(date===state.selected));const day=document.createElement('span');day.className='date';day.textContent=String(actual.getDate());const count=document.createElement('span');count.className='count';count.textContent=list.length?list.length+' video planned':'';el.append(day,count);for(const i of list.slice(0,2)){const bubble=document.createElement('span');bubble.className='event';bubble.dataset.itemId=i.id;bubble.title=i.title;bubble.textContent=i.title;el.append(bubble)}window.BIMA_THUMBNAILS?.calendarTile(el,list);el.addEventListener('click',e=>{state.selected=date;state.month=date.slice(0,7);const clickedId=e.target.closest('[data-item-id]')?.dataset.itemId;const first=list.find(i=>i.id===clickedId)||list[0];state.selectedItem=first?.id||'';persist()});grid.appendChild(el)}}
+function renderDay(){const dayItems=displayItemsOn(state.selected);$('selectedLabel').textContent=human(state.selected);const list=$('dayList');list.replaceChildren();if(!dayItems.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Belum ada konten YouTube untuk tanggal ini. Klik + New Short untuk membuat draft.';list.appendChild(empty);return}for(const i of dayItems){const remote=remoteFor(i.id);const confirmed=['published','scheduled','private_uploaded'].includes(remote?.status);const displayStatus=remote?.status==='published'?'Published':remote?.status==='scheduled'?'Scheduled':remote?.status==='private_uploaded'?'Uploaded Private':i.status;const btn=document.createElement('button');btn.type='button';btn.className='item'+(i.id===state.selectedItem?' active':'');btn.innerHTML=`<div class="item-title">${escapeHTML(i.title)}</div><div class="item-meta">${escapeHTML(i.format)} · ${escapeHTML(i.time)} WIB</div><div class="chips"><span class="chip">${escapeHTML(displayStatus)}</span><span class="chip ${i.approved?'green':''}">${confirmed?'YouTube confirmed':i.approved?'Approved':'Awaiting approval'}</span></div>`;window.BIMA_THUMBNAILS?.dayRow(btn,i);btn.addEventListener('click',()=>{state.selectedItem=i.id;render()});list.appendChild(btn)}}
 function getSelected(){return items().find(i=>i.id===state.selectedItem)||null}
-function renderEditor(){const i=getSelected();$('draftStatus').textContent=i?.status||'No draft';$('fTitle').value=i?.title||'';$('fDate').value=i?.date||state.selected;$('fTime').value=i?.time||state.channels.youtube.defaultTime;$('fFormat').value=i?.format||'Shorts · 10s';$('fStatus').value=i?.status==='Approved'?'QA Pass':(i?.status||'Draft');$('fPrompt').value=i?.prompt||'';$('fCaption').value=i?.caption||'';$('fNotes').value=i?.notes||'';const approval=$('approvalState');if(approval){approval.textContent=i?.approved?'Approved · Saved locally':'Awaiting approval';approval.style.color=i?.approved?'#9deecb':'#ffdcad';}const approvalButton=$('approve');if(approvalButton&&!approvalButton.disabled)approvalButton.textContent=i?.approved?'✓ Approved':'Mark Approved';loadVideoForSelection();document.dispatchEvent(new CustomEvent('bima:episode-selected',{detail:{id:i?.id||null}}))}
+function renderEditor(){const i=getSelected();$('draftStatus').textContent=itemStatus(i);$('fTitle').value=i?.title||'';$('fDate').value=i?.date||state.selected;$('fTime').value=i?.time||state.channels.youtube.defaultTime;if(i?.format&&![...$('fFormat').options].some(o=>o.value===i.format))$('fFormat').add(new Option(i.format,i.format));$('fFormat').value=i?.format||'Shorts · 10s';$('fStatus').value=i?.status==='Approved'?'QA Pass':(i?.status||'Draft');$('fPrompt').value=i?.prompt||'';$('fCaption').value=i?.caption||'';$('fNotes').value=i?.notes||'';const approval=$('approvalState');if(approval){approval.textContent=i?.approved?'Approved · Saved locally':'Awaiting approval';approval.style.color=i?.approved?'#9deecb':'#ffdcad';}const approvalButton=$('approve');if(approvalButton&&!approvalButton.disabled)approvalButton.textContent=i?.approved?'✓ Approved':'Mark Approved';loadVideoForSelection();document.dispatchEvent(new CustomEvent('bima:episode-selected',{detail:{id:i?.id||null}}))}
 function renderQueue(){
  const body=$('queueBody');body.replaceChildren();
- const moonPublished=window.BIMA_REMOTE_CONTENT?.["yt26-20261013-moon-final-with-voice"]||window.BIMA_PUBLIC_UPLOADS?.["yt26-20261013-moon-final-with-voice"];
- const moonStatus=moonPublished?.status;
- const moonUploaded=["scheduled","published","private_uploaded"].includes(moonStatus);
- const rows=[...items()].filter(i=>!moonUploaded||!(i.date==="2026-10-13"&&/moon.*chang.*shape/i.test(i.title)));
- if(moonUploaded)rows.push({id:"yt26-20261013-moon-final-with-voice",date:"2026-10-13",time:"19:30",title:"Why Does the Moon Change Shape?",status:moonStatus,approved:true,mediaName:"moon-voice-review.mp4"});
+ const rows=[...items()];
  // Deduplicate equivalent titles on the same calendar date, including legacy
  // browser drafts and backend-published copies. Distinct topics remain separate.
  const canonicalTitle=t=>String(t||"").toLowerCase()
-   .replace(/\\b(?:why|does|do|the|a|an|how|what|is|have|has)\\b/g,"")
+   .replace(/\b(?:why|does|do|the|a|an|how|what|is|have|has)\b/g,"")
    .replace(/[^a-z0-9]/g,"");
  const rank=i=>{
-   const remote=window.BIMA_REMOTE_CONTENT?.[i.id]||window.BIMA_PUBLIC_UPLOADS?.[i.id];
+   const remote=remoteFor(i.id);
    const status=remote?.status||i.status;
    return ({published:100,scheduled:95,private_uploaded:90,approved:70,Approved:70,"Prompt Ready":20,"Research Required":5})[status]||10;
  };
@@ -786,11 +790,8 @@ function renderQueue(){
  rows.sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
  if(!rows.length){const tr=document.createElement('tr');tr.innerHTML='<td colspan="5">No YouTube drafts yet.</td>';body.append(tr)}
  for(const i of rows){
-   const fromOwner=window.BIMA_REMOTE_CONTENT?.[i.id]||null;
-   const fromPublic=window.BIMA_PUBLIC_UPLOADS?.[i.id]||null;
-   const remote=fromOwner||fromPublic?{...(fromOwner||{}),...(fromPublic||{})}:null;
+   const remote=remoteFor(i.id);
    const remoteStatus=remote?.status||null;
-   if(i.id==="yt26-20261013-moon-final-with-voice"&&remoteStatus==="scheduled")i.status="Scheduled";
    const statusText=remoteStatus==='published'?'Published · Public confirmed'
      :remoteStatus==='scheduled'?'Uploaded by BIMA · Scheduled'
      :remoteStatus==='private_uploaded'?'Uploaded by BIMA · Private'
@@ -801,12 +802,12 @@ function renderQueue(){
      :remoteStatus==='draft'?'Railway draft'
      :i.mediaName?'Local MP4 · Upload status not yet verified':'No MP4';
    const tr=document.createElement('tr');
-   for(const value of [i.date+' '+i.time,i.title,remoteStatus==='published'?'Published':i.status,remoteStatus==='published'?'Published':remoteStatus==='scheduled'?'Scheduled':i.approved?'Approved':'Awaiting review',statusText]){
+   for(const value of [i.date+' '+i.time,i.title,itemStatus(i),remoteStatus==='published'?'Published':remoteStatus==='scheduled'?'Scheduled':i.approved?'Approved':'Awaiting review',statusText]){
      const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
    }
    const titleCell=tr.children[1];titleCell.replaceChildren();const open=document.createElement('button');open.type='button';open.className='queue-open';open.dataset.openItem=i.id;open.textContent=i.title;open.setAttribute('aria-label','Buka konten: '+i.title);titleCell.append(open);
-   if(remote?.youtubeId||i.id==="yt26-20261013-moon-final-with-voice"&&moonUploaded){
-     const youtubeId=remote?.youtubeId||(i.id==="yt26-20261013-moon-final-with-voice"?"DTesOXrUmME":null);
+   if(remote?.youtubeId){
+     const youtubeId=remote.youtubeId;
      const link=document.createElement('a');
      link.href='https://studio.youtube.com/video/'+encodeURIComponent(youtubeId)+'/edit';
      link.target='_blank';link.rel='noopener noreferrer';link.textContent=' · Open in Studio ↗';
@@ -821,7 +822,7 @@ function renderQueue(){
 }
 function renderFuture(){const isYT=state.active==='youtube';$('ytWorkspace').classList.toggle('hidden',!isYT);$('futureWorkspace').classList.toggle('hidden',isYT);if(isYT)return;const ch=state.active;if(ch==='tiktok'){$('futureTitle').textContent='TikTok Affiliate — Phase 2';$('futureText').textContent='A dedicated affiliate content calendar, different from YouTube Science & Nature. Every video should be tied to a real product and shop campaign.';$('futurePlan').innerHTML='<b>Planned fields:</b> Product ID / Showcase • commission rate • affiliate sample • product relevance • 9:16 prompt • shoppable video asset • yellow-basket review • affiliate sales tracking.<p class="muted-note">The yellow basket is not automatically enabled by the ordinary posting API. TikTok Shop creator eligibility and partner-approved shopping integration are separate requirements.</p>'}else{$('futureTitle').textContent=PLATFORM_COPY[ch].name+' — Later';$('futureText').textContent='This platform will get its own content library, calendar, prompt formats and publishing credentials once the YouTube workflow is proven.';$('futurePlan').innerHTML='<b>Current state:</b> not integrated. No shared YouTube drafts or fake social publishing activity.'}}
 function render(){renderChannels();renderFuture();if(state.active!=='youtube')return;renderCalendar();renderDay();renderEditor();renderQueue();$('defaultTime').value=state.channels.youtube.defaultTime}
-function newDraft(){const id='yt-'+Math.random().toString(36).slice(2,10);const i={id,platform:'youtube',date:state.selected,time:state.channels.youtube.defaultTime,title:'New YouTube Short',format:'Shorts · 10s',status:'Draft',caption:'',prompt:'',notes:'',approved:false,mediaName:'',youtubeId:''};items().push(i);state.selectedItem=id;persist();$('fTitle').focus()}
+function newDraft(){const id='yt-'+Math.random().toString(36).slice(2,10);const i={id,platform:'youtube',date:state.selected,time:state.channels.youtube.defaultTime,title:'New YouTube Short',format:'Shorts · 10s',status:'Draft',caption:'',prompt:'',notes:'',approved:false,mediaName:'',youtubeId:''};state.items.youtube.push(i);state.selectedItem=id;persist();$('fTitle').focus()}
 function currentDraftFields(){return {date:$('fDate').value||state.selected,time:$('fTime').value||state.channels.youtube.defaultTime,title:$('fTitle').value.trim()||'Untitled Short',format:$('fFormat').value,prompt:$('fPrompt').value,caption:$('fCaption').value,notes:$('fNotes').value}}
 function saveDraft(){let i=getSelected();if(!i){newDraft();i=getSelected()}const updates=currentDraftFields();const fieldsChanged=Object.entries(updates).some(([key,value])=>String(i[key]||'')!==String(value));const requestedStatus=$('fStatus').value;const keepApproved=!!i.approved&&!fieldsChanged&&requestedStatus==='QA Pass';Object.assign(i,updates);i.approved=keepApproved;i.status=keepApproved?'Approved':requestedStatus;state.selected=updates.date;const [y,m]=updates.date.split('-');state.month=`${y}-${m}`;persist();$('copyMsg').textContent=keepApproved?'Approved draft saved with no changes. Approval remains valid.':fieldsChanged?'Draft changes saved. Review and click Mark Approved again before server upload.':'Draft saved locally. Not uploaded to YouTube.';$('copyMsg').dataset.result=keepApproved?'success':'info';}
 function approvalNotice(message,result='info'){const notice=$('copyMsg');notice.textContent=message;notice.dataset.result=result;const status=$('approvalState');if(status){status.textContent=result==='success'?'Approved · Saved locally':result==='error'?'Approval blocked':result==='pending'?'Checking video…':'Awaiting approval';status.style.color=result==='success'?'#9deecb':result==='error'?'#ffa7a7':'#ffdcad';}}
@@ -846,7 +847,7 @@ function preflightDraftQA(item,fields){
 async function approve(){const button=$('approve');if(button?.disabled)return;const i=getSelected();if(!i){approvalNotice('Select a YouTube draft before approving.','error');return;}const id=i.id;const updates=currentDraftFields();const issues=preflightDraftQA(i,updates);
  if(issues.length){approvalNotice("Approval blocked: "+issues.join("; "),"error");return;}
  if(!updates.title||!updates.title.trim()||!updates.prompt.trim()){approvalNotice('Approval blocked: fill in Video title and Gemini video prompt first.','error');return;}if(!i.mediaName){approvalNotice('Approval blocked: attach a final MP4 to this draft first.','error');return;}const player=$('videoPreview');if(i.format?.startsWith('Shorts')&&player?.videoWidth&&player.videoWidth>=player.videoHeight){approvalNotice('Approval blocked: this Shorts file is landscape. Convert to full-screen 9:16 first.','error');return;}if(button){button.disabled=true;button.textContent='Checking video…';}approvalNotice('Checking saved MP4 in browser storage…','pending');try{const file=await mediaDB('get',id);if(!(file instanceof Blob)||file.size<1024)throw Error('The MP4 is missing from browser storage. Re-select the video file before approving.');if(!/\.mp4$/i.test(i.mediaName))throw Error('The final video must be an MP4 for YouTube.');if(getSelected()?.id!==id)throw Error('The selected draft changed. Select the same draft again.');Object.assign(i,updates);i.approved=true;i.status='Approved';state.selected=updates.date;const [y,m]=updates.date.split('-');state.month=`${y}-${m}`;persist();approvalNotice('✓ Approved! Final MP4 accepted and saved locally. Next: open Publishing → Save selected video to server. No YouTube upload has happened.','success');}catch(e){approvalNotice('Approval blocked: '+(e.message||e),'error');}finally{if(button){button.disabled=false;button.textContent=getSelected()?.approved?'✓ Approved':'Mark Approved';}}}
-async function removeDraft(){const i=getSelected();if(!i)return;if(!confirm('Delete this local YouTube draft and attached video from this browser?'))return;try{await mediaDB('del',i.id)}catch(e){console.warn(e)}state.items.youtube=items().filter(x=>x.id!==i.id);state.selectedItem=items().find(x=>x.date===state.selected)?.id||'';clearPreview();persist()}
+async function removeDraft(){const i=getSelected();if(!i)return;if(!confirm('Delete this local YouTube draft and attached video from this browser?'))return;try{await mediaDB('del',i.id)}catch(e){console.warn(e)}state.deletedItemIds=[...new Set([...(state.deletedItemIds||[]),i.id])];state.items.youtube=state.items.youtube.filter(x=>x.id!==i.id);state.selectedItem=items().find(x=>x.date===state.selected)?.id||'';clearPreview();persist()}
 async function copyPrompt(){const txt=$('fPrompt').value.trim();if(!txt){$('copyMsg').textContent='Prompt is empty.';return}try{await navigator.clipboard.writeText(txt);$('copyMsg').textContent='Gemini prompt copied!'}catch(e){const el=$('fPrompt');el.focus();el.select();try{document.execCommand('copy');$('copyMsg').textContent='Prompt copied!'}catch(e2){$('copyMsg').textContent='Copy blocked — select and copy manually.'}}}
 function backup(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download='bima-content-studio-v3-backup.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function importBackup(file){if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const obj=JSON.parse(reader.result);if(obj.version!==3||!Array.isArray(obj?.items?.youtube)||!obj.channels)throw Error('Invalid backup version');state=obj;state.active='youtube';persist()}catch(e){alert('Invalid V3 backup JSON.')}};reader.readAsText(file)}
@@ -916,7 +917,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  async function refreshStatus(){
  serverStatus=await call("/api/status");
  window.BIMA_REMOTE_CONTENT=Object.fromEntries((serverStatus.items||[]).map(item=>[item.id,item]));
- window.BIMA_REMOTE_STALE=false;
+ window.BIMA_REMOTE_STALE=false;window.BIMA_REMOTE_AT=Date.now();
  renderQueue();paintServerStatus();
  document.dispatchEvent(new CustomEvent("bima:server-state",{detail:{items:(serverStatus.items||[]).map(({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus})=>({id,status,publishAt,youtubeId,youtubePrivacyStatus,youtubeUploadStatus}))}}));
  return serverStatus;
@@ -1080,11 +1081,11 @@ render();
  document.querySelector('[data-panel="desk"] .editor-head').after(empty);
 
  function sync(){
-   const id=getSelected()?.id||'';
-   const values=[...items()].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+   let id=getSelected()?.id||'';
+   const values=[...new Set(items().map(i=>i.date))].flatMap(displayItemsOn).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
    picker.replaceChildren(new Option('Pilih konten…',''));
    for(const i of values)picker.add(new Option(i.date+' · '+i.title,i.id));
-   picker.value=id;
+   if(id&&!values.some(i=>i.id===id)){const selected=getSelected();id=values.find(i=>i.date===selected?.date&&i.title===selected?.title)?.id||id;}picker.value=id;
    empty.hidden=!!id;document.body.classList.toggle('no-selected-draft',!id);
    bar.classList.toggle('future-channel',state.active!=='youtube');
    document.body.dataset.channel=state.active;
@@ -1151,15 +1152,16 @@ render();
  if(location.hash.startsWith('#view='))restore();else{let saved;try{saved=sessionStorage.getItem('bimaView')}catch(_){}setView(saved||'ringkasan',false,false);route(document.body.dataset.view,true)}
 })();
 </script>
+<script src="content-settings.js?v=20261014-sync1" defer></script>
 <script src="shorts-ui.js?v=20261011-fullscreen-crop3" defer></script>
-<script src="production-steps.js?v=20261011-youtube-status7" defer></script>
-<script src="bima-one-click-publish.js?v=20261012-thumbnail-upload5" defer></script>
-<script src="bima-public-status.js?v=20261011-upload-count1" defer></script>
-<script src="episode-workflow.js?v=20261013-pufferfish-oct19" defer></script>
+<script src="production-steps.js?v=20261014-sync1" defer></script>
+<script src="bima-one-click-publish.js?v=20261014-sync1" defer></script>
+<script src="bima-public-status.js?v=20261014-sync1" defer></script>
+<script src="episode-workflow.js?v=20261014-sync1" defer></script>
 <script src="auto-thumbnails.js?v=20261013-topic-bound-cache-v2" defer></script>
 <script src="tiktok-affiliate.js?v=20261012-3" defer></script>
 <script src="channel-navigation.js?v=20261012-1" defer></script>
-<script src="autonomous-planner.js?v=20261012-science-mix1" defer></script>
+<script src="autonomous-planner.js?v=20261014-sync1" defer></script>
 <script src="mixed-calendar-sync.js?v=20261013-idea-bank-cleanup1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
 <script src="piapi-pilot.js?v=20261013-episode-scoped-review" defer></script>

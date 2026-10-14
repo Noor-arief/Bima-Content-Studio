@@ -41,19 +41,19 @@ document.head.append(css);
 const panel=document.createElement('section');panel.id='episodeWorkflow';
 panel.setAttribute('aria-label','Per-video production workflow');
 panel.innerHTML='<div class="ew-row"><div><h3>Episode Workflow</h3><p class="ew-muted">Teaching brief → unique storyboard → AI scene clips → continuous voice-over → final MP4 → owner review</p></div><span id="ewPhase" class="ew-muted"></span></div>'+
-'<div class="ew-row"><label for="ewDuration" class="ew-muted">Video duration <select id="ewDuration" class="ew-control"><option value="16">16s · 2 clips</option><option value="24">24s · 3 clips</option><option value="32">32s · 4 clips</option></select></label><span class="ew-muted">Each AI scene targets 8 seconds; final production needs owner review</span></div>'+
+'<div class="ew-row"><label for="ewDuration" class="ew-muted">Video duration <select id="ewDuration" class="ew-control"><option value="10">10s · 3 beats, 1 video</option><option value="16">16s · 2 clips</option><option value="24">24s · 3 clips</option><option value="32">32s · 4 clips</option></select></label><span class="ew-muted">Each AI scene targets 8 seconds; final production needs owner review</span></div>'+
 '<label class="ew-muted" for="ewBrief">What viewers will learn (edit before generating)</label><textarea id="ewBrief" class="ew-voice" spellcheck="true"></textarea><div id="ewScenes" class="ew-grid"></div>'+
 '<label class="ew-muted" for="ewVoice">Full English voice-over · record ONE continuous narration for the final video</label>'+
 '<textarea id="ewVoice" class="ew-voice" spellcheck="true"></textarea>'+
 '<div class="ew-actions"><button class="ew-btn" type="button" id="ewCopyVoice">Copy voice-over</button><button class="ew-btn" type="button" id="ewCopyFull">Copy full brief</button><button class="ew-btn primary" type="button" id="ewApply">Use workflow in draft</button></div>'+
-'<p class="ew-muted">Generate clips in Gemini or Flow, combine into ONE final portrait MP4 and add the continuous voice-over; only then upload to BIMA. Automatic clip stitching is not enabled yet. Do not submit individual scenes to YouTube.</p>'+
+'<p id="ewMethod" class="ew-muted">Generate clips in Gemini or Flow, combine into ONE final portrait MP4 and add the continuous voice-over; only then upload to BIMA. Automatic clip stitching is not enabled yet. Do not submit individual scenes to YouTube.</p>'+
 '<p class="ew-muted" id="ewPromptExplanation">Satu workflow aktif: gunakan prompt <strong>Scene 1 / Scene 2 / Scene 3</strong> secara berurutan di Gemini. Tombol Copy full brief untuk arsip produksi BIMA, bukan prompt tambahan yang perlu di-generate.</p>'+
 '<p id="ewMessage" class="ew-status" role="status" aria-live="polite"></p>';
 document.getElementById('stepperHint').insertAdjacentElement('afterend',panel);
 const planStep=document.createElement('button');planStep.type='button';planStep.className='step-pill';planStep.textContent='Storyboard';
 planStep.addEventListener('click',()=>{panel.scrollIntoView({behavior:'smooth',block:'start'});$('ewBrief').focus({preventScroll:true});});
 $('productionStepper').prepend(planStep);
-const STYLE='Orbit & Ocean animated science short. Bright, charming premium stylized 3D cartoon with rounded characters, expressive eyes and clear playful movement. Never photorealistic; no exposed anatomy, blood, x-rays, surgery or visible internal organs. Any science explanation uses glowing icons, simple arrows or diagrams OUTSIDE the animal. Compose portrait 9:16 and center important objects within the middle 60% of frame. Keep the same character colors, size, lighting and background in every clip. No onscreen text, watermark, captions or dialogue.';
+const STYLE='Orbit & Ocean animated science short. Bright, charming premium stylized 3D cartoon with rounded characters, expressive eyes and clear playful movement. Never photorealistic; no exposed anatomy, blood, x-rays, surgery or visible internal organs. Any science explanation uses glowing icons, simple arrows or diagrams OUTSIDE the animal. Compose portrait 9:16 and center important objects within the middle 60% of frame. Keep the same character colors, size, lighting and background in every clip. No logos or watermarks. Use captions only when explicitly requested in the full video brief.';
 const CUSTOM={
 'yt26-20261019':{
  objective:'Explain how pufferfish inflate by rapidly swallowing water into an expandable stomach to deter predators; never depict inflation by breathing air.',
@@ -121,29 +121,29 @@ function extract(item){
  /6\.5–10\.0 sec — PAYOFF AND CLOSURE:\s*([\s\S]*?)\nVOICE-OVER:/
  ];
  const scenes=rx.map(r=>(s.match(r)?.[1]||'').replace(/Last 1\.5 seconds hold[\s\S]*$/,'').trim().replace(/[.\s]+$/,''));
- const voice=s.match(/VOICE-OVER: Speak EXACTLY this single short English line, nothing added: "([^"]+)"/)?.[1]||'';
+ const voice=s.match(/VOICE-OVER: Speak EXACTLY this single short English line, nothing added: "([^"]+)"/)?.[1]||s.match(/NARRATION[^:]*: \"([^\"]+)\"/)?.[1]||'';
  return {scenes,voice};
 }
 function createPlan(item){
  const saved=item.episodePlan;
- if(saved&&saved.sourceItemId===item.id&&saved.sourceTitle===item.title&&[16,24,32].includes(saved.duration)&&Array.isArray(saved.scenes)&&typeof saved.voice==='string')return JSON.parse(JSON.stringify(saved));
+ if(saved&&saved.sourceItemId===item.id&&saved.sourceTitle===item.title&&[10,16,24,32].includes(saved.duration)&&Array.isArray(saved.scenes)&&typeof saved.voice==='string')return JSON.parse(JSON.stringify(saved));
  const old=extract(item),curated=CUSTOM[item.id];
  // Plans saved before episode identity checks may be cross-contaminated.
  // Do not reuse them without an explicit source ID and matching title.
  return {
- duration:24,
+ duration:/10s/.test(item.format||'')?10:24,
  objective:curated?.objective||'Teach one verified fact: '+(item.caption||item.title).replace(/#\w+/g,'').trim(),
- scenes:curated?.scenes||[
+ scenes:(/10s/.test(item.format||'')&&old.scenes.every(Boolean)?old.scenes:curated?.scenes?.map(scene=>/10s/.test(item.format||'')?scene.replace(/\b(?:0–8|8–16|16–24)s:?/g,''):scene))||[
   old.scenes[0]||'HOOK: Establish the exact subject of "'+item.title+'" with an engaging animated close-up. Set up one visual question tied to '+(item.title||'the topic')+'. No unrelated objects or facts.',
   old.scenes[1]||'EXPLANATION: Stay with the same subject and show the mechanism of '+(item.title||'this phenomenon')+' using a large, readable scientific diagram. The illustration MUST be fact-checked against the named topic before use.',
   old.scenes[2]||'PAYOFF: Return to the same subject in '+(item.title||'the science story')+' and resolve the opening question. Hold one complete final image for 1.5 seconds, with no new claims or visual topic shift.'
  ],
- voice:curated?.voice||old.voice||('Research and explain this topic with verified facts: '+item.title+'. Complete the answer before the final image.'),
+ voice:(/10s/.test(item.format||'')?old.voice:'')||curated?.voice||old.voice||('Research and explain this topic with verified facts: '+item.title+'. Complete the answer before the final image.'),
  version:1
  };
 }
 function scenes(plan){
- const a=plan.scenes||[],n=plan.duration/8;
+ const a=plan.scenes||[],n=plan.duration===10?3:plan.duration/8;
  const custom=plan.overrides?.[plan.duration]||{};
  const finish=arr=>arr.map((x,i)=>Object.prototype.hasOwnProperty.call(custom,i)?custom[i]:x);
  if(n===2)return finish([(a[0]||'Animated hook')+' Then introduce this visual explanation: '+(a[1]||''),(a[2]||'Animated ending')]);
@@ -151,7 +151,8 @@ function scenes(plan){
  return finish([a[0]||'Animated hook',a[1]||'Animated explanation',(a[1]||'Illustrated explanation')+' Reinforce the teaching point using a simple diagram.',a[2]||'Animated resolved ending']);
 }
 function clip(item,plan,i,visual=scenes(plan)[i]){
- const n=plan.duration/8,scene=String(visual||'Continue the science story').trim();
+ const n=plan.duration===10?3:plan.duration/8,scene=String(visual||'Continue the science story').trim();
+ if(plan.duration===10)return 'STORYBOARD REFERENCE '+(i+1)+' OF 3 | '+item.title+'\n'+scene+'\n'+STYLE+'\nThis is a visual reference for one beat of a SINGLE 10-second video. Use Copy full brief to animate all three references together with continuous narration.';
  const end=i===n-1?'End by holding a fully resolved final frame for at least 1.5 seconds.':'Finish on a stable transition frame.';
  return 'SCENE '+(i+1)+' OF '+n+' | '+(i*8)+'–'+((i+1)*8)+'s | '+(i===0?'HOOK':i===n-1?'PAYOFF & ENDING':'EXPLANATION')+
  '\nACTION FOR THIS SCENE ONLY: '+scene+
@@ -164,6 +165,8 @@ function clip(item,plan,i,visual=scenes(plan)[i]){
 }
 function brief(item,plan){
  const parts=scenes(plan);
+ if(plan.duration===10)return 'ORBIT & OCEAN | '+item.title+'\nCreate ONE complete 10-second video, portrait 9:16. Animate the three supplied scene references in order, preserving the same character and environment.\n'+STYLE+'\n0–2s HOOK: '+parts[0]+'\n2–7s EXPLAIN: '+parts[1]+'\n7–10s PAYOFF: '+parts[2]+'\nVOICE-OVER — speak exactly: '+plan.voice+'\nBegin at 0.3s and finish the full sentence by 9s. Use word-synchronized English subtitles matching the narration exactly; keep them in the central safe area. Subtitles are the only on-screen text. Smooth transitions; hold the completed ending; no extra narration or cut-off words.';
+
  return 'ORBIT & OCEAN PRODUCTION WORKFLOW\nVIDEO: '+item.title+
  '\nFACT / LEARNING GOAL: '+plan.objective+
  '\nFINAL: '+plan.duration+' seconds | '+parts.length+' Gemini clips x ~8s | Portrait 9:16\n'+
@@ -232,8 +235,8 @@ function populateScenes(item){
  const area=$('ewScenes');area.replaceChildren();if(!plan)return;
  scenes(plan).forEach((content,index)=>{
   const div=document.createElement('article');div.className='ew-scene';
-  const title=document.createElement('strong');title.textContent='Scene '+(index+1)+' · '+index*8+'–'+(index+1)*8+'s';
-  const sub=document.createElement('small');sub.textContent=index===0?'Hook':index===plan.duration/8-1?'Payoff and resolved ending':'Explain the fact';
+  const title=document.createElement('strong');title.textContent='Scene '+(index+1)+' · '+(plan.duration===10?['0–2s','2–7s','7–10s'][index]:index*8+'–'+(index+1)*8+'s');
+  const sub=document.createElement('small');sub.textContent=index===0?'Hook':index===(plan.duration===10?3:plan.duration/8)-1?'Payoff and resolved ending':'Explain the fact';
   const p=document.createElement('textarea');p.className='ew-scene-input';p.setAttribute('aria-label','Scene '+(index+1)+' visual storyboard');p.value=content;const protect=locked(item);p.readOnly=protect;
   p.addEventListener('input',()=>{if(!plan||locked(item))return;plan.overrides||={};plan.overrides[plan.duration]||={};plan.overrides[plan.duration][index]=p.value;dirty=true;show('Scene '+(index+1)+' edited. Apply to save.');});
   const b=document.createElement('button');b.className='ew-btn';b.type='button';b.dataset.scene=String(index+1);b.dataset.copyLabel='Copy Scene '+(index+1)+' prompt';b.textContent=b.dataset.copyLabel;
@@ -255,6 +258,9 @@ function render(){
  }
  panel.hidden=false;if(item.id===active&&dirty)return;
  active=item.id;plan=createPlan(item);dirty=false;
+ $('ewMethod').textContent=plan.duration===10?'Gunakan tiga gambar scene sebagai referensi, lalu Copy full brief untuk menggabungkan semuanya di Gemini menjadi satu video 10 detik.':'Generate separate 8-second clips, combine into one final MP4, then add continuous narration.';
+ $('ewPromptExplanation').textContent=plan.duration===10?'3 scene references → Copy full brief → 1 video Gemini 10 detik dengan voice-over dan subtitle sinkron.':'Generate scene clips separately, then assemble one final video with continuous narration.';
+ $('ewDuration').closest('.ew-row').querySelector('span').textContent=plan.duration===10?'Three storyboard beats within one 10-second video':'Each scene targets 8 seconds';
  $('ewDuration').value=String(plan.duration);$('ewVoice').value=plan.voice;
  $('ewBrief').value=plan.objective;
  const protect=locked(item);
@@ -263,8 +269,8 @@ function render(){
  $('ewPhase').textContent=protect?'Approved/uploaded · protected':applied?'✓ '+plan.duration+'s workflow saved':'Preview '+plan.duration+'s · Save workflow first';
  populateScenes(item);
  show(protect?'Existing approved/uploaded video stays unchanged.':
-  applied?'This saved workflow is the active Gemini production plan. Copy Scene prompts one at a time.':
-   'This is a new '+plan.duration+'s plan; click Use workflow in draft to replace the old 10-second prompt before generating.');
+  applied?'This saved workflow is the active production plan. Follow the duration selected above.':
+   'Workflow preview follows this draft. Review and click Use workflow in draft to save edits before generating.');
 }
 $('ewDuration').addEventListener('change',()=>{
  if(!plan)return;plan.duration=Number($('ewDuration').value);dirty=true;
@@ -281,7 +287,7 @@ $('ewApply').addEventListener('click',()=>{
  if(scenes(plan).some(s=>s.trim().length<20)){show('Complete every scene storyboard before applying.',true);return;}
  const words=(plan.voice.match(/\b[\w’'-]+\b/g)||[]).length;
  if(words<10||words>Math.floor(plan.duration*2.5)){show('Narration length '+words+' words does not fit '+plan.duration+' seconds. Adjust length/duration.',true);return;}
- $('fFormat').value='Shorts · 15–60s';
+ $('fFormat').value=plan.duration===10?'Shorts · 10s':'Shorts · 15–60s';
  $('fPrompt').value=brief(item,plan);
  plan.sourceItemId=item.id;plan.sourceTitle=item.title;
  item.episodePlan=JSON.parse(JSON.stringify(plan));
@@ -290,6 +296,6 @@ $('ewApply').addEventListener('click',()=>{
  dirty=false;render();show('Workflow '+plan.duration+'s saved. Generate scenes, assemble the final MP4, review and approve before BIMA publishes.');
 });
 document.addEventListener('bima:episode-selected',render);
-document.addEventListener('bima:render-status',()=>{if(getSelected()?.id!==active)render();});
+document.addEventListener('bima:render-status',()=>{if(!dirty)render();});
 render();
 })();
