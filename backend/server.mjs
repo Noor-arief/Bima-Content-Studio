@@ -15,6 +15,7 @@ import { createMoonVoice } from "./moon-voice.mjs";
 import { createButterflyVoice } from "./butterfly-voice.mjs";
 import { composeTikTokAffiliatePreview } from "./tiktok-production.mjs";
 import { quoteTikTokMotion } from "./tiktok-motion-budget.mjs";
+import { submitTikTokLtxPilot, checkTikTokLtxPilot } from "./tiktok-ltx-pilot.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -457,6 +458,42 @@ async function handler(req,res){
     const approved=requirements.productRights&&requirements.musicRights&&requirements.voiceRights;
     db.tiktokProduction ||= {status:"not_started"};
     const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,revisionMode:db.tiktokProduction.revisionMode||null,published:false});
+    // Paid pilot: owner-only, server-approved original product image, one job maximum.
+    if(req.method==="GET"&&u.pathname==="/api/tiktok/production/ltx-status"){
+      db.tiktokLtx ||= {status:"not_started"};
+      if(db.tiktokLtx.status==="submitted"&&db.tiktokLtx.id){
+        try{
+          const remote=await checkTikTokLtxPilot({id:db.tiktokLtx.id});
+          db.tiktokLtx={...db.tiktokLtx,status:remote.status,resultAvailable:remote.resultAvailable};
+          await persist();
+        }catch(e){return respond(res,200,{status:"status_unavailable",reason:String(e.message||e).slice(0,90),canStart:false,published:false});}
+      }
+      return respond(res,200,{status:db.tiktokLtx.status,estimatedUsd:db.tiktokLtx.estimatedUsd||null,
+        resultAvailable:db.tiktokLtx.resultAvailable||false,canStart:db.tiktokLtx.status==="not_started",published:false});
+    }
+    if(req.method==="POST"&&u.pathname==="/api/tiktok/production/ltx-pilot"){
+      let data;try{data=await readJSON(req,3500);}catch{return error(res,400,"invalid_ltx_pilot_payload");}
+      if(data?.confirmCost!==true||Number(data.maxUsd)<0.24)return error(res,409,"ltx_explicit_budget_approval_required");
+      if(!process.env.LTX_API_KEY)return error(res,503,"ltx_api_key_not_configured");
+      if(process.env.TIKTOK_PRODUCT_ASSETS_APPROVED!=="true"||!process.env.LTX_APPROVED_IMAGE_URI||!process.env.TIKTOK_PRODUCT_MOTION_PROMPT)return error(res,409,"approved_product_image_missing");
+      db.tiktokLtx ||= {status:"not_started"};
+      if(db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_already_attempted");
+      db.tiktokLtx={status:"submitting",startedAt:new Date().toISOString(),estimatedUsd:0.24};
+      await persist();
+      try{
+        const job=await submitTikTokLtxPilot({imageUri:process.env.LTX_APPROVED_IMAGE_URI,prompt:process.env.TIKTOK_PRODUCT_MOTION_PROMPT,
+          ownerApproved:true,maxUsd:Number(data.maxUsd),verifiedProductImage:true});
+        db.tiktokLtx={...job,startedAt:db.tiktokLtx.startedAt};
+        await persist();
+        return respond(res,202,{status:"submitted",estimatedUsd:job.estimatedUsd,published:false});
+      }catch(e){
+        // Submission may have been accepted remotely before a network timeout.
+        // Never retry blindly or bill a second job.
+        db.tiktokLtx={status:"requires_reconciliation",error:String(e.message||e).slice(0,120)};
+        await persist();
+        return error(res,502,"ltx_submission_needs_reconciliation");
+      }
+    }
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/motion-quote")return respond(res,200,quoteTikTokMotion());
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/status")return respond(res,200,view());
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/video"){
