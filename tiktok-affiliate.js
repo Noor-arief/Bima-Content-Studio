@@ -12,11 +12,11 @@ window.BimaAffiliate.mount({
   menu: { ringkasan: 'Ringkasan', kalender: 'Jadwal TikTok', desk: 'Produk & Video AI', publishing: 'Keranjang & Performa' },
   emptyText: 'Tambahkan produk affiliate untuk membuat brief video AI dan menyiapkan publikasi.',
   publishWord: 'keranjang', publishedLabel: 'URL video TikTok setelah tayang', publishedPh: 'https://www.tiktok.com/@akun/video/…',
-  uploadHint: 'Saat unggah di TikTok: pilih Tambahkan tautan → Produk → pilih produk yang sama, cek keranjang, lalu publikasikan. Upload otomatis belum terhubung.',
+  uploadHint: 'Untuk penjualan pertama: unduh MP4 final → buka TikTok @noor_arief → upload video → Tambahkan tautan/Produk dari Showcase → pilih produk yang sama → aktifkan disclosure promosi/AI jika diperlukan → posting → buka video tayang, tes keranjang dan catat URL-nya di BIMA. Menu TikTok dapat berbeda menurut versi aplikasi. Upload otomatis belum terhubung.',
   fields: {
     product: [
       T('product', 'Nama produk', { attrs: 'maxlength="150"', ph: 'Nama sesuai listing produk' }), T('shop', 'Toko / brand', { attrs: 'maxlength="120"', ph: 'Nama toko atau brand' }),
-      T('productUrl', 'Link produk TikTok Shop', { t: 'url', ph: 'https://…' }), T('productId', 'Product ID / ID Showcase', { attrs: 'maxlength="100"', ph: 'ID produk yang akan ditautkan' }),
+      T('productUrl', 'Link produk TikTok Shop', { t: 'url', ph: 'https://…' }), T('productId', 'Product ID (opsional)', { attrs: 'maxlength="100"', ph: 'Boleh kosong jika produk dipilih dari Showcase saat upload' }),
       T('date', 'Tanggal produksi', { t: 'date' }), T('time', 'Jam · WIB', { t: 'time' }),
       T('account', 'Akun TikTok', { attrs: 'maxlength="80"', ph: '@username' }), T('reference', 'Referensi visual produk', { t: 'url', ph: 'Link foto / aset dari seller' })
     ],
@@ -43,13 +43,14 @@ window.BimaAffiliate.mount({
     'Distribusi TikTok Shop dipengaruhi klik produk, tambah ke keranjang, dan pembelian, bukan hanya watch time.',
     'Komisi dihitung dari revenue setelah refund. Produk dengan retur tinggi menggerus komisi bersih.',
     'Durasi 21–34 detik dilaporkan optimal untuk konten affiliate; brief BIMA memakai 24 detik.',
-    'Uji banyak produk dengan video ringan, lalu gandakan hanya yang klik→order-nya tinggi.'
+    'Uji banyak produk dengan video ringan, lalu gandakan hanya yang klik→order-nya tinggi.',
+    'PILOT JUALAN PERTAMA: pilih satu produk yang sudah ada di Showcase; pastikan link produk benar. Product ID tidak perlu dicari manual. Video harus menampilkan produk dan manfaat berdasarkan fakta listing, lalu tambahkan keranjang melalui TikTok saat upload.'
   ],
-  readyGate: d => !!(d.productId && d.visualChecked && d.disclosureChecked && d.showcaseChecked),
-  readyMessage: 'Isi Product ID dan selesaikan tiga pemeriksaan sebelum siap unggah.',
+  readyGate: d => !!(d.productUrl && d.visualChecked && d.disclosureChecked && d.showcaseChecked),
+  readyMessage: 'Isi link produk dan selesaikan pemeriksaan visual, disclosure, serta ketersediaan di Showcase sebelum siap unggah.',
   readySuccess: 'Siap. Pasang produk dari Showcase saat unggah di TikTok. Belum dipublikasikan oleh BIMA.',
-  recordGate: (d, url) => url.protocol === 'https:' && /(^|\.)tiktok\.com$/.test(url.hostname) && url.pathname.includes('/video/') && !!d.basketChecked && !!d.productId,
-  recordMessage: 'URL video TikTok, Product ID, dan konfirmasi keranjang wajib diisi.',
+  recordGate: (d, url) => url.protocol === 'https:' && /(^|\.)tiktok\.com$/.test(url.hostname) && url.pathname.includes('/video/') && !!d.basketChecked && !!d.productUrl,
+  recordMessage: 'URL video TikTok, link produk, dan konfirmasi keranjang wajib diisi.',
   build: d => ({
     prompt: `VIDEO AFFILIATE AI · 24 DETIK · PORTRAIT 9:16\nPRODUK: ${d.product}\nTOKO: ${d.shop || 'Sesuai listing'}\nLISTING: ${d.productUrl}\nREFERENSI: ${d.reference || 'Lampirkan foto produk asli dari seller sebelum generate.'}\nFAKTA YANG BOLEH DISEBUT: ${d.facts}\n\nKONSISTENSI: Gunakan produk pada foto referensi. Pertahankan bentuk, warna, ukuran relatif, label, kemasan, dan varian. Jangan mengganti produk dengan desain rekaan. Jangan membuat testimoni pengalaman pribadi, klaim hasil, harga, atau diskon yang tidak diberikan.\n\nSCENE 1 · 0–8s: Hero shot produk asli. Perkenalkan satu kebutuhan yang relevan dengan fakta produk. Gerakan kamera halus, latar rapi, fokus pada detail asli.\nSCENE 2 · 8–16s: Perlihatkan satu fungsi dari fakta terverifikasi. AI boleh menata latar; jangan memalsukan demonstrasi performa atau before/after.\nSCENE 3 · 16–24s: Close-up detail produk dan akhir yang bersih. Sisakan 2 detik untuk penutup. CTA: Lihat detail dan pilihan varian di keranjang kuning.\n\nNARASI: Bahasa Indonesia, natural dan jelas; selesai sebelum detik 22. Susun hanya dari fakta di atas. Musik pelan. Jangan gambar tombol/keranjang kuning palsu di dalam video; tautan produk dipasang melalui TikTok Shop saat publikasi.\nPUBLIKASI: Review visual, aktifkan disclosure promosi dan label AI, tautkan produk yang sama dari Showcase.`,
     caption: `Kenali ${d.product}. ${d.facts}\n\nCek detail dan varian di keranjang kuning. Konten affiliate; saya dapat menerima komisi dari pembelian. Visual dibuat dengan bantuan AI. #Affiliate #TikTokShop`
