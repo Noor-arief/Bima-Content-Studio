@@ -11,6 +11,7 @@ card.className='aff-card';
 card.setAttribute('data-secs','ringkasan');
 card.innerHTML='<h3>TikTok Account Connection</h3><p id="tt-connect-state" role="status" aria-live="polite">Memeriksa koneksi Sandbox…</p><div class="aff-actions"><button type="button" id="tt-connect-action" class="aff-primary">Connect TikTok (Sandbox)</button><button type="button" id="tt-connect-check">Refresh status</button><button type="button" id="tt-owner-login">Sign in as BIMA owner</button></div><p class="aff-muted">Login Kit hanya membaca identitas yang disetujui. TikTok Shop Affiliate dan auto-posting belum terhubung.</p>';
 const notice=root.querySelector('.aff-notice');notice?.insertAdjacentElement('afterend',card);
+const badge=root.querySelector('.aff-head .aff-badge');
 const label=card.querySelector('#tt-connect-state'),connect=card.querySelector('#tt-connect-action'),check=card.querySelector('#tt-connect-check'),ownerLogin=card.querySelector('#tt-owner-login');
 const request=async(path,method='GET')=>{
  const token=sessionStorage.getItem(tokenKey);
@@ -29,10 +30,12 @@ async function status(){
   if(!response.ok)throw Error(data.error||'Status backend tidak tersedia');
   const hasOwner=Boolean(sessionStorage.getItem(tokenKey));
   label.textContent=data.connected?'Sandbox Connected · Login Kit aktif (TikTok Shop belum terhubung)':data.configured?'Sandbox siap · login owner diperlukan untuk menghubungkan akun':'Kredensial Sandbox belum lengkap di Railway.';
+  if(badge)badge.textContent=data.connected?'Login Kit · Sandbox Connected':data.configured?'Login Kit · Belum terhubung':'Login Kit · Belum dikonfigurasi';
   connect.disabled=Boolean(data.connected)||!data.configured||!hasOwner;
   ownerLogin.hidden=hasOwner;
  }catch(e){
   label.textContent='Gagal memeriksa backend: '+e.message;
+  if(badge)badge.textContent='Login Kit · Status tidak tersedia';
   connect.disabled=true;
  }finally{check.disabled=false;}
 }

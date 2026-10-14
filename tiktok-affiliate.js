@@ -7,7 +7,7 @@ window.BimaAffiliate.mount({
   id: 'tiktok', name: 'TikTok Shop', storeKey: 'bima-tiktok-affiliate-v1', backupName: 'bima-tiktok-affiliate-backup.json',
   theme: { accent: '#6be6d7', accent2: '#fe2c55', soft: 'rgba(107,230,215,.12)' },
   eyebrow: 'BIMA · TIKTOK AFFILIATE', title: 'TikTok, made to shop.', tagline: 'Produk nyata · video AI · keranjang kuning. Alur produksi khusus TikTok.',
-  badge: 'Workspace aktif · TikTok belum terhubung',
+  badge: 'TikTok Login Kit · Memeriksa status',
   notice: { title: 'Keranjang kuning', text: 'Produk harus dipilih dari TikTok Shop/Showcase saat publikasi. Menempel link di caption tidak memasang keranjang. BIMA belum memiliki koneksi TikTok Shop pada akun ini.' },
   menu: { ringkasan: 'Ringkasan', kalender: 'Jadwal TikTok', desk: 'Produk & Video AI', publishing: 'Keranjang & Performa' },
   emptyText: 'Tambahkan produk affiliate untuk membuat brief video AI dan menyiapkan publikasi.',
