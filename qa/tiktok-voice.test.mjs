@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {mkdtemp,writeFile,readFile,rm,stat} from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
+import {createRequire} from "node:module";
+const ffmpegBinary=createRequire(new URL("../backend/server.mjs",import.meta.url))("ffmpeg-static");
 import {createTikTokLocalVoice,probeTikTokVoiceDuration,createTikTokTimedSrt} from "../backend/tiktok-voice.mjs";
 test("local-TTS guardrails prevent unapproved generation and missing model",async()=>{
  await assert.rejects(createTikTokLocalVoice(),/owner_approval_required/);
@@ -18,7 +20,7 @@ test("real WAV output from offline adapter and time-aligned SRT",async()=>{
 const {spawnSync}=require("node:child_process");
 const a=process.argv, dest=a[a.indexOf("--output_file")+1];
 process.stdin.resume();process.stdin.on("end",()=>{
-  const f=spawnSync(require.resolve("ffmpeg-static"),["-hide_banner","-loglevel","error","-f","lavfi","-i","sine=frequency=440:duration=2.4","-c:a","pcm_s16le",dest]);
+  const f=spawnSync(${JSON.stringify(ffmpegBinary)},["-hide_banner","-loglevel","error","-f","lavfi","-i","sine=frequency=440:duration=2.4","-c:a","pcm_s16le",dest]);
   process.exit(f.status??1);
 });`);
  await import("node:fs/promises").then(fs=>fs.chmod(fake,0o755));
