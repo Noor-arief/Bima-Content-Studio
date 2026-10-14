@@ -49,7 +49,7 @@ async function refreshRenderStatus(){
    if(missing.length)renderLabel.textContent='Belum siap: '+missing.join(' · ')+'.';
  }
  if(state.reviewStatus==='approved')renderLabel.textContent='Approved by owner · NOT published.';
- if(state.reviewStatus==='revision_requested')renderLabel.textContent='Revision requested · automatic regeneration pending.';
+ if(state.reviewStatus==='revision_requested')renderLabel.textContent=state.revisionMode==='regeneration_failed'?'Revisi otomatis gagal: '+(state.error||'unknown'): 'Revisi tercatat; perubahan visual/voice belum didukung engine.';
  if(state.error)renderLabel.textContent+=' Error: '+state.error;
  if(state.videoReady){const response=await fetch(endpoint+'/api/tiktok/production/video',{headers:{Authorization:'Bearer '+auth()}});if(response.ok){const video=await response.blob();if(renderVideo.dataset.url)URL.revokeObjectURL(renderVideo.dataset.url);const url=URL.createObjectURL(video);renderVideo.dataset.url=url;renderVideo.src=url;renderVideo.style.display='block';}}
  }catch(err){renderLabel.textContent=String(err.message||err);generateRender.disabled=true;}
@@ -60,7 +60,7 @@ async function sendReview(decision,notes=''){
  try{
   const state=await renderRequest('/api/tiktok/production/review',{method:'POST',body:JSON.stringify({decision,notes})});
   reviewActions.hidden=true;reviewNoteWrap.hidden=true;reviewSubmit.hidden=true;
-  renderLabel.textContent=state.reviewStatus==='approved'?'Owner approved · NOT published.':'Revision requested · BIMA regeneration not yet available.';
+  renderLabel.textContent=state.reviewStatus==='approved'?'Owner approved · NOT published.':state.busy?'BIMA sedang membuat ulang video. Klik Periksa kesiapan untuk hasilnya.':'Revisi diterima. Jika jenis revisi belum didukung, BIMA tidak akan mengklaim selesai.';
  }catch(e){renderLabel.textContent='Review failed: '+String(e.message||e);}
 }
 renderCard.querySelector('#tt-review-approve').addEventListener('click',()=>sendReview('approve'));
