@@ -1,12 +1,15 @@
 import { test, expect } from '@playwright/test';
 
 const base = 'https://noor-arief.github.io/Bima-Content-Studio/';
-test.use({ locale: 'id-ID', timezoneId: 'Asia/Jakarta' });
+test.use({ locale: 'id-ID', timezoneId: 'Asia/Jakarta', trace: 'retain-on-failure', screenshot: 'only-on-failure' });
+test.setTimeout(20000);
 test.beforeEach(async ({ page }) => {
   await page.goto(base, { waitUntil: 'domcontentloaded' });
+  page.on('pageerror', e => console.log('PAGE ERROR:',e.message));
   await expect(page.locator('#channelBar [data-channel="tiktok"]')).toBeVisible();
   await page.locator('#channelBar [data-channel="tiktok"]').click();
   await expect(page.locator('#tiktokWorkspace')).toBeVisible();
+  console.log('QA setup:',await page.evaluate(()=>({channel:window.state?.active,view:document.body.dataset.view,tt:document.querySelector('#tiktokWorkspace')?.hidden}))); 
 });
 
 test('channel isolation and TikTok navigation', async ({ page }) => {
@@ -14,11 +17,13 @@ test('channel isolation and TikTok navigation', async ({ page }) => {
   await expect(page.locator('#shopeeWorkspace')).toBeHidden();
   const sections = ['ringkasan', 'kalender', 'desk', 'publishing'];
   for (const sec of sections) {
-    await page.locator('#tiktokWorkspace [data-sec-go="'+sec+'"]').click();
+    console.log('NAV section',sec);
+    await page.locator('#tiktokWorkspace [data-sec-go="'+sec+'"]').click({timeout:4000});
     await expect(page.locator('#tiktokWorkspace')).toHaveAttribute('data-sec',sec);
     await expect(page.locator('#shopeeWorkspace')).toBeHidden();
   }
-  await page.locator('#channelBar [data-channel="youtube"]').click();
+  console.log('NAV youtube');
+  await page.locator('#channelBar [data-channel="youtube"]').click({timeout:4000});
   await expect(page.locator('#ytWorkspace')).toBeVisible();
   await expect(page.locator('#tiktokWorkspace')).toBeHidden();
   await page.locator('#channelBar [data-channel="tiktok"]').click();
@@ -26,7 +31,8 @@ test('channel isolation and TikTok navigation', async ({ page }) => {
 });
 
 test('draft persists after reload; zero side effects in Shopee store', async ({ page }) => {
-  await page.locator('#tiktokWorkspace [data-act="new"]').first().click();
+  console.log('DRAFT new');
+  await page.locator('#tiktokWorkspace [data-act="new"]').first().click({timeout:4000});
   await expect(page.locator('#aff-tiktok-form')).toBeVisible();
   await page.locator('#aff-tiktok-f-product').fill('QA SAMPLE - DO NOT PUBLISH');
   await page.locator('#aff-tiktok-f-productUrl').fill('https://www.tiktok.com/');
@@ -43,7 +49,8 @@ test('draft persists after reload; zero side effects in Shopee store', async ({ 
 
 test('publishing remains manual; incomplete product cannot be marked ready', async ({ page }) => {
   await page.locator('#tiktokWorkspace [data-act="new"]').first().click();
-  await page.locator('#tiktokWorkspace [data-sec-go="publishing"]').click();
+  console.log('PUBLISH section');
+  await page.locator('#tiktokWorkspace [data-sec-go="publishing"]').click({timeout:4000});
   await page.locator('#tiktokWorkspace [data-act="ready"]').click();
   const stage = await page.evaluate(() => {
     const d=JSON.parse(localStorage.getItem('bima-tiktok-affiliate-v1')||'{}');
