@@ -1,0 +1,22 @@
+name: TikTok Workspace QA (isolated)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/tiktok-qa.yml'
+      - 'qa/tiktok-workspace.spec.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tiktok-browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install --with-deps chromium
+      - name: Test live dashboard in isolated browser context
+        run: npx playwright test qa/tiktok-workspace.spec.mjs --browser chromium --reporter=line
