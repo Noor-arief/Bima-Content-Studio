@@ -1,0 +1,21 @@
+name: TikTok Voice-to-MP4 Pipeline QA
+on:
+  pull_request:
+    paths:
+      - 'backend/tiktok-production.mjs'
+      - 'qa/tiktok-production.test.mjs'
+      - '.github/workflows/tiktok-production-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix backend --no-audit --no-fund
+      - run: node --check backend/tiktok-production.mjs
+      - run: node --test qa/tiktok-production.test.mjs
