@@ -30,5 +30,39 @@ export async function checkTikTokLtxPilot({id,apiKey=process.env.LTX_API_KEY,fet
  const data=await res.json();
  return {id,status:String(data.status||"unknown"),ready:data.status==="completed",
    // Do not echo untrusted remote URLs to the browser until owner media proxy is implemented.
-   resultAvailable:Boolean(data.result?.video_url),published:false};
+   resultAvailable:Boolean(data.result?.video_url),videoUrl:typeof data.result?.video_url==="string"?data.result.video_url:null,published:false};
+}
+
+export async function saveTikTokLtxMedia({videoUrl,outputPath,allowedHosts=[],fetchImpl=fetch}={}){
+ const {promises:fs}=await import("node:fs");
+ const path=(await import("node:path")).default;
+ if(typeof videoUrl!=="string"||typeof outputPath!=="string"||!path.isAbsolute(outputPath))throw Error("download_source_or_path_invalid");
+ let u;try{u=new URL(videoUrl);}catch{throw Error("video_url_invalid");}
+ if(u.protocol!=="https:"||u.username||u.password||u.port||!allowedHosts.includes(u.hostname.toLowerCase())||!/^[a-z0-9.-]+$/i.test(u.hostname))throw Error("video_download_host_not_approved");
+ const response=await fetchImpl(u.href,{redirect:"error",signal:AbortSignal.timeout(45000)});
+ if(!response.ok||!(response.headers.get("content-type")||"").toLowerCase().includes("video/"))throw Error("invalid_video_response");
+ const declared=Number(response.headers.get("content-length")||0);
+ if(declared>100000000)throw Error("video_too_large");
+ const temp=outputPath+".download";
+ let size=0;
+ try{
+  const file=await fs.open(temp,"wx",0o600);
+  try{
+   for await(const chunk of response.body){
+    size+=chunk.length;if(size>100000000)throw Error("video_too_large");
+    await file.write(chunk);
+   }
+  }finally{await file.close();}
+  if(size<10000)throw Error("video_too_small");
+  const {spawn}=await import("node:child_process");
+  const ffmpeg=(await import("ffmpeg-static")).default;
+  await new Promise((resolve,reject)=>{
+   const p=spawn(ffmpeg,["-hide_banner","-v","error","-i",temp,"-f","null","-"],{stdio:"ignore"});
+   const timer=setTimeout(()=>p.kill("SIGKILL"),50000);
+   p.on("error",err=>{clearTimeout(timer);reject(err);});
+   p.on("close",code=>{clearTimeout(timer);code===0?resolve():reject(Error("video_decode_invalid"));});
+  });
+  await fs.rename(temp,outputPath);
+  return {bytes:size,downloaded:true,creativeQaPassed:false,published:false};
+ }catch(err){await fs.rm(temp,{force:true}).catch(()=>{});throw err;}
 }
