@@ -18,6 +18,35 @@ const renderCard=document.createElement('div');
 renderCard.id='tt-render-card';
 renderCard.innerHTML='<h4>Final MP4 · Owner Review</h4><p class="aff-muted">Membutuhkan aset produk terverifikasi, musik berlisensi, dan model suara Indonesia yang dikonfigurasi di server. Tidak menggunakan kredit Gemini atau PiAPI.</p><p id="tt-render-status" role="status" aria-live="polite">Memeriksa kesiapan renderer…</p><div class="aff-actions"><button type="button" id="tt-render-refresh">Periksa kesiapan</button><button type="button" id="tt-render-start" disabled>Generate MP4 untuk review</button></div><video id="tt-render-video" controls playsinline style="display:none;width:100%;max-width:320px;margin-top:12px" aria-label="Preview video TikTok"></video><div id="tt-review-actions" class="aff-actions" hidden><button id="tt-review-approve" type="button">Approve</button><button id="tt-review-revise" type="button">Request Revision</button></div><label id="tt-review-note-wrap" hidden>Revision notes<textarea id="tt-review-notes" maxlength="600" rows="3"></textarea></label><button id="tt-review-submit" type="button" hidden>Submit Revision</button>';
 panel.append(renderCard);
+const motionPanel=document.createElement('section');
+motionPanel.className='aff-card';
+motionPanel.id='tt-ltx-motion-review';
+motionPanel.innerHTML='<h4>AI Motion Pilot · BIMA</h4><p class="aff-muted">BIMA membuat dan mengevaluasi video. Screenshot produk hanya referensi uji, bukan persetujuan hak jual atau bukti kesesuaian produk.</p><p id="tt-motion-status" role="status" aria-live="polite">Memeriksa pilot video…</p><div class="aff-actions"><button type="button" id="tt-motion-check">Refresh hasil pilot</button></div><video id="tt-motion-preview" controls playsinline style="display:none;max-width:320px;width:100%" aria-label="Hasil gerakan produk LTX (uji kualitas, bukan video jualan)"></video>';
+panel.append(motionPanel);
+const motionStatus=motionPanel.querySelector('#tt-motion-status');
+const motionCheck=motionPanel.querySelector('#tt-motion-check');
+const motionVideo=motionPanel.querySelector('#tt-motion-preview');
+let motionUrl=null;
+async function checkMotion(){
+ motionCheck.disabled=true;
+ try{
+  const data=await renderRequest('/api/tiktok/production/ltx-status');
+  const statuses={not_started:'Belum ada video. LTX memerlukan gambar referensi terverifikasi dan persetujuan anggaran.',submitting:'BIMA sedang mengirim job.',submitted:'LTX sedang memproses video.',processing:'LTX sedang memproses video.',completed:'Generasi selesai; menunggu download aman.',media_host_approval_required:'BIMA belum mengizinkan host download video.',media_download_failed:'Video gagal diverifikasi atau diunduh.',media_downloaded:'Video uji tersedia. Creative QA belum PASS.',requires_reconciliation:'Status job perlu direkonsiliasi sebelum percobaan baru.'};
+  motionStatus.textContent=statuses[data.status]||('Status: '+String(data.status||'unknown'));
+  if(data.technicalMediaReady){
+   const token=auth();
+   const res=await fetch(endpoint+'/api/tiktok/production/ltx-preview',{headers:{Authorization:'Bearer '+token}});
+   if(!res.ok)throw Error('MP4 belum bisa dimuat');
+   const video=await res.blob();
+   if(motionUrl)URL.revokeObjectURL(motionUrl);
+   motionUrl=URL.createObjectURL(video);
+   motionVideo.src=motionUrl;motionVideo.style.display='block';
+  }
+ }catch(e){motionStatus.textContent='Belum dapat membaca status pilot: '+String(e.message||e);}
+ finally{motionCheck.disabled=false;}
+}
+motionCheck.addEventListener('click',checkMotion);
+
 const renderLabel=renderCard.querySelector('#tt-render-status');
 const refreshRender=renderCard.querySelector('#tt-render-refresh');
 const generateRender=renderCard.querySelector('#tt-render-start');
@@ -76,6 +105,7 @@ generateRender.addEventListener('click',async()=>{
  catch(err){renderLabel.textContent=String(err.message||err);}
 });
 refreshRenderStatus();
+checkMotion();
 const result=panel.querySelector('#tt-pack-status'), voiceEl=panel.querySelector('#tt-pack-voice'),storyEl=panel.querySelector('#tt-pack-story');
 let last=null;
 const productionBlockedReason='AUTO BLOCKED: BIMA belum memiliki sumber katalog Affiliate Creator yang terotorisasi dan belum dapat memverifikasi product attachment/keranjang kuning. Draft boleh ditinjau, tetapi bukan kandidat otomatis yang siap diproduksi atau dipublikasikan.';
