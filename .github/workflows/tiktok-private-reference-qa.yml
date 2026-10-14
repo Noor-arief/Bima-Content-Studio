@@ -1,0 +1,20 @@
+name: TikTok Private Reference QA
+on:
+  pull_request:
+    paths:
+      - 'backend/tiktok-ltx-pilot.mjs'
+      - 'backend/server.mjs'
+      - 'qa/tiktok-private-reference.test.mjs'
+      - '.github/workflows/tiktok-private-reference-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check backend/server.mjs
+      - run: node --test qa/tiktok-private-reference.test.mjs
