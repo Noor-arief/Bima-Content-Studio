@@ -38,12 +38,15 @@ const EXPECTED_CHANNEL_ID = process.env.EXPECTED_YOUTUBE_CHANNEL_ID || "";
 
 const TIKTOK_KEY = process.env.TIKTOK_CLIENT_KEY || "";
 const TIKTOK_SECRET = process.env.TIKTOK_CLIENT_SECRET || "";
+const TIKTOK_SANDBOX_KEY = process.env.TIKTOK_SANDBOX_CLIENT_KEY || "";
+const TIKTOK_SANDBOX_SECRET = process.env.TIKTOK_SANDBOX_CLIENT_SECRET || "";
+const TIKTOK_SANDBOX_READY = Boolean(BASE && TIKTOK_SANDBOX_KEY && TIKTOK_SANDBOX_SECRET && KEY.length === 32);
 const TIKTOK_REDIRECT = BASE ? BASE + "/auth/tiktok/callback" : "";
 const TIKTOK_READY = Boolean(BASE && TIKTOK_KEY && TIKTOK_SECRET && KEY.length === 32);
-async function tiktokToken(params){
+async function tiktokToken(params, sandbox=false){
   const r=await fetch("https://open.tiktokapis.com/v2/oauth/token/",{method:"POST",
     headers:{"Content-Type":"application/x-www-form-urlencoded"},
-    body:new URLSearchParams({client_key:TIKTOK_KEY,client_secret:TIKTOK_SECRET,...params}),
+    body:new URLSearchParams({client_key:sandbox?TIKTOK_SANDBOX_KEY:TIKTOK_KEY,client_secret:sandbox?TIKTOK_SANDBOX_SECRET:TIKTOK_SECRET,...params}),
     signal:AbortSignal.timeout(20000)});
   const j=await r.json();if(!r.ok||!j.access_token)throw Error("tiktok_token_exchange_failed");
   return j;
@@ -257,20 +260,23 @@ async function handler(req,res){
 
   // TikTok access is separate from the YouTube OAuth and upload state.
   // Only an authenticated BIMA owner can initiate a new account connection.
-  if(req.method==="GET"&&u.pathname==="/auth/tiktok/status"){
+  if(req.method==="GET"&&(u.pathname==="/auth/tiktok/status"||u.pathname==="/auth/tiktok/sandbox/status")){
+    const sandbox=u.pathname.includes("/sandbox/");
+    const account=sandbox?db.tiktokSandbox:db.tiktok;
     if(!access(req))return error(res,401,"owner_login_required");
-    return respond(res,200,{configured:TIKTOK_READY,connected:Boolean(db.tiktok?.openId),
-      displayName:db.tiktok?.displayName||null,scopes:db.tiktok?.scopes||[],
+    return respond(res,200,{environment:sandbox?"sandbox":"production",configured:sandbox?TIKTOK_SANDBOX_READY:TIKTOK_READY,connected:Boolean(account?.openId),
+      displayName:account?.displayName||null,scopes:account?.scopes||[],
       redirectUri:TIKTOK_REDIRECT,shopAffiliateConnected:false,postingConnected:false});
   }
-  if(req.method==="POST"&&u.pathname==="/auth/tiktok/start"){
+  if(req.method==="POST"&&(u.pathname==="/auth/tiktok/start"||u.pathname==="/auth/tiktok/sandbox/start")){
+    const sandbox=u.pathname.includes("/sandbox/");
     if(!access(req))return error(res,401,"owner_login_required");
-    if(!TIKTOK_READY)return error(res,503,"tiktok_credentials_not_configured");
+    if(!(sandbox?TIKTOK_SANDBOX_READY:TIKTOK_READY))return error(res,503,"tiktok_credentials_not_configured");
     const state=random();
     db.tiktokStates ||= {};
     for(const [key,val] of Object.entries(db.tiktokStates))if(Date.now()-val.created>600000)delete db.tiktokStates[key];
-    db.tiktokStates[sha(state)]={created:Date.now()};await persist();
-    const params=new URLSearchParams({client_key:TIKTOK_KEY,response_type:"code",scope:"user.info.basic",
+    db.tiktokStates[sha(state)]={created:Date.now(),sandbox};await persist();
+    const params=new URLSearchParams({client_key:sandbox?TIKTOK_SANDBOX_KEY:TIKTOK_KEY,response_type:"code",scope:"user.info.basic",
       redirect_uri:TIKTOK_REDIRECT,state});
     return respond(res,200,{authorizationUrl:"https://www.tiktok.com/v2/auth/authorize/?"+params});
   }
@@ -282,16 +288,17 @@ async function handler(req,res){
     if(!state||!saved||Date.now()-saved.created>600000)return error(res,400,"tiktok_state_invalid");
     if(u.searchParams.has("error"))return error(res,400,"tiktok_authorization_denied");
     const code=u.searchParams.get("code");
-    if(!code||!TIKTOK_READY)return error(res,400,"tiktok_callback_incomplete");
+    if(!code||!(saved.sandbox?TIKTOK_SANDBOX_READY:TIKTOK_READY))return error(res,400,"tiktok_callback_incomplete");
     try{
-      const tokens=await tiktokToken({grant_type:"authorization_code",code,redirect_uri:TIKTOK_REDIRECT});
+      const tokens=await tiktokToken({grant_type:"authorization_code",code,redirect_uri:TIKTOK_REDIRECT},saved.sandbox);
       const profile=await tiktokProfile(tokens.access_token);
-      db.tiktok={openId:profile.open_id,displayName:profile.display_name||"",
+      const account={openId:profile.open_id,displayName:profile.display_name||"",
         scopes:(tokens.scope||"").split(",").filter(Boolean),accessToken:seal(tokens.access_token),
         refreshToken:seal(tokens.refresh_token),expiresAt:Date.now()+tokens.expires_in*1000,
         connectedAt:new Date().toISOString()};
-      logEvent("tiktok_login_connected","owner");await persist();
-      return respond(res,200,{connected:true,displayName:db.tiktok.displayName,
+      if(saved.sandbox)db.tiktokSandbox=account;else db.tiktok=account;
+      logEvent("tiktok_login_connected","owner",{environment:saved.sandbox?"sandbox":"production"});await persist();
+      return respond(res,200,{connected:true,environment:saved.sandbox?"sandbox":"production",displayName:account.displayName,
         note:"TikTok Login Kit only. TikTok Shop and Content Posting not connected."});
     }catch{
       return error(res,502,"tiktok_authorization_exchange_failed");
