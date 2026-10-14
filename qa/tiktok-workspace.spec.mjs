@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const base = 'https://noor-arief.github.io/Bima-Content-Studio/';
@@ -68,4 +69,28 @@ test('mobile TikTok sections remain usable', async ({ page }) => {
     await page.locator('#tiktokWorkspace [data-sec-go="'+sec+'"]').click();
     await expect(page.locator('#tiktokWorkspace')).toHaveAttribute('data-sec',sec);
   }
+});
+
+test('real MP4 remains in browser storage; ready and manual publication gates', async ({ page }) => {
+  await page.locator('#tiktokWorkspace [data-act="new"]').first().click();
+  await page.locator('#aff-tiktok-f-product').fill('QA SAMPLE - DO NOT PUBLISH');
+  await page.locator('#aff-tiktok-f-productUrl').fill('https://www.tiktok.com/');
+  await page.locator('#aff-tiktok-f-productId').fill('TEST-ID-ONLY');
+  await page.locator('#aff-tiktok-f-facts').fill('Temporary test, not a real product');
+  await page.locator('.sidebar .menu-item[data-go="publishing"]').click();
+  const mp4 = fs.readFileSync('/tmp/tiktok-qa-sample.mp4');
+  await page.locator('#aff-tiktok-video-file').setInputFiles({name:'qa-sample.mp4',mimeType:'video/mp4',buffer:mp4});
+  await expect(page.locator('#aff-tiktok-media-state')).toContainText('qa-sample.mp4');
+  for (const key of ['visualChecked','disclosureChecked','showcaseChecked']) await page.locator('#aff-tiktok-f-'+key).check();
+  await page.locator('#tiktokWorkspace [data-act="ready"]').click();
+  const stage = () => page.evaluate(() => {const d=JSON.parse(localStorage.getItem('bima-tiktok-affiliate-v1')||'{}');return d.drafts.find(x=>x.id===d.selected)?.stage;});
+  await expect.poll(stage).toBe('Siap unggah manual');
+  await page.locator('#aff-tiktok-f-publishedUrl').fill('https://www.tiktok.com/@qa/video/1234567890');
+  await page.locator('#aff-tiktok-f-basketChecked').check();
+  await page.locator('#tiktokWorkspace [data-act="record"]').click();
+  await expect.poll(stage).toMatch(/^Tayang/);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#channelBar [data-channel="tiktok"]').click();
+  await page.locator('.sidebar .menu-item[data-go="publishing"]').click();
+  await expect(page.locator('#aff-tiktok-media-state')).toContainText('qa-sample.mp4');
 });
