@@ -15,7 +15,7 @@ import { createMoonVoice } from "./moon-voice.mjs";
 import { createButterflyVoice } from "./butterfly-voice.mjs";
 import { composeTikTokAffiliatePreview } from "./tiktok-production.mjs";
 import { quoteTikTokMotion } from "./tiktok-motion-budget.mjs";
-import { submitTikTokLtxPilot, checkTikTokLtxPilot } from "./tiktok-ltx-pilot.mjs";
+import { submitTikTokLtxPilot, checkTikTokLtxPilot, saveTikTokLtxMedia } from "./tiktok-ltx-pilot.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -465,11 +465,29 @@ async function handler(req,res){
         try{
           const remote=await checkTikTokLtxPilot({id:db.tiktokLtx.id});
           db.tiktokLtx={...db.tiktokLtx,status:remote.status,resultAvailable:remote.resultAvailable};
+          if(remote.ready&&remote.videoUrl){
+            const hosts=String(process.env.LTX_VIDEO_DOWNLOAD_HOSTS||"").split(",").map(v=>v.trim().toLowerCase()).filter(Boolean);
+            if(hosts.length){
+              try{
+                await saveTikTokLtxMedia({videoUrl:remote.videoUrl,outputPath:path.join(MEDIA_DIR,"tiktok-ltx-owner-motion.mp4"),allowedHosts:hosts});
+                db.tiktokLtx={...db.tiktokLtx,status:"media_downloaded",technicalMediaReady:true,creativeQaPassed:false};
+              }catch(err){db.tiktokLtx={...db.tiktokLtx,status:"media_download_failed",error:String(err.message||err).slice(0,120)};}
+            }else db.tiktokLtx={...db.tiktokLtx,status:"media_host_approval_required"};
+          }
           await persist();
         }catch(e){return respond(res,200,{status:"status_unavailable",reason:String(e.message||e).slice(0,90),canStart:false,published:false});}
       }
       return respond(res,200,{status:db.tiktokLtx.status,estimatedUsd:db.tiktokLtx.estimatedUsd||null,
-        resultAvailable:db.tiktokLtx.resultAvailable||false,canStart:db.tiktokLtx.status==="not_started",published:false});
+        resultAvailable:db.tiktokLtx.resultAvailable||false,technicalMediaReady:db.tiktokLtx.technicalMediaReady===true,creativeQaPassed:false,canStart:db.tiktokLtx.status==="not_started",published:false});
+    }
+    if(req.method==="GET"&&u.pathname==="/api/tiktok/production/ltx-preview"){
+      if(db.tiktokLtx?.status!=="media_downloaded")return error(res,404,"ltx_media_not_ready");
+      try{
+        const file=path.join(MEDIA_DIR,"tiktok-ltx-owner-motion.mp4");
+        const stat=await fs.stat(file);
+        res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":stat.size,"Cache-Control":"private,no-store","Content-Disposition":"inline; filename=tiktok-motion-review.mp4"});
+        return createReadStream(file).pipe(res);
+      }catch{return error(res,404,"ltx_media_not_found");}
     }
     if(req.method==="POST"&&u.pathname==="/api/tiktok/production/ltx-pilot"){
       let data;try{data=await readJSON(req,3500);}catch{return error(res,400,"invalid_ltx_pilot_payload");}

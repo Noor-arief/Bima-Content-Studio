@@ -1,0 +1,21 @@
+name: TikTok LTX Media Import QA
+on:
+  pull_request:
+    paths:
+      - 'backend/tiktok-ltx-pilot.mjs'
+      - 'backend/server.mjs'
+      - 'qa/tiktok-ltx-media.test.mjs'
+      - '.github/workflows/tiktok-ltx-media-qa.yml'
+permissions:
+  contents: read
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix backend --no-audit --no-fund
+      - run: node --check backend/server.mjs
+      - run: node --test qa/tiktok-ltx-media.test.mjs
