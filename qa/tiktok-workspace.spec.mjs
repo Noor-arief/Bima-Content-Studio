@@ -1,0 +1,96 @@
+import fs from 'node:fs';
+import { test, expect } from '@playwright/test';
+
+const base = 'https://noor-arief.github.io/Bima-Content-Studio/';
+test.use({ locale: 'id-ID', timezoneId: 'Asia/Jakarta', trace: 'retain-on-failure', screenshot: 'only-on-failure' });
+test.setTimeout(20000);
+test.beforeEach(async ({ page }) => {
+  await page.goto(base, { waitUntil: 'domcontentloaded' });
+  page.on('pageerror', e => console.log('PAGE ERROR:',e.message));
+  await expect(page.locator('#channelBar [data-channel="tiktok"]')).toBeVisible();
+  await page.locator('#channelBar [data-channel="tiktok"]').click();
+  await expect(page.locator('#tiktokWorkspace')).toBeVisible();
+  console.log('QA setup:',await page.evaluate(()=>({channel:window.state?.active,view:document.body.dataset.view,tt:document.querySelector('#tiktokWorkspace')?.hidden}))); 
+});
+
+test('channel isolation and TikTok navigation', async ({ page }) => {
+  await expect(page.locator('#ytWorkspace')).toBeHidden();
+  await expect(page.locator('#shopeeWorkspace')).toBeHidden();
+  const sections = ['ringkasan', 'kalender', 'desk', 'publishing'];
+  for (const sec of sections) {
+    console.log('NAV section',sec);
+    await page.locator('.sidebar .menu-item[data-go="'+sec+'"]').click({timeout:4000});
+    await expect(page.locator('#tiktokWorkspace')).toHaveAttribute('data-sec',sec);
+    await expect(page.locator('#shopeeWorkspace')).toBeHidden();
+  }
+  console.log('NAV youtube');
+  await page.locator('#channelBar [data-channel="youtube"]').click({timeout:4000});
+  await expect(page.locator('#ytWorkspace')).toBeVisible();
+  await expect(page.locator('#tiktokWorkspace')).toBeHidden();
+  await page.locator('#channelBar [data-channel="tiktok"]').click();
+  await expect(page.locator('#tiktokWorkspace')).toBeVisible();
+});
+
+test('draft persists after reload; zero side effects in Shopee store', async ({ page }) => {
+  console.log('DRAFT new');
+  await page.locator('#tiktokWorkspace [data-act="new"]').first().click({timeout:4000});
+  await expect(page.locator('#aff-tiktok-form')).toBeVisible();
+  await page.locator('#aff-tiktok-f-product').fill('QA SAMPLE - DO NOT PUBLISH');
+  await page.locator('#aff-tiktok-f-productUrl').fill('https://www.tiktok.com/');
+  await page.locator('#aff-tiktok-f-facts').fill('Temporary synthetic QA product; no claims');
+  await page.locator('#aff-tiktok-form button[type="submit"]').click();
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('bima-tiktok-affiliate-v1') || '{}'));
+  expect(before.drafts.some(d => d.product === 'QA SAMPLE - DO NOT PUBLISH')).toBeTruthy();
+  expect(await page.evaluate(() => localStorage.getItem('bima-shopee-affiliate-v1'))).toBeNull();
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#channelBar [data-channel="tiktok"]').click();
+  await page.locator('.sidebar .menu-item[data-go="desk"]').click();
+  await expect(page.locator('#aff-tiktok-f-product')).toHaveValue('QA SAMPLE - DO NOT PUBLISH');
+});
+
+test('publishing remains manual; incomplete product cannot be marked ready', async ({ page }) => {
+  await page.locator('#tiktokWorkspace [data-act="new"]').first().click();
+  console.log('PUBLISH section');
+  await page.locator('.sidebar .menu-item[data-go="publishing"]').click({timeout:4000});
+  await page.locator('#tiktokWorkspace [data-act="ready"]').click();
+  const stage = await page.evaluate(() => {
+    const d=JSON.parse(localStorage.getItem('bima-tiktok-affiliate-v1')||'{}');
+    return d.drafts.find(x=>x.id===d.selected)?.stage;
+  });
+  expect(stage).not.toBe('Siap unggah manual');
+  await expect(page.locator('#aff-tiktok-msg')).toContainText(/Lengkapi|Isi|MP4/i);
+});
+
+test('mobile TikTok sections remain usable', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.locator('#channelBar [data-channel="tiktok"]').click();
+  await expect(page.locator('#tiktokWorkspace')).toBeVisible();
+  for(const sec of ['ringkasan','kalender','desk','publishing']) {
+    await page.locator('#tiktokWorkspace [data-sec-go="'+sec+'"]').click();
+    await expect(page.locator('#tiktokWorkspace')).toHaveAttribute('data-sec',sec);
+  }
+});
+
+test('real MP4 remains in browser storage; ready and manual publication gates', async ({ page }) => {
+  await page.locator('#tiktokWorkspace [data-act="new"]').first().click();
+  await page.locator('#aff-tiktok-f-product').fill('QA SAMPLE - DO NOT PUBLISH');
+  await page.locator('#aff-tiktok-f-productUrl').fill('https://www.tiktok.com/');
+  await page.locator('#aff-tiktok-f-productId').fill('TEST-ID-ONLY');
+  await page.locator('#aff-tiktok-f-facts').fill('Temporary test, not a real product');
+  await page.locator('.sidebar .menu-item[data-go="publishing"]').click();
+  const mp4 = fs.readFileSync('/tmp/tiktok-qa-sample.mp4');
+  await page.locator('#aff-tiktok-video-file').setInputFiles({name:'qa-sample.mp4',mimeType:'video/mp4',buffer:mp4});
+  await expect(page.locator('#aff-tiktok-media-state')).toContainText('qa-sample.mp4');
+  for (const key of ['visualChecked','disclosureChecked','showcaseChecked']) await page.locator('#aff-tiktok-f-'+key).check();
+  await page.locator('#tiktokWorkspace [data-act="ready"]').click();
+  const stage = () => page.evaluate(() => {const d=JSON.parse(localStorage.getItem('bima-tiktok-affiliate-v1')||'{}');return d.drafts.find(x=>x.id===d.selected)?.stage;});
+  await expect.poll(stage).toBe('Siap unggah manual');
+  await page.locator('#aff-tiktok-f-publishedUrl').fill('https://www.tiktok.com/@qa/video/1234567890');
+  await page.locator('#aff-tiktok-f-basketChecked').check();
+  await page.locator('#tiktokWorkspace [data-act="record"]').click();
+  await expect.poll(stage).toMatch(/^Tayang/);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#channelBar [data-channel="tiktok"]').click();
+  await page.locator('.sidebar .menu-item[data-go="publishing"]').click();
+  await expect(page.locator('#aff-tiktok-media-state')).toContainText('qa-sample.mp4');
+});
