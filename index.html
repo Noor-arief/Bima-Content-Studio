@@ -750,7 +750,7 @@ function itemStatus(item){const status=remoteFor(item?.id)?.status;return ({publ
 function items(){return [...new Map(state.items.youtube.filter(x=>x.id!=="yt26-20261013-piapi-pilot").map(x=>[x.id,x])).values()];}
 function displayItemsOn(date){
  const entries=items().filter(i=>i.date===date),chosen=new Map();
- const normalize=t=>String(t||"").toLowerCase().replace(/\b(?:why|does|do|the|a|an|how|what|is|have|has)\b/g,"").replace(/[^a-z0-9]/g,"");
+ const normalize=t=>String(t||"").toLowerCase().replace(/\b(?:why|does|do|the|a|an|how|what|is|have|has)\b/g,"").replace(/\bchanges\b/g,"change").replace(/[^a-z0-9]/g,"");
  const score=i=>{
    const remote=remoteFor(i.id);
    const st=remote?.status||i.status;
@@ -774,7 +774,7 @@ function renderQueue(){
  // browser drafts and backend-published copies. Distinct topics remain separate.
  const canonicalTitle=t=>String(t||"").toLowerCase()
    .replace(/\b(?:why|does|do|the|a|an|how|what|is|have|has)\b/g,"")
-   .replace(/[^a-z0-9]/g,"");
+   .replace(/\bchanges\b/g,"change").replace(/[^a-z0-9]/g,"");
  const rank=i=>{
    const remote=remoteFor(i.id);
    const status=remote?.status||i.status;
