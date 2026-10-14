@@ -1,0 +1,13 @@
+import {test,expect} from '@playwright/test';
+test('TikTok render panel is honest, secure and isolated to production workspace',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+ await page.locator('#channelBar [data-channel="tiktok"]').click();
+ await page.locator('.sidebar [data-go="desk"]').click();
+ await expect(page.locator('#tt-render-card')).toBeVisible();
+ await expect(page.locator('#tt-render-start')).toBeDisabled();
+ await expect(page.locator('#tt-render-status')).toContainText('Login owner BIMA belum aktif');
+ await page.locator('#channelBar [data-channel="youtube"]').click();
+ await expect(page.locator('#tt-render-card')).toBeHidden();
+ await page.locator('#channelBar [data-channel="shopee"]').click();
+ await expect(page.locator('#tt-render-card')).toBeHidden();
+});

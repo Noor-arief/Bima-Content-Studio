@@ -13,6 +13,7 @@ import { createPiapiWorker } from "./piapi.mjs";
 import { createVenusProduction } from "./venus-production.mjs";
 import { createMoonVoice } from "./moon-voice.mjs";
 import { createButterflyVoice } from "./butterfly-voice.mjs";
+import { composeTikTokAffiliatePreview } from "./tiktok-production.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -437,6 +438,38 @@ async function handler(req,res){
       shortsConversionBusy=false;
     }
     return;
+  }
+  // TikTok-only owner preview production, NEVER publishing. Assets/licenses must
+  // be approved on the server; browser flags cannot grant audio or product rights.
+  if(u.pathname.startsWith("/api/tiktok/production/")){
+    if(!access(req))return error(res,401,"owner_login_required");
+    const configured=Boolean(process.env.TIKTOK_PIPER_MODEL&&process.env.TIKTOK_PRODUCT_IMAGE_1&&process.env.TIKTOK_PRODUCT_IMAGE_2&&process.env.TIKTOK_PRODUCT_IMAGE_3&&process.env.TIKTOK_MUSIC_PATH);
+    const approved=process.env.TIKTOK_PRODUCT_ASSETS_APPROVED==="true"&&process.env.TIKTOK_MUSIC_LICENSE_APPROVED==="true"&&process.env.TIKTOK_VOICE_LICENSE_APPROVED==="true";
+    db.tiktokProduction ||= {status:"not_started"};
+    const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:db.tiktokProduction.status==="ready_for_review",published:false});
+    if(req.method==="GET"&&u.pathname==="/api/tiktok/production/status")return respond(res,200,view());
+    if(req.method==="GET"&&u.pathname==="/api/tiktok/production/video"){
+      if(db.tiktokProduction.status!=="ready_for_review")return error(res,404,"tiktok_video_not_ready");
+      const file=path.join(MEDIA_DIR,"tiktok-owner-preview.mp4");
+      try{const stat=await fs.stat(file);res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":stat.size,"Cache-Control":"private,no-store","Content-Disposition":"inline; filename=tiktok-owner-preview.mp4"});return createReadStream(file).pipe(res);}catch{return error(res,404,"tiktok_preview_missing");}
+    }
+    if(req.method==="POST"&&u.pathname==="/api/tiktok/production/generate"){
+      let data;try{data=await readJSON(req,5000);}catch{return error(res,400,"invalid_tiktok_production_payload");}
+      if(!configured||!approved)return error(res,409,"tiktok_assets_or_licensed_voice_not_configured");
+      if(data?.confirmProduction!==true)return error(res,409,"explicit_owner_approval_required");
+      if(db.tiktokProduction.status==="processing"||db.tiktokProduction.status==="ready_for_review")return error(res,409,"tiktok_job_already_exists_review_first");
+      if(!Array.isArray(data.scenes)||data.scenes.length!==3||data.scenes.some(v=>typeof v!=="string"||v.length>150||v.length<15))return error(res,422,"three_valid_scene_scripts_required");
+      db.tiktokProduction={status:"processing",startedAt:new Date().toISOString(),error:null};await persist();
+      const outputPath=path.join(MEDIA_DIR,"tiktok-owner-preview.mp4");
+      void composeTikTokAffiliatePreview({
+        scenes:data.scenes,images:[1,2,3].map(i=>process.env["TIKTOK_PRODUCT_IMAGE_"+i]),musicPath:process.env.TIKTOK_MUSIC_PATH,
+        outputPath,voiceModel:process.env.TIKTOK_PIPER_MODEL,piperBinary:process.env.TIKTOK_PIPER_BINARY||"piper",
+        ownerApproved:true,approvedProductAssets:true,musicLicensed:true,voiceLicenseApproved:true
+      }).then(async result=>{db.tiktokProduction={status:"ready_for_review",finishedAt:new Date().toISOString(),voiceDurations:result.voiceDurations};await persist();})
+        .catch(async err=>{db.tiktokProduction={status:"failed",error:String(err.message||err).slice(0,160)};await persist();});
+      return respond(res,202,view());
+    }
+    return error(res,404,"tiktok_production_route_not_found");
   }
   // Full-length Venus production, owner-only. No YouTube publishing.
   if(req.method==="GET"&&u.pathname==="/api/venus-production/status"){
