@@ -14,6 +14,7 @@ import { createVenusProduction } from "./venus-production.mjs";
 import { createMoonVoice } from "./moon-voice.mjs";
 import { createButterflyVoice } from "./butterfly-voice.mjs";
 import { composeTikTokAffiliatePreview } from "./tiktok-production.mjs";
+import { quoteTikTokMotion } from "./tiktok-motion-budget.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -456,6 +457,7 @@ async function handler(req,res){
     const approved=requirements.productRights&&requirements.musicRights&&requirements.voiceRights;
     db.tiktokProduction ||= {status:"not_started"};
     const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,revisionMode:db.tiktokProduction.revisionMode||null,published:false});
+    if(req.method==="GET"&&u.pathname==="/api/tiktok/production/motion-quote")return respond(res,200,quoteTikTokMotion());
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/status")return respond(res,200,view());
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/video"){
       if(!["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status))return error(res,404,"tiktok_video_not_ready");
