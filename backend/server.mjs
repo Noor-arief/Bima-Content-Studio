@@ -459,6 +459,22 @@ async function handler(req,res){
     db.tiktokProduction ||= {status:"not_started"};
     const view=()=>({status:db.tiktokProduction.status,error:db.tiktokProduction.error||null,configured,assetsApproved:approved,requirements,ready:configured&&approved,busy:db.tiktokProduction.status==="processing",videoReady:["ready_for_review","approved","revision_requested"].includes(db.tiktokProduction.status),reviewStatus:db.tiktokProduction.status==="approved"?"approved":db.tiktokProduction.status==="revision_requested"?"revision_requested":db.tiktokProduction.status==="ready_for_review"?"pending_review":null,revisionNotes:db.tiktokProduction.revisionNotes||null,revisionMode:db.tiktokProduction.revisionMode||null,published:false});
     // Paid pilot: owner-only, server-approved original product image, one job maximum.
+    if(req.method==="POST"&&u.pathname==="/api/tiktok/production/ltx-reference"){
+      let body;try{body=await readJSON(req,1100000);}catch{return error(res,400,"invalid_reference_payload");}
+      if(body?.referenceOnly!==true||typeof body?.dataUri!=="string"||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(body.dataUri))
+        return error(res,422,"approved_reference_image_required");
+      const value=body.dataUri.split(",")[1];
+      const bytes=Buffer.from(value,"base64");
+      if(bytes.length<1500||bytes.length>750000)return error(res,422,"reference_image_size_out_of_range");
+      const valid=bytes.subarray(0,3).toString("hex")==="ffd8ff"||bytes.subarray(0,8).toString("hex")==="89504e470d0a1a0a"||bytes.subarray(0,4).toString()==="RIFF";
+      if(!valid)return error(res,422,"invalid_image_signature");
+      if(db.tiktokLtx?.status&&db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_locked");
+      const file=path.join(MEDIA_DIR,"tiktok-ltx-private-reference.jpg");
+      await fs.writeFile(file,bytes,{mode:0o600});
+      db.tiktokLtx={status:"not_started",referenceReady:true,referenceFile:file,referenceSource:"owner_provided_screenshot",creativeQaPassed:false};
+      await persist();
+      return respond(res,201,{referenceReady:true,referenceOnly:true,creativeQaPassed:false,costUsd:0});
+    }
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/ltx-status"){
       db.tiktokLtx ||= {status:"not_started"};
       if(db.tiktokLtx.status==="submitted"&&db.tiktokLtx.id){
@@ -478,7 +494,7 @@ async function handler(req,res){
         }catch(e){return respond(res,200,{status:"status_unavailable",reason:String(e.message||e).slice(0,90),canStart:false,published:false});}
       }
       return respond(res,200,{status:db.tiktokLtx.status,estimatedUsd:db.tiktokLtx.estimatedUsd||null,
-        resultAvailable:db.tiktokLtx.resultAvailable||false,technicalMediaReady:db.tiktokLtx.technicalMediaReady===true,creativeQaPassed:false,canStart:db.tiktokLtx.status==="not_started",published:false});
+        referenceReady:db.tiktokLtx.referenceReady===true,resultAvailable:db.tiktokLtx.resultAvailable||false,technicalMediaReady:db.tiktokLtx.technicalMediaReady===true,creativeQaPassed:false,canStart:db.tiktokLtx.status==="not_started",published:false});
     }
     if(req.method==="GET"&&u.pathname==="/api/tiktok/production/ltx-preview"){
       if(db.tiktokLtx?.status!=="media_downloaded")return error(res,404,"ltx_media_not_ready");
@@ -493,13 +509,13 @@ async function handler(req,res){
       let data;try{data=await readJSON(req,3500);}catch{return error(res,400,"invalid_ltx_pilot_payload");}
       if(data?.confirmCost!==true||Number(data.maxUsd)<0.24)return error(res,409,"ltx_explicit_budget_approval_required");
       if(!process.env.LTX_API_KEY)return error(res,503,"ltx_api_key_not_configured");
-      if(process.env.TIKTOK_PRODUCT_ASSETS_APPROVED!=="true"||!process.env.LTX_APPROVED_IMAGE_URI||!process.env.TIKTOK_PRODUCT_MOTION_PROMPT)return error(res,409,"approved_product_image_missing");
+      if(!db.tiktokLtx?.referenceReady&&!process.env.LTX_APPROVED_IMAGE_URI)return error(res,409,"product_reference_missing");
       db.tiktokLtx ||= {status:"not_started"};
       if(db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_already_attempted");
       db.tiktokLtx={status:"submitting",startedAt:new Date().toISOString(),estimatedUsd:0.24};
       await persist();
       try{
-        const job=await submitTikTokLtxPilot({imageUri:process.env.LTX_APPROVED_IMAGE_URI,prompt:process.env.TIKTOK_PRODUCT_MOTION_PROMPT,
+        const job=await submitTikTokLtxPilot({imageUri:db.tiktokLtx.referenceReady?"data:image/jpeg;base64,"+(await fs.readFile(db.tiktokLtx.referenceFile)).toString("base64"):process.env.LTX_APPROVED_IMAGE_URI,prompt:process.env.TIKTOK_PRODUCT_MOTION_PROMPT||"A natural commercial tabletop product closeup with subtle realistic camera dolly movement, preserving authentic object geometry without morphing, commercial studio light and gentle parallax.",
           ownerApproved:true,maxUsd:Number(data.maxUsd),verifiedProductImage:true});
         db.tiktokLtx={...job,startedAt:db.tiktokLtx.startedAt};
         await persist();
