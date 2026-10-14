@@ -28,7 +28,7 @@ test("render 24s portrait MP4 with voice and music, no false TikTok publishing c
  await writeFile(srt,"1\n00:00:00,000 --> 00:00:08,000\nScene one\n\n2\n00:00:08,000 --> 00:00:16,000\nScene two\n\n3\n00:00:16,000 --> 00:00:24,000\nScene three\n");
  const output=path.join(dir,"result.mp4");
  const res=await renderTikTokAffiliateVideo({images:imgs,voicePath:voice,musicPath:music,subtitlesPath:srt,outputPath:output,approvedProductAssets:true,musicLicensed:true,ownerApproved:true});
- assert.equal(res.durationSeconds,24);assert.equal(res.subtitlesBurned,false);assert.equal(res.uploaded,false);assert.equal(res.affiliateLinked,false);
+ assert.equal(res.durationSeconds,24);assert.equal(res.subtitlesBurned,true);assert.equal(res.uploaded,false);assert.equal(res.affiliateLinked,false);
  assert.ok((await stat(output)).size>10000);
  const buffer=await readFile(output);assert.ok(buffer.subarray(0,256).includes(Buffer.from("ftyp")));
  }finally{await rm(dir,{recursive:true,force:true});}
