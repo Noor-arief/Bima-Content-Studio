@@ -3,6 +3,7 @@ test('TikTok workflow navigation is numbered, voice preview is clearly labelled,
  await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
  await page.locator('#channelBar [data-channel="tiktok"]').click();
  await expect(page.locator('.sidebar .channel-menu-name').first()).toHaveText('1. Status & Panduan');
+ await page.locator('.sidebar [data-go="desk"]').click();
  await expect(page.locator('#tt-voice-preview')).toContainText('Ini bukan file VO final');
  await expect(page.locator('#tt-voice-play')).toBeVisible();
  await page.locator('#tt-voice-play').click();
