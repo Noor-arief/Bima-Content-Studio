@@ -10,6 +10,10 @@ panel.dataset.secs='desk';
 panel.innerHTML='<h3>Production Pack · BIMA</h3><p class="aff-muted">BIMA menyiapkan storyboard 3 adegan, voice-over, subtitle SRT, dan caption dari draft TikTok yang dipilih. Tidak membuat klaim produk yang belum diverifikasi. MP4 belum digenerate otomatis.</p><div class="aff-actions"><button id="tt-pack-build" type="button" class="aff-primary">Siapkan paket produksi</button><button id="tt-pack-srt" type="button">Download subtitle SRT</button><button id="tt-pack-json" type="button">Download storyboard JSON</button></div><p id="tt-pack-status" role="status" aria-live="polite"></p><label>Voice-over (review sebelum dipakai)<textarea rows="4" id="tt-pack-voice" readonly style="width:100%;margin-top:8px"></textarea></label><label>Storyboard 3 adegan<textarea rows="9" id="tt-pack-story" readonly style="width:100%;margin-top:8px"></textarea></label>';
 const desk=root.querySelector('[data-secs="desk publishing"]');
 desk?.insertAdjacentElement('afterend',panel);
+const voicePreview=document.createElement('div');
+voicePreview.id='tt-voice-preview';
+voicePreview.innerHTML='<h4 style="margin:12px 0 6px">Voice-over · Dengar & evaluasi</h4><p class="aff-muted">Preview suara menggunakan speech synthesis dari browser. Ini bukan file VO final dan belum dirender ke MP4.</p><div class="aff-actions"><button type="button" id="tt-voice-play">▶ Dengarkan narasi</button><button type="button" id="tt-voice-stop">■ Stop</button></div><p id="tt-voice-status" role="status" aria-live="polite"></p><p class="aff-muted">Tahapan TikTok: 1 Status → 2 Kalender → 3 Produk & Produksi → 4 Publikasi. Produksi MP4 otomatis masih menunggu integrasi aset, suara dan musik berlisensi.</p>';
+panel.append(voicePreview);
 const result=panel.querySelector('#tt-pack-status'), voiceEl=panel.querySelector('#tt-pack-voice'),storyEl=panel.querySelector('#tt-pack-story');
 let last=null;
 const productionBlockedReason='AUTO BLOCKED: BIMA belum memiliki sumber katalog Affiliate Creator yang terotorisasi dan belum dapat memverifikasi product attachment/keranjang kuning. Draft boleh ditinjau, tetapi bukan kandidat otomatis yang siap diproduksi atau dipublikasikan.';
@@ -54,5 +58,25 @@ panel.querySelector('#tt-pack-build').addEventListener('click',build);
 const gate=document.createElement('p');gate.id='tt-automation-gate';gate.setAttribute('role','status');gate.style.cssText='margin:10px 0;font-weight:700';gate.textContent=productionBlockedReason;panel.insertBefore(gate,panel.firstChild.nextSibling);
 panel.querySelector('#tt-pack-srt').addEventListener('click',()=>{if(!last)build();if(last)download('tiktok-'+last.id+'.srt',last.srt,'text/plain');});
 panel.querySelector('#tt-pack-json').addEventListener('click',()=>{if(!last)build();if(last)download('tiktok-'+last.id+'-storyboard.json',JSON.stringify(last,null,2),'application/json');});
+const voiceStatus=voicePreview.querySelector('#tt-voice-status');
+voicePreview.querySelector('#tt-voice-play').addEventListener('click',()=>{
+ if(!last)build();
+ if(!last)return;
+ if(!('speechSynthesis' in window)){voiceStatus.textContent='Preview suara tidak tersedia pada browser ini.';return;}
+ window.speechSynthesis.cancel();
+ const utterance=new SpeechSynthesisUtterance(last.voice);
+ utterance.lang='id-ID';utterance.rate=1.02;utterance.pitch=1;
+ const voices=window.speechSynthesis.getVoices();
+ const indonesian=voices.find(v=>v.lang.toLowerCase()==='id-id')||voices.find(v=>v.lang.toLowerCase().startsWith('id'));
+ if(indonesian)utterance.voice=indonesian;
+ utterance.onstart=()=>voiceStatus.textContent='Memutar preview narasi · suara bergantung pada browser/perangkat.';
+ utterance.onend=()=>voiceStatus.textContent='Preview selesai. Evaluasi intonasi sebelum menghasilkan VO final.';
+ utterance.onerror=()=>voiceStatus.textContent='Preview gagal pada perangkat ini. Naskah tetap tersedia.';
+ window.speechSynthesis.speak(utterance);
+});
+voicePreview.querySelector('#tt-voice-stop').addEventListener('click',()=>{
+ if('speechSynthesis' in window)window.speechSynthesis.cancel();
+ voiceStatus.textContent='Preview dihentikan.';
+});
 document.addEventListener('bima:tiktok-imported',()=>{build();});
 })();
