@@ -8,9 +8,10 @@ import ffmpegPath from "ffmpeg-static";
 // It NEVER selects affiliate products, claims TikTok authorization, or publishes.
 export async function renderTikTokAffiliateVideo({
   images, voicePath, musicPath, subtitlesPath, outputPath,
-  approvedProductAssets=false, musicLicensed=false, ownerApproved=false
+  approvedProductAssets=false, musicLicensed=false, ownerApproved=false, musicVolume=0.16
 }){
   if(!ownerApproved)throw Error("owner_approval_required");
+  if(!Number.isFinite(musicVolume)||musicVolume<0.02||musicVolume>0.24)throw Error("invalid_music_volume");
   if(!approvedProductAssets)throw Error("verified_product_assets_required");
   if(!musicLicensed)throw Error("commercial_music_license_required");
   if(!Array.isArray(images)||images.length!==3)throw Error("three_product_images_required");
@@ -43,7 +44,7 @@ export async function renderTikTokAffiliateVideo({
   // Use a dynamic sidechain compressor instead of constant music volume.
   const escapeFilterPath=p=>p.replace(/\\/g,"\\\\").replace(/:/g,"\\:").replace(/\x27/g,"\\\x27");
   const captionFilters=cues.map((c,i)=>`[${i===0?"joined":"cap"+(i-1)}]drawtext=textfile=\x27${escapeFilterPath(textFiles[i])}\x27:fontsize=32:fontcolor=white:box=1:boxcolor=black@0.68:boxborderw=14:x=(w-text_w)/2:y=h*0.76:enable=\x27between(t,${c.from},${c.to})\x27[cap${i}]`).join(";");
-  const filter=`${visual};[v0][v1][v2]concat=n=3:v=1:a=0,format=yuv420p[joined];${captionFilters};[cap2]format=yuv420p[raw];[3:a]aresample=48000,volume=1.0,atrim=duration=24,asplit=2[voiceSC][voiceMix];[4:a]aresample=48000,volume=0.16,atrim=duration=24[music];[music][voiceSC]sidechaincompress=threshold=0.018:ratio=8:attack=10:release=220[duck];[voiceMix][duck]amix=inputs=2:duration=longest:dropout_transition=1,atrim=duration=24[a]`;
+  const filter=`${visual};[v0][v1][v2]concat=n=3:v=1:a=0,format=yuv420p[joined];${captionFilters};[cap2]format=yuv420p[raw];[3:a]aresample=48000,volume=1.0,atrim=duration=24,asplit=2[voiceSC][voiceMix];[4:a]aresample=48000,volume=${musicVolume},atrim=duration=24[music];[music][voiceSC]sidechaincompress=threshold=0.018:ratio=8:attack=10:release=220[duck];[voiceMix][duck]amix=inputs=2:duration=longest:dropout_transition=1,atrim=duration=24[a]`;
   // Subtitle sidecar preserved separately: FFmpeg binaries can differ in libass support.
   // A renderer must not claim captions are burned in without an explicit QA step.
   const args=["-nostdin","-hide_banner","-loglevel","error","-y"];
