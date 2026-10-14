@@ -1,6 +1,6 @@
 import {quoteTikTokMotion} from "./tiktok-motion-budget.mjs";
 const API="https://api.ltx.io";
-const mediaUri=s=>typeof s==="string"&&(s.startsWith("ltx://")||/^https:\/\/[a-z0-9.-]+\/[a-z0-9/_?&.%=-]+$/i.test(s));
+const mediaUri=s=>typeof s==="string"&&((/^data:image\/(jpeg|png|webp);base64,[a-zA-Z0-9+/=]+$/.test(s)&&s.length<7_000_000)||s.startsWith("ltx://")||/^https:\/\/[a-z0-9.-]+\/[a-z0-9/_?&.%=-]+$/i.test(s));
 export async function submitTikTokLtxPilot({
   imageUri,prompt,ownerApproved=false,maxUsd=0,verifiedProductImage=false,
   apiKey=process.env.LTX_API_KEY,fetchImpl=fetch
