@@ -475,13 +475,13 @@ async function handler(req,res){
       let data;try{data=await readJSON(req,3500);}catch{return error(res,400,"invalid_ltx_pilot_payload");}
       if(data?.confirmCost!==true||Number(data.maxUsd)<0.24)return error(res,409,"ltx_explicit_budget_approval_required");
       if(!process.env.LTX_API_KEY)return error(res,503,"ltx_api_key_not_configured");
-      if(process.env.TIKTOK_PRODUCT_ASSETS_APPROVED!=="true"||!process.env.LTX_APPROVED_IMAGE_URI)return error(res,409,"approved_product_image_missing");
+      if(process.env.TIKTOK_PRODUCT_ASSETS_APPROVED!=="true"||!process.env.LTX_APPROVED_IMAGE_URI||!process.env.TIKTOK_PRODUCT_MOTION_PROMPT)return error(res,409,"approved_product_image_missing");
       db.tiktokLtx ||= {status:"not_started"};
       if(db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_already_attempted");
       db.tiktokLtx={status:"submitting",startedAt:new Date().toISOString(),estimatedUsd:0.24};
       await persist();
       try{
-        const job=await submitTikTokLtxPilot({imageUri:process.env.LTX_APPROVED_IMAGE_URI,prompt:data.prompt,
+        const job=await submitTikTokLtxPilot({imageUri:process.env.LTX_APPROVED_IMAGE_URI,prompt:process.env.TIKTOK_PRODUCT_MOTION_PROMPT,
           ownerApproved:true,maxUsd:Number(data.maxUsd),verifiedProductImage:true});
         db.tiktokLtx={...job,startedAt:db.tiktokLtx.startedAt};
         await persist();
