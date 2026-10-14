@@ -1,0 +1,19 @@
+name: TikTok First Sale QA
+on:
+  pull_request:
+    paths:
+      - 'tiktok-affiliate.js'
+      - 'qa/tiktok-first-sale.test.mjs'
+      - '.github/workflows/tiktok-first-sale-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check tiktok-affiliate.js
+      - run: node --test qa/tiktok-first-sale.test.mjs
