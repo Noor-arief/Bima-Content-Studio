@@ -31,7 +31,7 @@ export async function renderTikTokAffiliateVideo({
   // A clean, restrained Ken Burns move; no artificial alteration of product.
   const visual=images.map((_,i)=>`[${i}:v]scale=850:1500:force_original_aspect_ratio=increase,crop=850:1500,zoompan=z='min(zoom+0.00025,1.045)':d=192:s=720x1280:fps=24,trim=duration=8,setpts=PTS-STARTPTS[v${i}]`).join(";");
   // Use a dynamic sidechain compressor instead of constant music volume.
-  const filter=`${visual};[v0][v1][v2]concat=n=3:v=1:a=0,format=yuv420p[raw];[3:a]aresample=48000,volume=1.0,atrim=duration=24[voice];[4:a]aresample=48000,volume=0.16,atrim=duration=24[music];[music][voice]sidechaincompress=threshold=0.018:ratio=8:attack=10:release=220[duck];[voice][duck]amix=inputs=2:duration=longest:dropout_transition=1,atrim=duration=24[a]`;
+  const filter=`${visual};[v0][v1][v2]concat=n=3:v=1:a=0,format=yuv420p[raw];[3:a]aresample=48000,volume=1.0,atrim=duration=24,asplit=2[voiceSC][voiceMix];[4:a]aresample=48000,volume=0.16,atrim=duration=24[music];[music][voiceSC]sidechaincompress=threshold=0.018:ratio=8:attack=10:release=220[duck];[voiceMix][duck]amix=inputs=2:duration=longest:dropout_transition=1,atrim=duration=24[a]`;
   // Subtitle sidecar preserved separately: FFmpeg binaries can differ in libass support.
   // A renderer must not claim captions are burned in without an explicit QA step.
   const args=["-nostdin","-hide_banner","-loglevel","error","-y"];
