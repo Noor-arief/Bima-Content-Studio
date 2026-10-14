@@ -35,6 +35,26 @@ const ENABLE_THUMBNAIL_UPLOADS = process.env.ENABLE_THUMBNAIL_UPLOADS === "true"
 let shortsConversionBusy = false;
 const ENABLE_PUBLIC_SCHEDULING = process.env.ENABLE_PUBLIC_SCHEDULING === "true";
 const EXPECTED_CHANNEL_ID = process.env.EXPECTED_YOUTUBE_CHANNEL_ID || "";
+
+const TIKTOK_KEY = process.env.TIKTOK_CLIENT_KEY || "";
+const TIKTOK_SECRET = process.env.TIKTOK_CLIENT_SECRET || "";
+const TIKTOK_REDIRECT = BASE ? BASE + "/auth/tiktok/callback" : "";
+const TIKTOK_READY = Boolean(BASE && TIKTOK_KEY && TIKTOK_SECRET && KEY.length === 32);
+async function tiktokToken(params){
+  const r=await fetch("https://open.tiktokapis.com/v2/oauth/token/",{method:"POST",
+    headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:new URLSearchParams({client_key:TIKTOK_KEY,client_secret:TIKTOK_SECRET,...params}),
+    signal:AbortSignal.timeout(20000)});
+  const j=await r.json();if(!r.ok||!j.access_token)throw Error("tiktok_token_exchange_failed");
+  return j;
+}
+async function tiktokProfile(token){
+  const r=await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url",{
+    headers:{Authorization:"Bearer "+token},signal:AbortSignal.timeout(20000)});
+  const j=await r.json();if(!r.ok||j.error?.code!=="ok"||!j.data?.user?.open_id)throw Error("tiktok_profile_failed");
+  return j.data.user;
+}
+
 const ACCESS_SCOPE = "openid email https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
 const sha = x => createHash("sha256").update(x).digest("hex");
 async function fileSha256(filepath){const h=createHash("sha256");for await(const chunk of createReadStream(filepath))h.update(chunk);return h.digest("hex");}
@@ -234,6 +254,49 @@ async function handler(req,res){
     res.setHeader("Access-Control-Allow-Methods","GET,POST,PUT,OPTIONS");
   }
   if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}
+
+  // TikTok access is separate from the YouTube OAuth and upload state.
+  // Only an authenticated BIMA owner can initiate a new account connection.
+  if(req.method==="GET"&&u.pathname==="/auth/tiktok/status"){
+    if(!access(req))return error(res,401,"owner_login_required");
+    return respond(res,200,{configured:TIKTOK_READY,connected:Boolean(db.tiktok?.openId),
+      displayName:db.tiktok?.displayName||null,scopes:db.tiktok?.scopes||[],
+      redirectUri:TIKTOK_REDIRECT,shopAffiliateConnected:false,postingConnected:false});
+  }
+  if(req.method==="POST"&&u.pathname==="/auth/tiktok/start"){
+    if(!access(req))return error(res,401,"owner_login_required");
+    if(!TIKTOK_READY)return error(res,503,"tiktok_credentials_not_configured");
+    const state=random();
+    db.tiktokStates ||= {};
+    for(const [key,val] of Object.entries(db.tiktokStates))if(Date.now()-val.created>600000)delete db.tiktokStates[key];
+    db.tiktokStates[sha(state)]={created:Date.now()};await persist();
+    const params=new URLSearchParams({client_key:TIKTOK_KEY,response_type:"code",scope:"user.info.basic",
+      redirect_uri:TIKTOK_REDIRECT,state});
+    return respond(res,200,{authorizationUrl:"https://www.tiktok.com/v2/auth/authorize/?"+params});
+  }
+  if(req.method==="GET"&&u.pathname==="/auth/tiktok/callback"){
+    const state=u.searchParams.get("state")||"";
+    const saved=db.tiktokStates?.[sha(state)];
+    if(saved)delete db.tiktokStates[sha(state)];
+    await persist();
+    if(!state||!saved||Date.now()-saved.created>600000)return error(res,400,"tiktok_state_invalid");
+    if(u.searchParams.has("error"))return error(res,400,"tiktok_authorization_denied");
+    const code=u.searchParams.get("code");
+    if(!code||!TIKTOK_READY)return error(res,400,"tiktok_callback_incomplete");
+    try{
+      const tokens=await tiktokToken({grant_type:"authorization_code",code,redirect_uri:TIKTOK_REDIRECT});
+      const profile=await tiktokProfile(tokens.access_token);
+      db.tiktok={openId:profile.open_id,displayName:profile.display_name||"",
+        scopes:(tokens.scope||"").split(",").filter(Boolean),accessToken:seal(tokens.access_token),
+        refreshToken:seal(tokens.refresh_token),expiresAt:Date.now()+tokens.expires_in*1000,
+        connectedAt:new Date().toISOString()};
+      logEvent("tiktok_login_connected","owner");await persist();
+      return respond(res,200,{connected:true,displayName:db.tiktok.displayName,
+        note:"TikTok Login Kit only. TikTok Shop and Content Posting not connected."});
+    }catch{
+      return error(res,502,"tiktok_authorization_exchange_failed");
+    }
+  }
   if(req.method==="GET"&&u.pathname==="/health")return respond(res,200,{
     service:"bima-content-studio-api",status:"online",oauthConfigured:HAVE_OAUTH,
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
