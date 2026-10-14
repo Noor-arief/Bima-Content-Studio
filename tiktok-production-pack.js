@@ -23,17 +23,64 @@ motionPanel.className='aff-card';
 motionPanel.id='tt-ltx-motion-review';
 motionPanel.innerHTML='<h4>AI Motion Pilot · BIMA</h4><p class="aff-muted">BIMA membuat dan mengevaluasi video. Screenshot produk hanya referensi uji, bukan persetujuan hak jual atau bukti kesesuaian produk.</p><p id="tt-motion-status" role="status" aria-live="polite">Memeriksa pilot video…</p><div class="aff-actions"><button type="button" id="tt-motion-check">Refresh hasil pilot</button></div><video id="tt-motion-preview" controls playsinline style="display:none;max-width:320px;width:100%" aria-label="Hasil gerakan produk LTX (uji kualitas, bukan video jualan)"></video>';
 panel.append(motionPanel);
+motionPanel.insertAdjacentHTML('beforeend','<div class="aff-actions" id="tt-reference-intake"><label>Referensi asli produk <input id="tt-reference-file" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" id="tt-reference-stage">Simpan referensi privat</button><button type="button" id="tt-motion-pilot" disabled>Approve pilot LTX · estimasi US$0.24</button></div><p class="aff-muted">Screenshot ini hanya aset uji visual. Menyimpan referensi tidak memakai kredit. Produksi LTX memerlukan persetujuan terpisah; tidak memposting TikTok.</p>');
+
 const motionStatus=motionPanel.querySelector('#tt-motion-status');
 const motionCheck=motionPanel.querySelector('#tt-motion-check');
 const motionVideo=motionPanel.querySelector('#tt-motion-preview');
 let motionUrl=null;
 let motionLoaded=false;
+const referenceInput=motionPanel.querySelector('#tt-reference-file');
+const stageReference=motionPanel.querySelector('#tt-reference-stage');
+const startPilot=motionPanel.querySelector('#tt-motion-pilot');
+function encodeReference(file){
+ return new Promise((resolve,reject)=>{
+  if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>8_000_000)return reject(Error('File harus PNG/JPG/WebP maksimal 8MB.'));
+  const img=new Image(),tmp=URL.createObjectURL(file);
+  img.onload=()=>{
+   URL.revokeObjectURL(tmp);
+   const scale=Math.min(1,1280/Math.max(img.naturalWidth,img.naturalHeight));
+   const c=document.createElement('canvas');
+   c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);
+   const ctx=c.getContext('2d');ctx.drawImage(img,0,0,c.width,c.height);
+   let quality=0.9,uri='';
+   while(quality>=0.25){uri=c.toDataURL('image/jpeg',quality);if(uri.length<930000)break;quality-=0.1;}
+   if(uri.length>=930000)return reject(Error('Gambar tidak bisa dipadatkan untuk upload privat.'));
+   resolve(uri);
+  };
+  img.onerror=()=>{URL.revokeObjectURL(tmp);reject(Error('Gambar tidak dapat dibuka.'));};
+  img.src=tmp;
+ });
+}
+stageReference.addEventListener('click',async()=>{
+ stageReference.disabled=true;motionStatus.textContent='Menyimpan screenshot asli secara privat…';
+ try{
+  const dataUri=await encodeReference(referenceInput.files?.[0]);
+  await renderRequest('/api/tiktok/production/ltx-reference',{method:'POST',body:JSON.stringify({referenceOnly:true,dataUri})});
+  motionStatus.textContent='Referensi asli tersimpan. Belum ada kredit yang dipakai.';
+  await checkMotion();
+ }catch(e){motionStatus.textContent='Referensi gagal: '+String(e.message||e);}
+ finally{stageReference.disabled=false;}
+});
+startPilot.addEventListener('click',async()=>{
+ if(!confirm('Setujui SATU pilot video LTX dengan estimasi US$0.24 (batas US$1)? Video hanya untuk evaluasi, bukan publikasi.'))return;
+ startPilot.disabled=true;
+ try{
+  await renderRequest('/api/tiktok/production/ltx-pilot',{method:'POST',body:JSON.stringify({confirmCost:true,maxUsd:1})});
+  motionStatus.textContent='Pilot dikirim. BIMA memantau hasil otomatis.';
+ }catch(e){motionStatus.textContent='Pilot belum berjalan: '+String(e.message||e);}
+ await checkMotion();
+});
+
 async function checkMotion(){
  motionCheck.disabled=true;
  try{
   const data=await renderRequest('/api/tiktok/production/ltx-status');
   const statuses={not_started:'Belum ada video. LTX memerlukan gambar referensi terverifikasi dan persetujuan anggaran.',submitting:'BIMA sedang mengirim job.',submitted:'LTX sedang memproses video.',pending:'LTX sedang mengantre video.',processing:'LTX sedang memproses video.',completed:'Generasi selesai; menunggu download aman.',media_host_approval_required:'BIMA belum mengizinkan host download video.',media_download_failed:'Video gagal diverifikasi atau diunduh.',media_downloaded:'Video uji tersedia. Creative QA belum PASS.',requires_reconciliation:'Status job perlu direkonsiliasi sebelum percobaan baru.'};
   motionStatus.textContent=statuses[data.status]||('Status: '+String(data.status||'unknown'));
+  startPilot.disabled=!(data.referenceReady&&data.canStart&&data.providerConfigured);
+  stageReference.disabled=!data.canStart;
+
   if(data.technicalMediaReady&&!motionLoaded){
    const token=auth();
    const res=await fetch(endpoint+'/api/tiktok/production/ltx-preview',{headers:{Authorization:'Bearer '+token}});
