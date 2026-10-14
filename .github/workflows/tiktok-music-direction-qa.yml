@@ -1,0 +1,23 @@
+name: TikTok Music Direction QA
+on:
+  pull_request:
+    paths:
+      - 'tiktok-production-pack.js'
+      - 'qa/tiktok-music-direction.spec.mjs'
+      - '.github/workflows/tiktok-music-direction-qa.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install chromium --with-deps
+      - run: node --check tiktok-production-pack.js
+      - run: python3 -m http.server 8765 >/tmp/bima-web.log 2>&1 &
+      - run: npx playwright test qa/tiktok-music-direction.spec.mjs --browser chromium --reporter=line
