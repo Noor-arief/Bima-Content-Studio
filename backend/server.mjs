@@ -469,9 +469,10 @@ async function handler(req,res){
       const valid=bytes.subarray(0,3).toString("hex")==="ffd8ff"||bytes.subarray(0,8).toString("hex")==="89504e470d0a1a0a"||bytes.subarray(0,4).toString()==="RIFF";
       if(!valid)return error(res,422,"invalid_image_signature");
       if(db.tiktokLtx?.status&&db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_locked");
-      const file=path.join(MEDIA_DIR,"tiktok-ltx-private-reference.jpg");
+      const mime=body.dataUri.slice(5,body.dataUri.indexOf(";"));
+      const file=path.join(MEDIA_DIR,"tiktok-ltx-private-reference.bin");
       await fs.writeFile(file,bytes,{mode:0o600});
-      db.tiktokLtx={status:"not_started",referenceReady:true,referenceFile:file,referenceSource:"owner_provided_screenshot",creativeQaPassed:false};
+      db.tiktokLtx={status:"not_started",referenceReady:true,referenceFile:file,referenceMime:mime,referenceSource:"owner_provided_screenshot",creativeQaPassed:false};
       await persist();
       return respond(res,201,{referenceReady:true,referenceOnly:true,creativeQaPassed:false,costUsd:0});
     }
@@ -513,7 +514,7 @@ async function handler(req,res){
       db.tiktokLtx ||= {status:"not_started"};
       if(db.tiktokLtx.status!=="not_started")return error(res,409,"ltx_pilot_already_attempted");
       const referenceData=db.tiktokLtx.referenceReady?
-        "data:image/jpeg;base64,"+(await fs.readFile(db.tiktokLtx.referenceFile)).toString("base64"):null;
+        "data:"+(db.tiktokLtx.referenceMime||"image/jpeg")+";base64,"+(await fs.readFile(db.tiktokLtx.referenceFile)).toString("base64"):null;
       db.tiktokLtx={status:"submitting",startedAt:new Date().toISOString(),estimatedUsd:0.24};
       await persist();
       try{
