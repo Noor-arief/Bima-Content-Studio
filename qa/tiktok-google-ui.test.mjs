@@ -41,7 +41,7 @@ test('one inbox groups review, production and blocked publication without fake s
  assert.equal(p.doc.querySelectorAll('.tt-owner-tabs button').length,0);
  assert.equal(p.doc.querySelector('[data-job-group="review"] h4').textContent,'Produk a');
  assert.equal(p.doc.querySelector('[data-job-group="processing"] h4').textContent,'Produk b');
- assert.match(p.doc.querySelector('article[data-job-group="approved"]').textContent,/tertahan akses TikTok Shop/);
+ assert.match(p.doc.querySelector('article[data-job-group="approved"]').textContent,/menunggu koneksi publikasi/);
  const root=p.doc.querySelector('#tiktokWorkspace');root.dataset.sec='desk';p.doc.dispatchEvent(new p.dom.window.CustomEvent('bima:channel-section',{detail:'desk'}));
  assert.equal(p.doc.querySelector('#tt-google-review').dataset.view,'desk');
  assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Pekerjaan BIMA');
