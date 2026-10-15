@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'backend/server.mjs'
+      - 'backend/tiktok-shop-creator.mjs'
+      - 'backend/tests/tiktok-shop-creator.test.mjs'
       - 'qa/tiktok-shop-callback.test.mjs'
       - '.github/workflows/tiktok-shop-callback-qa.yml'
 permissions:
@@ -18,4 +20,4 @@ jobs:
           node-version: '22'
       - run: npm install --prefix backend --no-audit --no-fund
       - run: node --check backend/server.mjs
-      - run: node --test qa/tiktok-shop-callback.test.mjs
+      - run: node --test qa/tiktok-shop-callback.test.mjs backend/tests/tiktok-shop-creator.test.mjs

@@ -18,8 +18,8 @@ test('TikTok Shop callback is isolated and does not consume untrusted OAuth code
   }
   assert.ok(ready,'backend must start');
   const shop=await fetch(base+'/auth/tiktok-shop/callback?code=never-trust&state=forged');
-  assert.equal(shop.status,400);
-  assert.equal((await shop.json()).error,'tiktok_shop_creator_authorization_not_configured');
+  assert.equal(shop.status,503);
+  assert.equal((await shop.json()).error,'tiktok_shop_creator_not_enabled');
   const login=await fetch(base+'/auth/tiktok/callback?code=never-trust&state=forged');
   assert.equal(login.status,400);
   assert.equal((await login.json()).error,'tiktok_state_invalid');

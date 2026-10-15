@@ -19,6 +19,7 @@ import { submitTikTokLtxPilot } from "./tiktok-ltx-pilot.mjs";
 
 import { createTikTokLtxWorker } from "./tiktok-ltx-worker.mjs";
 import { createGoogleAffiliateWorker } from "./tiktok-google-worker.mjs";
+import { beginCreatorAuthorization, validateCreatorCallback, exchangeCreatorCode, getCreatorShowcasePage } from "./tiktok-shop-creator.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -42,6 +43,10 @@ let shortsConversionBusy = false;
 const ENABLE_PUBLIC_SCHEDULING = process.env.ENABLE_PUBLIC_SCHEDULING === "true";
 const EXPECTED_CHANNEL_ID = process.env.EXPECTED_YOUTUBE_CHANNEL_ID || "";
 
+const TIKTOK_SHOP_APP_KEY = process.env.TIKTOK_SHOP_APP_KEY || "";
+const TIKTOK_SHOP_APP_SECRET = process.env.TIKTOK_SHOP_APP_SECRET || "";
+const TIKTOK_SHOP_CREATOR_ENABLED = process.env.TIKTOK_SHOP_CREATOR_ENABLED === "true";
+const TIKTOK_SHOP_CREATOR_READY = Boolean(BASE && TIKTOK_SHOP_APP_KEY && TIKTOK_SHOP_APP_SECRET && KEY.length === 32 && TIKTOK_SHOP_CREATOR_ENABLED);
 const TIKTOK_KEY = process.env.TIKTOK_CLIENT_KEY || "";
 const TIKTOK_SECRET = process.env.TIKTOK_CLIENT_SECRET || "";
 const TIKTOK_SANDBOX_KEY = process.env.TIKTOK_SANDBOX_CLIENT_KEY || "";
@@ -266,11 +271,60 @@ async function handler(req,res){
   }
   if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}
 
-  // TikTok Shop Open Platform callback is distinct from TikTok Login Kit.
-  // Registration-only until Affiliate API app key, secret, and consent flow are approved.
-  // Do not process incoming codes without one-time owner-initiated state verification.
+  // TikTok Shop Creator consent is separate from TikTok Login Kit and YouTube OAuth.
+  // Explicit deployment opt-in prevents triggering unauthorized live consent before approval.
+  if(req.method==="GET"&&u.pathname==="/auth/tiktok-shop/creator/status"){
+    if(!access(req))return error(res,401,"owner_login_required");
+    const saved=db.tiktokShopCreator;
+    return respond(res,200,{configured:TIKTOK_SHOP_CREATOR_READY,
+      connected:Boolean(saved?.refreshToken&&saved?.scopes?.includes("creator.showcase.read")),
+      grantedScopes:saved?.scopes||[],showcaseSource:"tiktok_shop_creator",
+      reviewStatus:"review_pending_until_tiktok_confirms_grant",
+      note:"TikTok Shop Creator authorization only. Login Kit and Sandbox are separate."});
+  }
+  if(req.method==="POST"&&u.pathname==="/auth/tiktok-shop/creator/start"){
+    if(!access(req))return error(res,401,"owner_login_required");
+    if(!TIKTOK_SHOP_CREATOR_READY)return error(res,503,"tiktok_shop_creator_not_enabled");
+    const candidate=beginCreatorAuthorization(TIKTOK_SHOP_APP_KEY);
+    db.tiktokShopCreatorStates||={};
+    for(const [key,v] of Object.entries(db.tiktokShopCreatorStates))if(!v||Date.now()>=v.expiresAt)delete db.tiktokShopCreatorStates[key];
+    db.tiktokShopCreatorStates[sha(candidate.state)]={state:candidate.state,expiresAt:candidate.expiresAt};
+    await persist();
+    return respond(res,200,{authorizationUrl:candidate.url,expiresAt:candidate.expiresAt});
+  }
   if(req.method==="GET"&&u.pathname==="/auth/tiktok-shop/callback"){
-    return error(res,400,"tiktok_shop_creator_authorization_not_configured");
+    const state=u.searchParams.get("state")||"";
+    const key=sha(state);
+    const saved=db.tiktokShopCreatorStates?.[key];
+    if(saved)delete db.tiktokShopCreatorStates[key]; // Consume state before exchange; replay forbidden.
+    if(saved)await persist();
+    if(!TIKTOK_SHOP_CREATOR_READY)return error(res,503,"tiktok_shop_creator_not_enabled");
+    let code;
+    try{code=validateCreatorCallback(Object.fromEntries(u.searchParams),saved);}
+    catch{return error(res,400,"tiktok_shop_creator_state_invalid_or_denied");}
+    try{
+      const result=await exchangeCreatorCode({appKey:TIKTOK_SHOP_APP_KEY,appSecret:TIKTOK_SHOP_APP_SECRET,authCode:code});
+      db.tiktokShopCreator={openId:result.openId,scopes:result.scopes,
+        accessToken:seal(result.accessToken),refreshToken:seal(result.refreshToken),
+        connectedAt:new Date().toISOString()};
+      logEvent("tiktok_shop_creator_connected","owner",{scopes:result.scopes});
+      await persist();
+      return respond(res,200,{connected:true,scopes:result.scopes,
+        note:"Creator authorization succeeded; real Showcase read is a separate verification."});
+    }catch{
+      return error(res,502,"tiktok_shop_creator_token_exchange_failed");
+    }
+  }
+  if(req.method==="GET"&&u.pathname==="/auth/tiktok-shop/creator/showcase"){
+    if(!access(req))return error(res,401,"owner_login_required");
+    if(!TIKTOK_SHOP_CREATOR_READY)return error(res,503,"tiktok_shop_creator_not_enabled");
+    const saved=db.tiktokShopCreator;
+    if(!saved?.accessToken||!saved.scopes?.includes("creator.showcase.read"))return error(res,403,"creator_showcase_scope_not_granted");
+    try{
+      const page=await getCreatorShowcasePage({appKey:TIKTOK_SHOP_APP_KEY,appSecret:TIKTOK_SHOP_APP_SECRET,
+        creatorAccessToken:unseal(saved.accessToken),pageToken:u.searchParams.get("page_token")||null});
+      return respond(res,200,{...page,source:"tiktok_shop_creator_live",gmvVerified:false});
+    }catch{return error(res,502,"tiktok_shop_showcase_unavailable");}
   }
   // TikTok access is separate from the YouTube OAuth and upload state.
   // Only an authenticated BIMA owner can initiate a new account connection.
