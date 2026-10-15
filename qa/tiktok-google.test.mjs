@@ -19,54 +19,54 @@ async function setup(t,changes={}){
   const worker=createGoogleAffiliateWorker({db,persist,mediaDir:dir,env,provider,assemble});
   return {worker,db,calls,provider,dir,env,assemble,snapshot:()=>saved};
 }
-test('storyboard approval gates spending before three scenes and owner review',async t=>{
+test('BIMA creates storyboard automatically before final owner video review',async t=>{
   const x=await setup(t);const j=await x.worker.enqueue(input);
-  await x.worker.tick();assert.equal(x.calls.submit,0);assert.equal(x.worker.job(j.id).status,'storyboard_pending');
+  assert.equal(x.worker.job(j.id).status,'queued');assert.equal(x.worker.job(j.id).storyboardApproved,true);
   assert.equal(x.worker.overview().jobs[0].storyboard.length,3);
-  await x.worker.approveStoryboard(j.id);for(let i=0;i<8;i++)await x.worker.tick();
+  for(let i=0;i<8;i++)await x.worker.tick();
   const result=x.worker.job(j.id);assert.equal(result.status,'ready_for_review');
   assert.equal(x.calls.submit,3);assert.equal(x.calls.audit,4);assert.equal(x.calls.assemble,1);
   assert.equal(x.db.tiktokGoogle.reservedCents,300);assert.ok(result.hash);
   assert.equal(x.worker.overview().jobs[0].published,false);
   await assert.rejects(x.worker.review(j.id,{decision:'approve',mediaHash:'old'}),/current_reviewable/);
   await x.worker.review(j.id,{decision:'approve',mediaHash:result.hash});assert.equal(result.status,'approved');
-  assert.equal(result.publication.status,'blocked');assert.equal(result.publication.productId,input.product.id);assert.equal(result.publication.mediaHash,result.hash);assert.equal(result.publication.scheduledAt,null);
+  assert.equal(result.publication.status,'blocked');assert.equal(result.publication.productId,input.product.id);assert.equal(x.worker.overview().jobs[0].productId,input.product.id);assert.equal(result.publication.mediaHash,result.hash);assert.equal(result.publication.scheduledAt,null);
   assert.deepEqual(x.snapshot().tiktokGoogle.jobs[j.id].publication,result.publication);
   await assert.rejects(x.worker.review(j.id,{decision:'approve',mediaHash:result.hash}),/current_reviewable/);
 });
 test('API key alone never activates spending; budget isolated from YouTube',async t=>{
   const x=await setup(t,{env:{ENABLE_TIKTOK_GOOGLE:'false',VEO_PILOT_BUDGET_CENTS:'9999'}});
-  const j=await x.worker.enqueue(input);await x.worker.approveStoryboard(j.id);await x.worker.tick();assert.equal(x.calls.submit,0);
+  const j=await x.worker.enqueue(input);await x.worker.tick();assert.equal(x.calls.submit,0);
   x.env.ENABLE_TIKTOK_GOOGLE='true';x.env.TIKTOK_GOOGLE_BUDGET_CENTS='0';await x.worker.tick();
   assert.equal(x.calls.submit,0);assert.equal(x.worker.overview().jobs[0].status,'blocked_budget');
 });
 test('duplicate intake and concurrent ticks cannot duplicate a paid request',async t=>{
   const x=await setup(t);const one=await x.worker.enqueue(input),two=await x.worker.enqueue(input);
-  assert.equal(one.id,two.id);await x.worker.approveStoryboard(one.id);await Promise.all([x.worker.tick(),x.worker.tick()]);assert.equal(x.calls.submit,1);
+  assert.equal(one.id,two.id);await Promise.all([x.worker.tick(),x.worker.tick()]);assert.equal(x.calls.submit,1);
 });
 test('uncertain paid submission remains locked across restart',async t=>{
   const x=await setup(t,{provider:{submit:async()=>{throw Error('network timeout');}}});
-  const j=await x.worker.enqueue(input);await x.worker.approveStoryboard(j.id);await x.worker.tick();assert.equal(x.worker.job(j.id).status,'requires_reconciliation');
+  const j=await x.worker.enqueue(input);await x.worker.tick();assert.equal(x.worker.job(j.id).status,'requires_reconciliation');
   const restored=createGoogleAffiliateWorker({db:x.snapshot(),persist:async()=>{},mediaDir:x.dir,env:x.env,provider:x.provider,assemble:x.assemble});
   await restored.tick();assert.equal(restored.job(j.id).status,'requires_reconciliation');
 });
 test('restart resumes an existing operation without new paid submission',async t=>{
-  const x=await setup(t);const j=await x.worker.enqueue(input);await x.worker.approveStoryboard(j.id);await x.worker.tick();
+  const x=await setup(t);const j=await x.worker.enqueue(input);await x.worker.tick();
   const restored=createGoogleAffiliateWorker({db:x.snapshot(),persist:async()=>{},mediaDir:x.dir,env:x.env,provider:x.provider,assemble:x.assemble});
   await restored.tick();assert.equal(x.calls.submit,1);assert.equal(restored.job(j.id).scenes[0].status,'complete');
 });
 test('bad audio/product QA blocks later scene spend and approval',async t=>{
   const x=await setup(t,{provider:{audit:async()=>({pass:false,issues:['narration mismatch']})}});
-  const j=await x.worker.enqueue(input);await x.worker.approveStoryboard(j.id);for(let i=0;i<5;i++)await x.worker.tick();
+  const j=await x.worker.enqueue(input);for(let i=0;i<5;i++)await x.worker.tick();
   assert.equal(x.worker.job(j.id).status,'qa_failed');assert.equal(x.calls.submit,1);assert.equal(x.calls.assemble,0);
   await assert.rejects(x.worker.review(j.id,{decision:'approve'}),/current_reviewable/);
 });
 test('revision preserves previous video and queues a separate bounded job',async t=>{
-  const x=await setup(t);const j=await x.worker.enqueue(input);await x.worker.approveStoryboard(j.id);for(let i=0;i<8;i++)await x.worker.tick();
+  const x=await setup(t);const j=await x.worker.enqueue(input);for(let i=0;i<8;i++)await x.worker.tick();
   const original=x.worker.job(j.id);const hash=original.hash;
   const revision=await x.worker.review(j.id,{decision:'request_revision',mediaHash:hash,notes:'Buat kamera lebih pelan.'});
   assert.notEqual(revision.id,j.id);assert.equal(original.hash,hash);assert.equal(original.status,'revision_requested');
-  x.env.TIKTOK_GOOGLE_BUDGET_CENTS='300';await x.worker.approveStoryboard(revision.id);await x.worker.tick();assert.equal(x.worker.job(revision.id).status,'blocked_budget');assert.equal(x.calls.submit,3);
+  x.env.TIKTOK_GOOGLE_BUDGET_CENTS='300';await x.worker.tick();assert.equal(x.worker.job(revision.id).status,'blocked_budget');assert.equal(x.calls.submit,3);
 });
 test('reference-only screenshots cannot be promoted to commercial products',async t=>{
   const x=await setup(t);await assert.rejects(x.worker.enqueue({...input,product:{...input.product,assetsLicensed:false}}),/verification_evidence/);
