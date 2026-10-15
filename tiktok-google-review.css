@@ -75,3 +75,8 @@
 #tt-google-review .tt-story-scene{padding:12px 0;border-top:1px solid #29434d}
 #tt-google-review .tt-story-scene strong{font-size:13px}
 #tt-google-review .tt-story-scene p,#tt-google-review .tt-story-scene small{display:block;color:#bfd0d8;font-size:12px;margin-top:6px}
+
+/* Only show the empty message belonging to the active TikTok menu. */
+#tt-google-review[data-view="desk"] .tt-empty[data-job-group="processing"],#tt-google-review[data-view="kalender"] .tt-empty[data-job-group="approved"]{display:block}
+#tt-google-review[data-view="ringkasan"] .tt-empty[data-job-group="review"]{display:block}
+#tt-google-review[data-view="desk"] .tt-job[data-job-group="processing"],#tt-google-review[data-view="kalender"] .tt-job[data-job-group="approved"],#tt-google-review[data-view="ringkasan"] .tt-job[data-job-group="review"]{display:grid}
