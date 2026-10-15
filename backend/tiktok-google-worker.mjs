@@ -25,11 +25,11 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
   const cap=()=>{const n=Number(env.TIKTOK_GOOGLE_BUDGET_CENTS||0);return Number.isSafeInteger(n)&&n>=0?n:0;};
   const enabled=()=>env.ENABLE_TIKTOK_GOOGLE==='true'&&Boolean(env.GEMINI_API_KEY);
   const dir=path.resolve(mediaDir,'tiktok-google');
-  const publicJob=j=>({id:j.id,product:j.product.name,status:j.status,revision:j.revision,createdAt:j.createdAt,updatedAt:j.updatedAt,error:j.error||null,estimatedUsd:j.cents/100,
+  const publicJob=j=>({id:j.id,product:j.product.name,productSource:j.product.url,selectionReason:null,status:j.status,revision:j.revision,createdAt:j.createdAt,updatedAt:j.updatedAt,error:j.error||null,estimatedUsd:j.cents/100,
     scenes:j.scenes.map(s=>({status:s.status,voice:s.voice})),qa:j.qa||null,reviewNotes:j.reviewNotes||null,videoReady:Boolean(j.file),mediaHash:j.hash||null,published:false});
   const overview=()=>({provider:'google',model:GOOGLE_AFFILIATE_MODEL,apiConfigured:Boolean(env.GEMINI_API_KEY),enabled:enabled(),durationSeconds:24,estimateUsd:GOOGLE_AFFILIATE_ESTIMATE_CENTS/100,
     budgetUsd:cap()/100,reservedUsd:state.reservedCents/100,remainingUsd:Math.max(0,cap()-state.reservedCents)/100,
-    blockers:[...(!env.GEMINI_API_KEY?['google_api_key_missing']:[]),...(!enabled()?['google_automation_not_enabled']:[]),...(state.reservedCents+GOOGLE_AFFILIATE_ESTIMATE_CENTS>cap()?['google_budget_not_available']:[]),...(!Object.keys(state.jobs).length?['verified_product_source_missing']:[])],
+    blockers:[...(!env.GEMINI_API_KEY?['google_api_key_missing']:[]),...(!enabled()?['google_automation_not_enabled']:[]),...(state.reservedCents+GOOGLE_AFFILIATE_ESTIMATE_CENTS>cap()?['google_budget_not_available']:[]),'verified_product_source_missing'],
     sourceConnected:false,publishingConnected:false,jobs:Object.values(state.jobs).map(publicJob).slice(-30)});
   // Existing pilot screenshots have referenceOnly=true. They are never promoted to
   // verified commercial product assets by this worker. This is an internal intake

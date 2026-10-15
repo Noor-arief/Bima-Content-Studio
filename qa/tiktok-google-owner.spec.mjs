@@ -27,3 +27,16 @@ test('mobile owner page has no horizontal overflow',async({page})=>{
   expect(sizes.scroll).toBeLessThanOrEqual(sizes.width);
   await page.screenshot({path:'/tmp/tiktok-owner-mobile.png',fullPage:true});
 });
+test('owner navigation exposes distinct work and publishing readiness pages',async({page})=>{
+  await expect(page.locator('.sidebar [data-go="ringkasan"]')).toHaveText(/Perlu Review/);
+  await page.locator('.sidebar [data-go="desk"]').click();
+  await expect(page.locator('[data-owner-pane="desk"]')).toBeVisible();
+  await expect(page.locator('[data-research-status]')).toContainText('Belum ada hasil riset');
+  await page.locator('.sidebar [data-go="kalender"]').click();
+  await expect(page.locator('#tt-google-review')).toBeVisible();
+  await expect(page.locator('[data-owner-pane="desk"]')).toBeHidden();
+  await expect(page.locator('[data-publishing-status]')).toContainText('Upload otomatis belum aktif');
+  await expect(page.locator('#aff-tiktok-agenda')).toBeHidden();
+  await page.locator('.sidebar [data-go="ringkasan"]').click();
+  await expect(page.locator('[data-view-title]')).toHaveText('Video untukmu');
+});
