@@ -10,7 +10,6 @@ test('owner gets a clear workflow and advanced tools stay available',async({page
   await page.locator('#tt-google-review [data-sec-go="publishing"]').click();
   await expect(page.locator('[data-blockers]')).toContainText('Anggaran API Google belum tersedia');
   await expect(page.locator('[data-count="review"]')).toHaveText('—');
-  await page.locator('#tt-google-review [data-sec-go="publishing"]').click();
   await expect(page.locator('#tt-production-pack')).toBeHidden();
   await page.locator('[data-legacy-toggle]').click();
   await page.locator('.sidebar [data-go="desk"]').click();
