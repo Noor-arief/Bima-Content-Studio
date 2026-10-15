@@ -30,7 +30,12 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
   const overview=()=>({provider:'google',model:GOOGLE_AFFILIATE_MODEL,apiConfigured:Boolean(env.GEMINI_API_KEY),enabled:enabled(),durationSeconds:24,estimateUsd:GOOGLE_AFFILIATE_ESTIMATE_CENTS/100,
     budgetUsd:cap()/100,reservedUsd:state.reservedCents/100,remainingUsd:Math.max(0,cap()-state.reservedCents)/100,
     blockers:[...(!env.GEMINI_API_KEY?['google_api_key_missing']:[]),...(!enabled()?['google_automation_not_enabled']:[]),...(state.reservedCents+GOOGLE_AFFILIATE_ESTIMATE_CENTS>cap()?['google_budget_not_available']:[]),'verified_product_source_missing'],
-    sourceConnected:false,publishingConnected:false,jobs:Object.values(state.jobs).map(publicJob).slice(-30)});
+    sourceConnected:false,publishingConnected:false,
+    dailyWorkflow:{timezone:'Asia/Jakarta',opensAt:'08:00',closesAt:'18:00',schedulerActive:false,
+      stages:['Showcase','Analisa produk','Storyboard','Produksi & QA','Review owner','Calendar & upload'],
+      researchStatus:'waiting_showcase_api',productionStatus:enabled()?'waiting_verified_product':'waiting_google_configuration',
+      uploadStatus:'waiting_shoppable_publisher'},
+    jobs:Object.values(state.jobs).map(publicJob).slice(-30)});
   // Existing pilot screenshots have referenceOnly=true. They are never promoted to
   // verified commercial product assets by this worker. This is an internal intake
   // contract for a future catalog connector or an authenticated operator.
