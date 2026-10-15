@@ -29,7 +29,7 @@ export function validateCreatorToken(response){
   const scopes=Array.isArray(d.granted_scopes)?d.granted_scopes:typeof d.granted_scopes==="string"?d.granted_scopes.split(/[\s,]+/):[];
   if(!scopes.includes(REQUIRED_CREATOR_SCOPE))throw Error("creator_showcase_scope_not_granted");
   if(typeof d.access_token!=="string"||!d.access_token||typeof d.refresh_token!=="string"||!d.refresh_token)throw Error("creator_token_missing");
-  return {accessToken:d.access_token,refreshToken:d.refresh_token,openId:d.open_id||null,userType:1,scopes};
+  return {accessToken:d.access_token,refreshToken:d.refresh_token,openId:d.open_id||null,userType:1,scopes,expiresIn:Number.isFinite(Number(d.access_token_expire_in))?Number(d.access_token_expire_in):null};
 }
 export async function exchangeCreatorCode({appKey,appSecret,authCode,fetchImpl=fetch}){
   if(!appKey||!appSecret||!authCode)throw Error("creator_exchange_args_missing");
