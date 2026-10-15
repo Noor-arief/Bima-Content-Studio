@@ -80,3 +80,17 @@
 #tt-google-review[data-view="desk"] .tt-empty[data-job-group="processing"],#tt-google-review[data-view="kalender"] .tt-empty[data-job-group="approved"]{display:block}
 #tt-google-review[data-view="ringkasan"] .tt-empty[data-job-group="review"]{display:block}
 #tt-google-review[data-view="desk"] .tt-job[data-job-group="processing"],#tt-google-review[data-view="kalender"] .tt-job[data-job-group="approved"],#tt-google-review[data-view="ringkasan"] .tt-job[data-job-group="review"]{display:grid}
+
+/* Exact four owner menus: desk=Production 1, ringkasan=Production 2, kalender=Owner, publishing=Settings. */
+#tt-google-review[data-view="desk"] .tt-jobs>[data-job-group]:not([data-job-group="processing"]),#tt-google-review[data-view="desk"] .tt-job:not([data-job-group="processing"]){display:none!important}
+#tt-google-review[data-view="ringkasan"] .tt-jobs>[data-job-group]:not([data-job-group="processing"]),#tt-google-review[data-view="ringkasan"] .tt-job:not([data-job-group="processing"]){display:none!important}
+#tt-google-review[data-view="kalender"] .tt-jobs>[data-job-group]:not([data-job-group="review"]),#tt-google-review[data-view="kalender"] .tt-job:not([data-job-group="review"]){display:none!important}
+#tt-google-review[data-view="kalender"].tt-calendar-open .tt-jobs>[data-job-group="approved"],#tt-google-review[data-view="kalender"].tt-calendar-open .tt-job[data-job-group="approved"]{display:block!important}
+#tt-google-review[data-view="kalender"].tt-calendar-open .tt-job[data-job-group="approved"]{display:grid!important}
+#tt-google-review[data-view="ringkasan"] .tt-review-hint,#tt-google-review[data-view="kalender"] .tt-calendar-hint{display:block!important}
+#tt-google-review[data-view="ringkasan"] .tt-workflow,#tt-google-review[data-view="ringkasan"] .tt-empty[data-job-group="review"]{display:none!important}
+#tt-google-review[data-view="kalender"] .tt-empty[data-job-group="review"]{display:block}
+
+/* Production 1 owns storyboard and revisions; Production 2 owns actual generation/QA. */
+#tt-google-review[data-view="desk"] .tt-job[data-job-group="processing"]:not([data-job-status="storyboard_pending"]):not([data-job-status="revision_requested"]){display:none!important}
+#tt-google-review[data-view="ringkasan"] .tt-job[data-job-status="storyboard_pending"],#tt-google-review[data-view="ringkasan"] .tt-job[data-job-status="revision_requested"]{display:none!important}
