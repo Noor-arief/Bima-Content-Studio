@@ -8,7 +8,11 @@
 **Product:** https://noor-arief.github.io/Bima-Content-Studio/
 **Backend:** https://content-studio-api-production-3fe2.up.railway.app/
 **Existing integration:** TikTok for Developers Login Kit Sandbox only; NOT TikTok Shop API.
-**Application status:** TikTok Shop Affiliate public/custom app NOT yet created; app key does not yet exist.
+**Updated 2026-10-15 from owner support screenshot:** Public application **created** in Indonesia, category **App Developer / Customer Engagement / Creator Collaborations**, four Affiliate Creator API scopes selected (not approved). Application remains **Draft**, App Review submission is blocked by backend validation requiring missing form fields `feature_intro` and `test_instruction`. TikTok Shop app key and approved entitlement are **not verified**. Prior 'app not created' status below is stale historical text; do not repeat it as current fact.
+
+**Support ticket:** 2026101415120200008 — ask engineering to fix App Review field mapping and verify whether Creator Collaborations vs documented Affiliate category has the correct entitlement. Do not submit unsupported hidden API parameters.
+
+**Testing while ticket pending:** official Affiliate (custom) app, if Partner Center eligibility allows; beta creator testing account only if App Store Manager provisions it; meanwhile isolated mocked Showcase contract test without spending or publishing.
 
 ## Request to Partner Center / Account Manager
 
