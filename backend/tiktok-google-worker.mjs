@@ -4,7 +4,7 @@ import path from 'node:path';
 import {createGoogleAffiliateProvider,GOOGLE_AFFILIATE_MODEL,GOOGLE_AFFILIATE_ESTIMATE_CENTS} from './tiktok-google-provider.mjs';
 import {assembleGoogleAffiliate} from './tiktok-google-media.mjs';
 
-const terminal=new Set(['ready_for_review','approved','qa_failed','failed','requires_reconciliation','revision_requested']);
+const terminal=new Set(['storyboard_pending','ready_for_review','approved','qa_failed','failed','requires_reconciliation','revision_requested']);
 const digest=s=>createHash('sha256').update(s).digest('hex');
 export function affiliateStory(product,notes=''){
   const voice=[`Yuk, lihat detail ${product.name}.`,product.fact,'Cek detail, pilihan varian, dan harga terbaru sebelum membeli.'];
@@ -26,7 +26,7 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
   const enabled=()=>env.ENABLE_TIKTOK_GOOGLE==='true'&&Boolean(env.GEMINI_API_KEY);
   const dir=path.resolve(mediaDir,'tiktok-google');
   const publicJob=j=>({id:j.id,product:j.product.name,productSource:j.product.url,selectionReason:null,status:j.status,revision:j.revision,createdAt:j.createdAt,updatedAt:j.updatedAt,error:j.error||null,estimatedUsd:j.cents/100,
-    scenes:j.scenes.map(s=>({status:s.status,voice:s.voice})),qa:j.qa||null,reviewNotes:j.reviewNotes||null,videoReady:Boolean(j.file),mediaHash:j.hash||null,published:false,publication:j.publication||null,revisionBlockedReason:j.revisionBlockedReason||null});
+    storyboardApproved:Boolean(j.storyboardApproved),storyboard:j.scenes.map((s,i)=>({scene:i+1,durationSeconds:8,visual:s.visual,voice:s.voice,audio:'Narasi Indonesia dan musik instrumental lembut',format:'9:16',status:s.status})),scenes:j.scenes.map(s=>({status:s.status,voice:s.voice})),qa:j.qa||null,reviewNotes:j.reviewNotes||null,videoReady:Boolean(j.file),mediaHash:j.hash||null,published:false,publication:j.publication||null,revisionBlockedReason:j.revisionBlockedReason||null});
   const overview=()=>({provider:'google',model:GOOGLE_AFFILIATE_MODEL,apiConfigured:Boolean(env.GEMINI_API_KEY),enabled:enabled(),durationSeconds:24,estimateUsd:GOOGLE_AFFILIATE_ESTIMATE_CENTS/100,
     budgetUsd:cap()/100,reservedUsd:state.reservedCents/100,remainingUsd:Math.max(0,cap()-state.reservedCents)/100,
     blockers:[...(!env.GEMINI_API_KEY?['google_api_key_missing']:[]),...(!enabled()?['google_automation_not_enabled']:[]),...(state.reservedCents+GOOGLE_AFFILIATE_ESTIMATE_CENTS>cap()?['google_budget_not_available']:[]),'verified_product_source_missing'],
@@ -54,7 +54,7 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
       const scenes=affiliateStory(product);
       await fs.mkdir(dir,{recursive:true,mode:0o700});const reference=path.join(dir,id+'.reference');
       await fs.writeFile(reference,image,{mode:0o600});
-      const job={id,product,reference,mimeType:mime,scenes,status:'queued',revision:0,cents:GOOGLE_AFFILIATE_ESTIMATE_CENTS,createdAt:now(),updatedAt:now()};
+      const job={id,product,reference,mimeType:mime,scenes,status:'storyboard_pending',storyboardApproved:false,revision:0,cents:GOOGLE_AFFILIATE_ESTIMATE_CENTS,createdAt:now(),updatedAt:now()};
       state.jobs[id]=job;await persist();return publicJob(job);
     }finally{busy=false;}
   }
@@ -66,11 +66,18 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
     if(j.status==='auditing_final'){j.status='requires_reconciliation';j.error='final_qa_interrupted';}
     for(const s of j.scenes){if(s.status==='auditing'){j.status='requires_reconciliation';j.error='scene_qa_interrupted';}}
   }
+  async function approveStoryboard(id){
+    if(busy)throw Error('production_busy_try_later');
+    const j=state.jobs[id];if(!j||j.status!=='storyboard_pending')throw Error('storyboard_not_pending');
+    if(j.scenes.length!==3||j.scenes.some(s=>!s.prompt||!s.visual||!s.voice))throw Error('storyboard_incomplete');
+    j.storyboardApproved=true;j.status='queued';j.storyboardApprovedAt=now();j.updatedAt=now();await persist();return publicJob(j);
+  }
   async function tick(){
     if(busy||!enabled())return;busy=true;
     let j;
     try{
       j=Object.values(state.jobs).find(x=>!terminal.has(x.status));if(!j)return;
+      if(!j.storyboardApproved){j.status='storyboard_pending';await persist();return;}
       if(!j.budgetReserved){
         if(state.reservedCents+j.cents>cap()){j.status='blocked_budget';await persist();return;}
         state.reservedCents+=j.cents;j.budgetReserved=true;j.status='running';await persist();
@@ -121,10 +128,10 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
       if(decision!=='request_revision'||typeof notes!=='string'||notes.trim().length<5||notes.length>600)throw Error('revision_notes_required');
       if(j.revision>=2){j.status='revision_requested';j.reviewNotes=notes;j.revisionBlockedReason='automatic_revision_limit_reached';j.updatedAt=now();await persist();return publicJob(j);}
       const revision=j.revision+1,newId=digest(j.id+':'+revision).slice(0,24);
-      const next={...j,id:newId,status:'queued',revision,scenes:affiliateStory(j.product,notes),reviewNotes:notes,createdAt:now(),updatedAt:now(),file:null,hash:null,qa:null,technical:null,error:null,budgetReserved:false};
+      const next={...j,id:newId,status:'storyboard_pending',storyboardApproved:false,revision,scenes:affiliateStory(j.product,notes),reviewNotes:notes,createdAt:now(),updatedAt:now(),file:null,hash:null,qa:null,technical:null,error:null,budgetReserved:false};
       delete next.approvedHash;delete next.reviewedAt;delete next.publication;delete next.revisionBlockedReason;
       state.jobs[newId]=next;j.status='revision_requested';j.reviewNotes=notes;await persist();return publicJob(next);
     }finally{busy=false;}
   }
-  return {overview,enqueue,tick,review,job:id=>state.jobs[id]};
+  return {overview,enqueue,tick,review,approveStoryboard,job:id=>state.jobs[id]};
 }
