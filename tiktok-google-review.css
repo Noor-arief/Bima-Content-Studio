@@ -51,3 +51,21 @@
 
 /* Keep the exit from maintenance mode accessible on every section. */
 #tiktokWorkspace:not(.tt-owner-mode) #tt-google-review .tt-tools{display:block!important}
+
+/* TikTok owner: one purpose per view; connection details in settings only. */
+#tt-google-review .tt-workflow,#tt-google-review .tt-review-hint,#tt-google-review .tt-calendar-hint{border:1px solid var(--tt-line);border-radius:15px;padding:20px;margin:0 0 18px;background:#11212c}
+#tt-google-review .tt-work-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+#tt-google-review .tt-work-head span,#tt-google-review .tt-work-note{color:#d1bb88;font-size:12px}
+#tt-google-review .tt-work-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0;margin:18px 0;list-style:none}
+#tt-google-review .tt-work-steps li{border:1px solid #30525b;border-radius:12px;padding:15px;min-width:0}
+#tt-google-review .tt-work-steps strong,#tt-google-review .tt-work-steps small{display:block}
+#tt-google-review .tt-work-steps small{color:var(--tt-muted);margin-top:7px}
+#tt-google-review [data-owner-pane]{display:none}
+#tt-google-review[data-view="desk"] [data-owner-pane="desk"],#tt-google-review[data-view="ringkasan"] [data-owner-pane="ringkasan"],#tt-google-review[data-view="kalender"] [data-owner-pane="kalender"],#tt-google-review[data-view="publishing"] [data-owner-pane="publishing"]{display:block}
+#tt-google-review:not([data-view="publishing"]) .tt-readiness{display:none!important}
+#tt-google-review[data-view="publishing"] .tt-metrics,#tt-google-review[data-view="publishing"] .tt-jobs,#tt-google-review[data-view="publishing"] .tt-section-heading{display:none!important}
+#tt-google-review[data-view="desk"] .tt-metrics,#tt-google-review[data-view="kalender"] .tt-metrics{display:none}
+#tt-google-review[data-view="ringkasan"] .tt-metrics>div:not(:first-child){display:none}
+#tt-google-review[data-view="ringkasan"] .tt-metrics{grid-template-columns:1fr}
+#tt-google-review .tt-section-heading{margin-top:12px}
+@media(max-width:700px){#tt-google-review .tt-work-steps{grid-template-columns:1fr}#tt-google-review .tt-workflow{padding:14px}}
