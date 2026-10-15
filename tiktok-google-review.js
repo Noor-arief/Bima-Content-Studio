@@ -29,7 +29,7 @@ let busy=false,signature='',urls=[],interaction=false;
 function syncView(){
  const section=['ringkasan','desk','kalender','publishing'].includes(root.dataset.sec)?root.dataset.sec:'ringkasan';card.dataset.view=section;
  // Settings restores the existing setup panels rather than hiding them behind owner mode.
- const settings=section==='publishing';root.classList.toggle('tt-owner-mode',!settings);document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',settings);
+ const settings=section==='publishing';if(settings)root.dataset.advancedMode='true';const advanced=root.dataset.advancedMode==='true';root.classList.toggle('tt-owner-mode',!advanced);document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',advanced);
  const copy={ringkasan:['KEPUTUSAN KAMU','Perlu kamu review'],desk:['PROSES OTOMATIS','Pekerjaan BIMA'],kalender:['JADWAL & HASIL','Video yang kamu setujui'],publishing:['PENGATURAN','Kesiapan sistem']};
  const [kicker,title]=copy[section]||copy.ringkasan;
  const intro={ringkasan:['Review Video','Tonton hasil, approve atau revisi.'],desk:['Proses BIMA','Pantau riset dan produksi video. Target kerja harian 08.00–18.00 WIB belum aktif sebagai scheduler.'],kalender:['Calendar & Upload','Video approved tercatat di sini. Upload masih menunggu izin TikTok Shop.'],publishing:['Setup Google & TikTok','Konfigurasi Google dan koneksi TikTok yang sudah ada. Setup tidak dihapus, hanya dipisahkan dari pekerjaan harian.']};
@@ -39,7 +39,7 @@ function syncView(){
  for(const b of card.querySelectorAll('.tt-owner-tabs button'))b.setAttribute('aria-current',b.dataset.secGo===section?'page':'false');
 }
 document.addEventListener('bima:channel-section',syncView);syncView();
-const actions=card.querySelector('[data-legacy-toggle]');actions.onclick=()=>{const open=root.classList.toggle('tt-owner-mode')===false;document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',open);actions.setAttribute('aria-expanded',String(open));actions.textContent=open?'Tutup alat lanjutan':'Buka alat lanjutan';if(open)card.querySelector('[data-sec-go="ringkasan"]').click();};
+const actions=card.querySelector('[data-legacy-toggle]');actions.onclick=()=>{const open=root.dataset.advancedMode!=='true';root.dataset.advancedMode=String(open);root.classList.toggle('tt-owner-mode',!open);document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',open);actions.setAttribute('aria-expanded',String(open));actions.textContent=open?'Tutup alat lanjutan':'Buka alat lanjutan';if(open)card.querySelector('[data-sec-go="ringkasan"]').click();};
 card.querySelector('[data-login]').onclick=()=>location.assign(base+'/auth/google/start');
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
 async function request(url,body){
