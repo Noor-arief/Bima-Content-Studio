@@ -10,7 +10,7 @@ sidebar.insertBefore(channelLabel,menuLabel);sidebar.insertBefore(channels,menuL
 const context=document.createElement('div');context.className='channel-menu-context';context.setAttribute('aria-live','polite');
 context.innerHTML='<span class="channel-menu-dot" aria-hidden="true"></span><div><strong></strong><small></small></div>';
 sidebar.insertBefore(context,menuLabel);
-const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'Perlu Review',desk:'BIMA Sedang Bekerja',kalender:'Jadwal & Hasil',publishing:'Koneksi & Pengaturan'},shopee:{ringkasan:'Ringkasan',kalender:'Jadwal Shopee Video',desk:'Riset & Produksi',publishing:'Publikasi & Performa'}};
+const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'Video TikTok',desk:'BIMA Sedang Bekerja',kalender:'Jadwal & Hasil',publishing:'Koneksi & Pengaturan'},shopee:{ringkasan:'Ringkasan',kalender:'Jadwal Shopee Video',desk:'Riset & Produksi',publishing:'Publikasi & Performa'}};
 let tiktokSection='ringkasan',shopeeSection='ringkasan';
 for(const button of menu.querySelectorAll('[data-go]')){
  const icon=button.querySelector('.ico');const text=document.createElement('span');text.className='channel-menu-name';
@@ -38,6 +38,7 @@ const style=document.createElement('style');style.textContent=`
 .sidebar[data-menu-channel="youtube"] .menu-item.active{border-color:#92525e;background:linear-gradient(115deg,rgba(177,68,83,.26),rgba(99,44,63,.15));box-shadow:none}.sidebar[data-menu-channel="youtube"] .menu-item.active .ico{background:#963b50}
 .sidebar[data-menu-channel="tiktok"] .channel-menu-context{border-color:#356e70;background:rgba(47,154,150,.1)}.sidebar[data-menu-channel="tiktok"] .channel-menu-dot{background:#6be6d7}.sidebar[data-menu-channel="tiktok"] .menu-item.active{border-color:#427f80;background:linear-gradient(115deg,rgba(44,150,148,.25),rgba(39,71,95,.16));box-shadow:none}.sidebar[data-menu-channel="tiktok"] .menu-item.active .ico{background:#287b7d}
 .sidebar[data-menu-channel="shopee"] .channel-menu-context{border-color:#ed7841;background:rgba(238,102,30,.1)}.sidebar[data-menu-channel="shopee"] .channel-menu-dot{background:#ee661e}.sidebar[data-menu-channel="shopee"] .menu-item.active{border-color:#ed7841;background:rgba(238,102,30,.18)}
+.sidebar[data-menu-channel="tiktok"]:not(.tt-advanced-nav) nav.menu [data-go]:not([data-go="ringkasan"]){display:none!important}
 .sidebar nav.menu[hidden],.sidebar .side-label[hidden]{display:none!important}
 @media(max-width:900px){.channel-menu-context{margin:0;padding:8px 11px}.channel-menu-context small{display:inline;margin-left:8px}.channel-menu-context strong{display:inline}.sidebar .menu-item{font-size:11px}.channel-menu-name{white-space:normal}}
 `;document.head.append(style);

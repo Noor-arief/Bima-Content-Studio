@@ -6,12 +6,13 @@ test.beforeEach(async({page})=>{
 });
 test('owner gets a clear workflow and advanced tools stay available',async({page})=>{
   await expect(page.locator('#tt-google-review')).toBeVisible();
-  await expect(page.locator('.tt-flow li')).toHaveCount(4);
+  await expect(page.locator('.sidebar nav.menu [data-go]:visible')).toHaveCount(1);
   await expect(page.locator('[data-blockers]')).toContainText('Anggaran API Google belum tersedia');
   await expect(page.locator('[data-count="review"]')).toHaveText('—');
-  await page.locator('.sidebar [data-go="desk"]').click();
+  await page.locator('#tt-google-review [data-sec-go="publishing"]').click();
   await expect(page.locator('#tt-production-pack')).toBeHidden();
   await page.locator('[data-legacy-toggle]').click();
+  await page.locator('.sidebar [data-go="desk"]').click();
   await expect(page.locator('#tt-production-pack')).toBeVisible();
   await page.locator('[data-legacy-toggle]').click();
   await expect(page.locator('#tt-production-pack')).toBeHidden();
@@ -27,16 +28,15 @@ test('mobile owner page has no horizontal overflow',async({page})=>{
   expect(sizes.scroll).toBeLessThanOrEqual(sizes.width);
   await page.screenshot({path:'/tmp/tiktok-owner-mobile.png',fullPage:true});
 });
-test('owner navigation exposes distinct work and publishing readiness pages',async({page})=>{
-  await expect(page.locator('.sidebar [data-go="ringkasan"]')).toHaveText(/Perlu Review/);
-  await page.locator('.sidebar [data-go="desk"]').click();
-  await expect(page.locator('[data-owner-pane="desk"]')).toBeVisible();
-  await expect(page.locator('[data-research-status]')).toContainText('Belum ada hasil riset');
-  await page.locator('.sidebar [data-go="kalender"]').click();
-  await expect(page.locator('#tt-google-review')).toBeVisible();
-  await expect(page.locator('[data-owner-pane="desk"]')).toBeHidden();
-  await expect(page.locator('[data-publishing-status]')).toContainText('Upload otomatis belum aktif');
-  await expect(page.locator('#aff-tiktok-agenda')).toBeHidden();
-  await page.locator('.sidebar [data-go="ringkasan"]').click();
-  await expect(page.locator('[data-view-title]')).toHaveText('Video untukmu');
+test('one owner inbox keeps technical setup behind settings',async({page})=>{
+ await expect(page.locator('.sidebar [data-go="ringkasan"]')).toHaveText(/Video TikTok/);
+ await expect(page.locator('.sidebar [data-go="desk"]')).toBeHidden();
+ await expect(page.locator('[data-view-title]')).toHaveText('Perlu kamu review');
+ await expect(page.locator('[data-owner-pane="desk"]')).toBeHidden();
+ await page.locator('#tt-google-review [data-sec-go="publishing"]').click();
+ await expect(page.locator('[data-research-status]')).toBeVisible();
+ await expect(page.locator('[data-publishing-status]')).toContainText('Upload otomatis belum aktif');
+ await page.locator('#tt-google-review [data-sec-go="ringkasan"]').click();
+ await expect(page.locator('[data-view-title]')).toHaveText('Perlu kamu review');
+ await expect(page.locator('#aff-tiktok-agenda')).toBeHidden();
 });

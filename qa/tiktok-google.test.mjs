@@ -28,6 +28,9 @@ test('three scene submissions automatically reach final QA and owner review',asy
   assert.equal(x.worker.overview().jobs[0].published,false);
   await assert.rejects(x.worker.review(j.id,{decision:'approve',mediaHash:'old'}),/current_reviewable/);
   await x.worker.review(j.id,{decision:'approve',mediaHash:result.hash});assert.equal(result.status,'approved');
+  assert.equal(result.publication.status,'blocked');assert.equal(result.publication.productId,input.product.id);assert.equal(result.publication.mediaHash,result.hash);assert.equal(result.publication.scheduledAt,null);
+  assert.deepEqual(x.snapshot().tiktokGoogle.jobs[j.id].publication,result.publication);
+  await assert.rejects(x.worker.review(j.id,{decision:'approve',mediaHash:result.hash}),/current_reviewable/);
 });
 test('API key alone never activates spending; budget isolated from YouTube',async t=>{
   const x=await setup(t,{env:{ENABLE_TIKTOK_GOOGLE:'false',VEO_PILOT_BUDGET_CENTS:'9999'}});

@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test.beforeEach(async({page})=>{
  await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
- await page.locator('#channelBar [data-channel="tiktok"]').click();await page.locator('[data-legacy-toggle]').click();
+ await page.locator('#channelBar [data-channel="tiktok"]').click();await page.locator('#tt-google-review [data-sec-go="publishing"]').click();await page.locator('[data-legacy-toggle]').click();
 });
 test('Share text creates TikTok draft without fabricated commission or claims',async({page})=>{
  await page.locator('#tt-import-text').fill('Portable mini fan\nhttps://shop.tiktok.com/view/product/123456');

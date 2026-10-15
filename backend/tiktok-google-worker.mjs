@@ -26,7 +26,7 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
   const enabled=()=>env.ENABLE_TIKTOK_GOOGLE==='true'&&Boolean(env.GEMINI_API_KEY);
   const dir=path.resolve(mediaDir,'tiktok-google');
   const publicJob=j=>({id:j.id,product:j.product.name,productSource:j.product.url,selectionReason:null,status:j.status,revision:j.revision,createdAt:j.createdAt,updatedAt:j.updatedAt,error:j.error||null,estimatedUsd:j.cents/100,
-    scenes:j.scenes.map(s=>({status:s.status,voice:s.voice})),qa:j.qa||null,reviewNotes:j.reviewNotes||null,videoReady:Boolean(j.file),mediaHash:j.hash||null,published:false});
+    scenes:j.scenes.map(s=>({status:s.status,voice:s.voice})),qa:j.qa||null,reviewNotes:j.reviewNotes||null,videoReady:Boolean(j.file),mediaHash:j.hash||null,published:false,publication:j.publication||null,revisionBlockedReason:j.revisionBlockedReason||null});
   const overview=()=>({provider:'google',model:GOOGLE_AFFILIATE_MODEL,apiConfigured:Boolean(env.GEMINI_API_KEY),enabled:enabled(),durationSeconds:24,estimateUsd:GOOGLE_AFFILIATE_ESTIMATE_CENTS/100,
     budgetUsd:cap()/100,reservedUsd:state.reservedCents/100,remainingUsd:Math.max(0,cap()-state.reservedCents)/100,
     blockers:[...(!env.GEMINI_API_KEY?['google_api_key_missing']:[]),...(!enabled()?['google_automation_not_enabled']:[]),...(state.reservedCents+GOOGLE_AFFILIATE_ESTIMATE_CENTS>cap()?['google_budget_not_available']:[]),'verified_product_source_missing'],
@@ -116,12 +116,13 @@ export function createGoogleAffiliateWorker({db,persist,mediaDir,env=process.env
     if(busy)throw Error('production_busy_try_later');busy=true;
     try{
       const j=state.jobs[id];if(!j||j.status!=='ready_for_review'||!j.qa?.pass||mediaHash!==j.hash)throw Error('current_reviewable_video_required');
-      if(decision==='approve'){j.status='approved';j.approvedHash=j.hash;j.reviewedAt=now();await persist();return publicJob(j);}
+      if(decision==='approve'){j.status='approved';j.approvedHash=j.hash;j.reviewedAt=now();j.updatedAt=now();
+        j.publication={status:'blocked',reason:'shoppable_connector_not_connected',productId:j.product.id,productUrl:j.product.url,mediaHash:j.hash,queuedAt:now(),scheduledAt:null,publishedAt:null};await persist();return publicJob(j);}
       if(decision!=='request_revision'||typeof notes!=='string'||notes.trim().length<5||notes.length>600)throw Error('revision_notes_required');
-      if(j.revision>=2){j.status='revision_requested';j.reviewNotes=notes;await persist();return publicJob(j);}
+      if(j.revision>=2){j.status='revision_requested';j.reviewNotes=notes;j.revisionBlockedReason='automatic_revision_limit_reached';j.updatedAt=now();await persist();return publicJob(j);}
       const revision=j.revision+1,newId=digest(j.id+':'+revision).slice(0,24);
       const next={...j,id:newId,status:'queued',revision,scenes:affiliateStory(j.product,notes),reviewNotes:notes,createdAt:now(),updatedAt:now(),file:null,hash:null,qa:null,technical:null,error:null,budgetReserved:false};
-      delete next.approvedHash;delete next.reviewedAt;
+      delete next.approvedHash;delete next.reviewedAt;delete next.publication;delete next.revisionBlockedReason;
       state.jobs[newId]=next;j.status='revision_requested';j.reviewNotes=notes;await persist();return publicJob(next);
     }finally{busy=false;}
   }

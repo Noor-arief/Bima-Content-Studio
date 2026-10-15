@@ -35,18 +35,18 @@ test('failed QA cannot expose an approve action',async t=>{
   assert.match(p.doc.querySelector('[data-jobs]').textContent,/pemeriksaan belum lolos/);
   assert.equal([...p.doc.querySelectorAll('#tt-google-review button')].some(b=>b.textContent==='Approve'),false);
 });
-test('three owner views separate review, work, and approved videos without fake scheduling',async t=>{
+test('one inbox groups review, production and blocked publication without fake scheduling',async t=>{
  const job=(id,status)=>({id:id.repeat(24),product:'Produk '+id,status,scenes:[],videoReady:false});
  const p=page(t,{blockers:[],estimateUsd:3,jobs:[job('a','ready_for_review'),job('b','running'),job('c','approved')]},true);await wait();
- assert.equal(p.doc.querySelectorAll('.tt-owner-tabs button').length,3);
+ assert.equal(p.doc.querySelectorAll('.tt-owner-tabs button').length,0);
  assert.equal(p.doc.querySelector('[data-job-group="review"] h4').textContent,'Produk a');
  assert.equal(p.doc.querySelector('[data-job-group="processing"] h4').textContent,'Produk b');
- assert.match(p.doc.querySelector('[data-job-group="approved"]').textContent,/Belum dijadwalkan atau diunggah/);
+ assert.match(p.doc.querySelector('article[data-job-group="approved"]').textContent,/tertahan akses TikTok Shop/);
  const root=p.doc.querySelector('#tiktokWorkspace');root.dataset.sec='desk';p.doc.dispatchEvent(new p.dom.window.CustomEvent('bima:channel-section',{detail:'desk'}));
- assert.equal(p.doc.querySelector('#tt-google-review').dataset.view,'desk');
- assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Pekerjaan BIMA');
+ assert.equal(p.doc.querySelector('#tt-google-review').dataset.view,'ringkasan');
+ assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Perlu kamu review');
  assert.match(p.doc.querySelector('[data-research-status]').textContent,/Belum ada hasil riset/);
  root.dataset.sec='kalender';p.doc.dispatchEvent(new p.dom.window.CustomEvent('bima:channel-section',{detail:'kalender'}));
- assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Video yang kamu setujui');
+ assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Perlu kamu review');
  assert.equal(p.calls.filter(x=>x.options.method==='POST').length,0);
 });
