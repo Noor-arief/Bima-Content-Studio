@@ -51,23 +51,24 @@ async function refresh(){
  const jobs=data.jobs||[],blockers=data.blockers||[];
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const todayJobs=jobs.filter(j=>j.createdAt&&new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(j.createdAt))===today);
+ const storyboards=jobs.filter(j=>j.status==='storyboard_pending');const production=jobs.filter(j=>['queued','blocked_budget','running','assembling','auditing_final','requires_reconciliation','qa_failed','failed'].includes(j.status));const approved=jobs.filter(j=>j.status==='approved');
  const work=card.querySelector('.tt-workflow');
  if(work){
   const steps=work.querySelectorAll('.tt-work-steps li small');
   if(steps[0])steps[0].textContent=data.sourceConnected?'Showcase terhubung; menunggu data riset':'Menunggu izin Showcase TikTok · belum ada data live';
-  if(steps[1])steps[1].textContent=todayJobs.length?todayJobs.length+' produk sudah masuk antrean produksi':'Belum ada kandidat produk terverifikasi hari ini';
-  if(steps[2])steps[2].textContent=todayJobs.some(j=>j.status==='storyboard_pending')?'Ada storyboard yang menunggu persetujuan':todayJobs.some(j=>['queued','running','assembling','auditing_final'].includes(j.status))?'Storyboard disetujui; produksi berjalan':'Belum ada storyboard aktif';
-  if(steps[3])steps[3].textContent=todayJobs.some(j=>j.status==='ready_for_review')?'Video siap di Review Video':todayJobs.some(j=>j.status==='approved')?'Hasil approved ada di Calendar': 'Belum ada video siap review';
+  if(steps[1])steps[1].textContent=!data.sourceConnected?'Belum ada hasil analisa produk dari Showcase':todayJobs.length?todayJobs.length+' pekerjaan produksi tercatat hari ini (bukan bukti analisa Showcase)':'Belum ada kandidat terverifikasi hari ini';
+  if(steps[2])steps[2].textContent=storyboards.length?storyboards.length+' storyboard siap dicek di bawah':production.length?production.length+' pekerjaan produksi/QA tercatat':'Belum ada storyboard atau produksi';
+  if(steps[3])steps[3].textContent=jobs.some(j=>j.status==='ready_for_review')?'Video siap di Review Video':approved.length?'Video approved ada di Calendar':'Belum ada video siap review';
   work.querySelector('.tt-work-note').textContent='Sistem membaca status pekerjaan nyata dari server. Jadwal otomatis 08.00–18.00 WIB belum diaktifkan.';
  }
 
  card.querySelector('[data-research-status]').textContent=data.sourceConnected?'Sumber produk terhubung. Hasil analisis akan ditampilkan jika tersedia.':'Belum ada hasil riset: koneksi katalog/showcase dan data performa produk TikTok belum tersedia. Login TikTok saja belum memberikan akses ini.';
  card.querySelector('[data-publishing-status]').textContent=data.publishingConnected?'Koneksi publikasi tersedia. Status tiap video mengikuti catatan server.':'Upload otomatis belum aktif: akses publikasi affiliate TikTok belum terhubung. Video yang disetujui masuk antrean tayang yang tertahan, tanpa jadwal aktif.';
  const waiting=jobs.filter(j=>j.status==='ready_for_review').length;
- label.textContent=waiting?`${waiting} video siap kamu tonton dan review.`:blockers.length?'Produksi belum bisa dimulai. Berikut yang masih perlu disiapkan:':jobs.length?'BIMA memproses antrean di server. Kamu bisa menutup halaman ini.':'BIMA siap menerima produk terverifikasi.';
+ label.textContent=waiting?`${waiting} video siap direview.`:blockers.length?'Koneksi produksi belum lengkap.':'Koneksi produksi tersedia.';
  const health=card.querySelector('[data-health]');health.textContent=waiting?'Menunggu review':blockers.length?'Belum siap':'Siap';health.dataset.ready=String(waiting>0||!blockers.length);
  const blockerList=card.querySelector('[data-blockers]');blockerList.replaceChildren(...blockers.map(b=>el('li',labels[b]||'Ada koneksi produksi yang perlu diperiksa.')));blockerList.hidden=!blockers.length;
- for(const [key,count] of Object.entries({review:waiting,processing:jobs.filter(j=>['queued','running','assembling','auditing_final'].includes(j.status)).length,approved:jobs.filter(j=>j.status==='approved').length}))card.querySelector(`[data-count="${key}"]`).textContent=token()?String(count):'—';
+ for(const [key,count] of Object.entries({review:waiting,processing:storyboards.length+production.length,approved:jobs.filter(j=>j.status==='approved').length}))card.querySelector(`[data-count="${key}"]`).textContent=token()?String(count):'—';
  card.querySelector('[data-login]').hidden=Boolean(token());
  card.querySelector('[data-budget]').textContent=`Estimasi US$${Number(data.estimateUsd||0).toFixed(2)} per video, termasuk cadangan pemeriksaan kualitas. Anggaran tersedia US$${Number(data.remainingUsd||0).toFixed(2)}. Ini biaya API Google; saldo Flow belum terhubung ke BIMA.`;
  const next=JSON.stringify(jobs)+Boolean(token());if(next===signature||interaction||list.querySelector('video:not([data-paused])'))return;signature=next;
@@ -76,25 +77,25 @@ async function refresh(){
  if(jobs.length){
  for(const [group,predicate,message] of [
  ['review',j=>j.status==='ready_for_review','Belum ada video siap review. BIMA akan menampilkan hasil yang lolos pemeriksaan di sini.'],
- ['processing',j=>!['ready_for_review','approved'].includes(j.status),'Belum ada video dalam produksi. Status akses riset ada di atas.'],
- ['approved',j=>j.status==='approved','Belum ada video disetujui. Setelah kamu approve, hasilnya akan muncul di sini.']]){
+ ['processing',j=>!['ready_for_review','approved','revision_requested'].includes(j.status),'Belum ada storyboard atau proses produksi. Alur persiapan ada di atas.'],
+ ['approved',j=>j.status==='approved','Belum ada video approved. Hasil yang disetujui nanti masuk antrean publikasi.']]){
  if(!jobs.some(predicate)){const empty=el('div',message,'tt-empty');empty.dataset.jobGroup=group;list.append(empty);}
  }
  }
- const rank=j=>j.status==='ready_for_review'?0:j.status==='approved'?1:2;
+ const rank=j=>j.status==='ready_for_review'?0:j.status==='approved'?2:1;
  let previousGroup='review';
  for(const job of [...jobs].sort((a,b)=>rank(a)-rank(b))){
- const group=rank(job)===0?'review':rank(job)===1?'approved':'processing';
- if(group!==previousGroup){const heading=el('h4',group==='approved'?'Antrean tayang':'BIMA sedang bekerja','tt-group-heading');heading.dataset.jobGroup=group;list.append(heading);previousGroup=group;}
+ const group=rank(job)===0?'review':rank(job)===2?'approved':'processing';
+ if(group!==previousGroup){const heading=el('h4',group==='approved'?'Video disetujui — menunggu publikasi':'Storyboard & produksi BIMA','tt-group-heading');heading.dataset.jobGroup=group;list.append(heading);previousGroup=group;}
  const item=el('article',undefined,'tt-job'),info=el('div',undefined,'tt-job-info'),visual=el('div',undefined,'tt-job-preview');
- item.dataset.jobGroup=job.status==='ready_for_review'?'review':job.status==='approved'?'approved':'processing';
+ item.dataset.jobGroup=group;
  visual.append(el('span','▷','tt-empty-icon'),el('small',job.videoReady?'24 detik · Video tersedia':'Video sedang disiapkan'));
  const badge=el('span',stages[job.status]||'Memeriksa status','tt-badge');badge.dataset.ready=String(['ready_for_review','approved'].includes(job.status));
  info.append(badge,el('h4',job.product));
  if(job.productSource){const source=el('p','Sumber produk: '+job.productSource,'tt-muted');info.append(source);}
  if(job.status==='approved')info.append(el('p','Status publikasi: tertahan sampai koneksi TikTok Shop tersedia. Tidak ada jadwal upload aktif.','tt-note'));
  if(job.selectionReason)info.append(el('p','Alasan pemilihan: '+job.selectionReason,'tt-note'));
- const progress=el('p',job.status==='approved'?'Masuk antrean tayang · tertahan akses TikTok Shop. Belum ada jadwal aktif atau unggahan.':`${job.scenes.filter(s=>s.status==='complete').length}/3 scene selesai · Revisi ${job.revision||0}`,'tt-muted');info.append(progress);
+ const progress=el('p',job.status==='approved'?'Approved · menunggu koneksi publikasi. Belum punya tanggal tayang.':job.status==='storyboard_pending'?'Storyboard siap diperiksa. Video belum digenerate.':`${job.scenes.filter(s=>s.status==='complete').length}/3 scene selesai · Revisi ${job.revision||0}`,'tt-muted');info.append(progress);
  if(job.storyboard?.length){const details=el('details',undefined,'tt-storyboard');const summary=el('summary',job.status==='storyboard_pending'?'Cek storyboard sebelum generate':'Lihat storyboard 3 scene');details.append(summary);for(const scene of job.storyboard){const part=el('div',undefined,'tt-story-scene');part.append(el('strong',`Scene ${scene.scene} · ${scene.durationSeconds} detik`),el('p',scene.visual),el('p','VO: '+scene.voice),el('small',scene.audio+' · '+scene.format));details.append(part);}info.append(details);}
  if(job.status==='storyboard_pending'){const gate=el('button','Setujui storyboard & mulai produksi');gate.type='button';gate.onclick=async()=>{gate.disabled=true;try{await request('/api/tiktok/google/jobs/'+job.id+'/storyboard-approve',{});signature='';await refresh();}catch(e){progress.textContent=safeError(e.message);gate.disabled=false;}};info.append(gate,el('p','Belum ada kredit Google digunakan sebelum storyboard disetujui dan anggaran API aktif.','tt-muted'));}
  if(job.error||job.qa?.issues?.length)info.append(el('p','BIMA menahan hasil ini karena pemeriksaan belum lolos. Video ini belum bisa disetujui.','tt-issue'));
