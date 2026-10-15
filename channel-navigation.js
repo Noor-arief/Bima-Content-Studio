@@ -17,6 +17,8 @@ for(const button of menu.querySelectorAll('[data-go]')){
  button.replaceChildren(...(icon?[icon]:[]),text);
 }
 const originalItems=[...menu.querySelectorAll('[data-go]')];
+const calendarButton=document.createElement('button');calendarButton.type='button';calendarButton.className='menu-item tt-calendar-menu';calendarButton.dataset.tiktokCalendar='true';calendarButton.innerHTML='<span class="ico" aria-hidden="true">05</span><span class="channel-menu-name">TikTok Calendar &amp; Live</span>';
+calendarButton.hidden=true;calendarButton.addEventListener('click',()=>{tiktokSection='tt-calendar';const root=document.getElementById('tiktokWorkspace');if(root){root.dataset.sec='tt-calendar';document.dispatchEvent(new CustomEvent('bima:channel-section',{detail:'tt-calendar'}));}sync();});
 function orderMenus(channel){
  const target=channel==='tiktok'?['desk','ringkasan','kalender','publishing']:originalItems.map(b=>b.dataset.go);
  for(const id of target){const b=originalItems.find(n=>n.dataset.go===id);if(b)menu.appendChild(b);}
@@ -28,6 +30,7 @@ let lastOrdered='';
 function sync(){
  const ch=state.active,known=!!names[ch],yt=ch==='youtube';
  if(ch!==lastOrdered){orderMenus(ch);lastOrdered=ch;}
+ calendarButton.hidden=ch!=='tiktok';if(ch==='tiktok'&& !calendarButton.isConnected){const settings=originalItems.find(b=>b.dataset.go==='publishing');settings?.before(calendarButton);}calendarButton.classList.toggle('active',ch==='tiktok'&&tiktokSection==='tt-calendar');if(ch==='tiktok'&&tiktokSection==='tt-calendar')calendarButton.setAttribute('aria-current','page');else calendarButton.removeAttribute('aria-current');
  sidebar.dataset.menuChannel=ch;
  context.querySelector('strong').textContent=PLATFORM_COPY[ch]?.name||ch;
  context.querySelector('small').textContent=yt?'Orbit & Ocean · Faceless Shorts':ch==='tiktok'?'BIMA riset & produksi · Kamu review':ch==='shopee'?'Shopee Video · Affiliate':'Workspace belum dibuka';
