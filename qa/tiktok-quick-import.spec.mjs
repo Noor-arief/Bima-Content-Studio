@@ -15,8 +15,9 @@ test('Share text creates TikTok draft without fabricated commission or claims',a
  expect(v.drafts[0].product).toBe('Portable mini fan');
 });
 test('Invalid URL does not create draft',async({page})=>{
+ const before=await page.evaluate(()=>localStorage.getItem('bima-tiktok-affiliate-v1')); 
  await page.locator('#tt-import-text').fill('https://example.com/product/123');
  await page.locator('#tt-import-go').click();
  await expect(page.locator('#tt-import-result')).toContainText('Belum ada link TikTok');
- expect(await page.evaluate(()=>localStorage.getItem('bima-tiktok-affiliate-v1'))).toBeNull();
+ expect(await page.evaluate(()=>localStorage.getItem('bima-tiktok-affiliate-v1'))).toBe(before);
 });
