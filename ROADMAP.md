@@ -1,6 +1,20 @@
 # BIMA Content Studio — Affiliate Roadmap
 Updated: 2026-10-15 · Planning document, not proof of deployment or integration.
 
+## Implemented next stage — PR #57 merged (2026-10-15)
+
+**CODE MERGED, QA PASS — NOT LIVE AUTHORIZED.** PR #57 introduced `backend/tiktok-shop-creator.mjs`, module unit tests, and owner-protected routes in `backend/server.mjs`:
+- `POST /auth/tiktok-shop/creator/start` (owner authentication required; one-time state persisted)
+- `GET /auth/tiktok-shop/callback` (state consumed once, creator token exchanged, encrypted at rest)
+- `GET /auth/tiktok-shop/creator/status` (owner only, reports configured/granted scopes accurately)
+- `GET /auth/tiktok-shop/creator/showcase` (owner only, signed official API; no fabricated GMV)
+
+**Deployment safeguard:** disabled by default unless `TIKTOK_SHOP_CREATOR_ENABLED=true` and separate `TIKTOK_SHOP_APP_KEY`, `TIKTOK_SHOP_APP_SECRET`, existing encryption key, and PUBLIC_BASE_URL are available. DO NOT enable or enter new credentials before TikTok approves the app and grants the Creator API scopes. Do not confuse `TIKTOK_CLIENT_KEY` used for Login Kit with TikTok Shop app key.
+
+**QA evidence:** GitHub Actions for commit `139fbce781e5cfe9dec49e4ea238ec2b0fe4a967` completed 9/9 PASS, including TikTok Shop Callback QA with the Creator module tests, OAuth backend, Content Studio backend, TikTok Google, UI, and other regression workflows. PR #57 squash merged as `b5ef9766acda1f2091a1a81fc8eed69ec2fc2d62`.
+
+**NOT YET FINISHED:** live Creator OAuth, token refresh persistence orchestration, real Showcase pagination end-to-end, production secret configuration, frontend connection action, production deployment confirmation, and authentic creator product read. These remain gated by TikTok official review/approval; do not declare the service connected or production PASS. Next priority after approval: confirm entitlement and secrets securely, owner consent, validate real Showcase GET, then integrate verified product list into Production 1 without faking GMV.
+
 ## CURRENT REVIEW RESULT — 2026-10-15 (supersedes earlier blocked/draft descriptions)
 
 **OWNER-VERIFIED: TikTok Shop App Review successfully submitted.** After filling all required form fields and uploading Product Screenshots, Product Walkthrough, and Product Design PDF, TikTok displayed the successful-submission notification. Reopening **Ulasan Aplikasi** showed **“Review app sedang diproses untuk 1 pasar — Indonesia (Lokal)”**. The review lists **Read Showcase Products**, **Read Creator Affiliate Collaborations**, **Affiliate Information**, and **Read Affiliate Share Link**. This is **IN REVIEW**, not APPROVED; the general application header may still say Draft while review is pending.
