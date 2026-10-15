@@ -459,9 +459,13 @@ async function handler(req,res){
       try{return respond(res,201,await tiktokGoogleWorker.enqueue(await readJSON(req,1100000)));}
       catch(e){return error(res,422,String(e.message).slice(0,120));}
     }
-    const match=/^\/api\/tiktok\/google\/jobs\/([a-f0-9]{24})\/(video|review)$/.exec(u.pathname);
+    const match=/^\/api\/tiktok\/google\/jobs\/([a-f0-9]{24})\/(video|review|storyboard-approve)$/.exec(u.pathname);
     if(match){
       const job=tiktokGoogleWorker.job(match[1]);if(!job)return error(res,404,"tiktok_job_missing");
+      if(req.method==="POST"&&match[2]==="storyboard-approve"){
+        try{return respond(res,200,await tiktokGoogleWorker.approveStoryboard(job.id));}
+        catch(e){return error(res,409,String(e.message).slice(0,120));}
+      }
       if(req.method==="POST"&&match[2]==="review"){
         try{return respond(res,200,await tiktokGoogleWorker.review(job.id,await readJSON(req,2000)));}
         catch(e){return error(res,409,String(e.message).slice(0,120));}
