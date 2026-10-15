@@ -1,51 +1,34 @@
 # BIMA Content Studio — Affiliate Roadmap
 Updated: 2026-10-15 · Planning document, not proof of deployment or integration.
 
-## TikTok Shop Open Toolkit — immediate diagnostics (2026-10-15)
+## TikTok Creator Showcase — authoritative handoff (2026-10-15)
 
-**Tool verified from public package documentation:** `@tts-open-toolkit/cli` (`tts_open_toolkit`). Its supported authenticated commands include listing Partner Center apps, sandbox shops/products and available DevAPI operations. This is a *diagnostic/test harness*, **not** an App Review bypass, guaranteed creator sandbox, or approved Showcase token. The installed environment has not authenticated to this account; no connected-app verification is claimed.
+Owner-confirmed completed work: Sandbox connected/tested; Open Toolkit installed, authenticated and `app list` recognizes the existing BIMA Content Studio app; Public app created in Indonesia under App Developer > Customer Engagement > Creator Collaborations; four Affiliate Creator scopes selected; App Key/Secret available in Partner Center; Railway redirect configured. These facts do NOT establish approved Creator API access.
 
-**Run in trusted local development environment (Node 18+, without exposing App Secret or bearer tokens):**
+**Do not repeat:** app creation, Toolkit installation/login, Sandbox testing, credential requests, or completed Partner Center checks. Do not use private review endpoints or hidden-field injection. Do not change YouTube, Shopee, scheduled content, or existing working integrations.
 
-```sh
-npm install -g @tts-open-toolkit/cli
-tts_open_toolkit doctor
-tts_open_toolkit auth login
-tts_open_toolkit auth basic-info --json
-tts_open_toolkit app list --json
-tts_open_toolkit sandbox shop list --json
-tts_open_toolkit devapi list --json
-```
+**Current external blocker:** App Review remains Draft; TikTok validation requires `feature_intro` and `test_instruction` absent from its form. Existing ticket **2026101415120200008**, opened 2026-10-14, is pending per owner. No new ticket or support message sent during this audit.
 
-If a test shop ID is actually returned, `tts_open_toolkit sandbox product list --shop-id <shop-id> --json` can verify test-product access, **not creator Showcase eligibility**. Do not put printed OAuth tokens or secrets into GitHub Issues/commits. Inspect `app list` for existing BIMA Content Studio Public/Draft app and its capabilities; do not create another app or modify existing scope configuration.
+**Investigation:** Current official category guide explicitly lists Creator collaborations for affiliate tools. The older Affiliate Integration guide uses Affiliate terminology. This discrepancy is not proof the selected category is wrong. The strongest hypothesis is review-form/validator mismatch; exact cause, field mapping and account prerequisites require TikTok confirmation. No documented review-field repair command/API was found.
 
-**Decision gate:**
-- If toolkit can list the existing app and sandbox: record only sanitized app status and sandbox capability in QA evidence, then run isolated contract testing using sandbox fixtures.
-- If app is listed but creator scopes are unavailable: keep the App Review `feature_intro` / `test_instruction` support ticket open; Creator Showcase live testing remains blocked.
-- If Open Toolkit authentication or API access fails: capture the sanitized error code + CLI doctor output; don't infer the missing permissions or silently substitute a TikTok Login Kit token.
-- Use the official `Get Showcase Products` API Testing Tool only **after** creator authorization and access token with `granted_scopes` includes `creator.showcase.read`; failing that, offline Showcase fixture tests are the only validated no-approval test path.
+**Code audit found a separate gap:** Creator OAuth is NOT implemented beyond a rejecting callback placeholder. Neither creator token exchange/refresh/scope verification nor a signed live Showcase transport exists. The existing normalizer/paginator is explicitly offline-only and marks all records fixture. Approval alone will not make this code fetch real products.
 
-**References:** https://www.npmjs.com/package/@tts-open-toolkit/cli ; https://partner.tiktokshop.com/docv2/page/get-showcase-products-202405 ; https://partner.tiktokshop.com/docv2/page/678e3a362dccb8030ea6f98c
+| Classification | Current evidence |
+| --- | --- |
+| Implemented and working | Sandbox/Toolkit accepted as owner-verified; Railway deployment SUCCESS and `/health` 200 observed in this audit. |
+| Implemented but blocked | Registered Shop callback exists but deliberately returns 400 `tiktok_shop_creator_authorization_not_configured`; not a complete OAuth flow. |
+| Missing implementation | Owner-bound Creator OAuth state, exchange/refresh and encrypted separate token storage, granted-scope validation, signed Showcase client, live pagination/persistence and UI sync. |
+| Requires TikTok approval | Review submission repair, applicable Affiliate activation/creator allowlisting, approved scopes and real creator consent. |
 
-## TikTok Showcase unblock + test track — 2026-10-15 (P0)
+Next actions, in dependency order:
+- [x] Audit repository and deployed callback without repeating Sandbox testing.
+- [x] Record the missing implementation separately from external approval.
+- [x] Prepare evidence and targeted follow-up for the existing ticket in `docs/tiktok-affiliate-api-access-request.md` (draft only).
+- [ ] TikTok repairs the existing app's review form or supplies a documented supported submission route; confirms prerequisite/entitlement status and category mapping for Indonesia.
+- [ ] Complete remaining Creator integration using documented APIs, with offline tests and no production authorization attempt until permitted.
+- [ ] After permission is granted, authorize @noor_arief once, verify granted scopes and identity, then fetch and reconcile actual Showcase products. Never mark live access PASS from fixture tests, Login Kit, or deployment success.
 
-**Verified from owner Partner Center support screenshot, not inferred from old onboarding notes:** BIMA Content Studio **Public** application exists in Indonesia under `App Developer > Customer Engagement > Creator Collaborations`. Four Affiliate Creator scopes are selected, including `creator.showcase.read` and `creator.affiliate_collaboration.read`, but **scopes are not approved yet**. App Review remains **Draft** because backend requires `feature_intro` and `test_instruction` while the form does not expose either field. Support ticket **2026101415120200008** is pending engineering help. Do not claim a creator token, approved scopes, live Showcase or authorized GMV data.
-
-**Root-cause candidates, not proven:** incorrect review-form mapping for the selected market/category; account entitlement gap because the documented Affiliate ISV category is `App developer > Customer Engagement > Affiliate`, rather than Creator Collaborations. Request category confirmation and form-field fix in same ticket. Do **not** forge private review API requests, alter hidden form fields, or bypass approval.
-
-**Path A — permitted tests NOW (no creator token):**
-- [x] Create isolated, deterministic mock Showcase contract + paginated fixture tests; never label fixtures as live or feed them into production job scheduling.
-- [ ] Test BIMA candidate selection, GMV evidence validation, storyboard, review/revision and approved publication-intent **offline**, with `ENABLE_TIKTOK_GOOGLE=false`, budget zero, no video spending and no posting.
-- [ ] QA owner UI against that fixture and verify data origin visibly reads TEST. This is not a production Showcase connection.
-
-**Path B — official TikTok test access, parallel to support ticket:**
-- [ ] Check whether Partner Center allows creating **Affiliate (custom)** app under correct eligible category; official Affiliate Integration documentation explicitly names this for testing. Do not create a Local Seller replacement.
-- [ ] Ask App Store/Partner Manager whether a **beta creator test account** can be provisioned for Indonesia; official Creator Authorization documentation limits test accounts to beta members.
-- [ ] Once TikTok activates scopes and app key, register the TikTok Shop creator callback separately from TikTok Login Kit, authorize creator with CSRF state, exchange shop creator token server-side, then use official API testing tool/GET `/affiliate_creator/202405/showcases/products`.
-- [ ] Check pagination, source timestamps, actual GMV availability and publish eligibility; never treat order count as GMV, or fabricated test products as winning.
-- [ ] Treat yellow basket/shoppable posting as a separate permission and integration from reading Showcase.
-
-**Official references:** https://partner.tiktokshop.com/docv2/page/affiliate-integration ; https://partner.tiktokshop.com/docv2/page/678e3a362dccb8030ea6f98c ; https://partner.tiktokshop.com/docv2/page/get-showcase-products-202405
+Evidence and references: `docs/tiktok-creator-showcase-audit-2026-10-15.md`.
 
 ## Scope and preservation rules
 - Three strictly separated workspaces: YouTube (Science & Nature), TikTok Shop Affiliate, Shopee Video Affiliate.
