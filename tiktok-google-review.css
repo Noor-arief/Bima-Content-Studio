@@ -40,3 +40,14 @@
 #tt-google-review .tt-group-heading{margin-top:22px}
 #tt-google-review .tt-empty[data-job-group="processing"],#tt-google-review .tt-empty[data-job-group="approved"]{display:none}
 @media(max-width:700px){#tt-google-review .tt-owner-intro h3{font-size:28px}}
+
+/* Owner views, with no claims of active scheduling. TikTok only. */
+#tt-google-review .tt-hours{font-size:12px;color:#91cbbb;margin-top:10px!important}
+#tt-google-review[data-view="ringkasan"] .tt-jobs>[data-job-group]:not([data-job-group="review"]),#tt-google-review[data-view="ringkasan"] .tt-job:not([data-job-group="review"]),#tt-google-review[data-view="desk"] .tt-jobs>[data-job-group]:not([data-job-group="processing"]),#tt-google-review[data-view="desk"] .tt-job:not([data-job-group="processing"]),#tt-google-review[data-view="kalender"] .tt-jobs>[data-job-group]:not([data-job-group="approved"]),#tt-google-review[data-view="kalender"] .tt-job:not([data-job-group="approved"]){display:none!important}
+#tt-google-review[data-view="desk"] [data-owner-pane="kalender"],#tt-google-review[data-view="kalender"] [data-owner-pane="desk"],#tt-google-review[data-view="publishing"] [data-owner-pane]{display:none!important}
+#tt-google-review .tt-tools{display:none}
+#tt-google-review[data-view="publishing"] .tt-tools{display:block}
+#tt-google-review[data-view="ringkasan"] [data-blockers],#tt-google-review[data-view="ringkasan"] .tt-budget{display:none!important}
+
+/* Keep the exit from maintenance mode accessible on every section. */
+#tiktokWorkspace:not(.tt-owner-mode) #tt-google-review .tt-tools{display:block!important}
