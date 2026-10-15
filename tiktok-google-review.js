@@ -49,6 +49,18 @@ async function refresh(){
  try{
  const data=await request(token()?'/api/tiktok/google/status':'/public/tiktok/google/status');
  const jobs=data.jobs||[],blockers=data.blockers||[];
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const todayJobs=jobs.filter(j=>String(j.createdAt||'').slice(0,10)===today);
+ const work=card.querySelector('.tt-workflow');
+ if(work){
+  const steps=work.querySelectorAll('.tt-work-steps li small');
+  if(steps[0])steps[0].textContent=data.sourceConnected?'Showcase terhubung; menunggu data riset':'Menunggu izin Showcase TikTok · belum ada data live';
+  if(steps[1])steps[1].textContent=todayJobs.length?todayJobs.length+' produk sudah masuk antrean produksi':'Belum ada kandidat produk terverifikasi hari ini';
+  if(steps[2])steps[2].textContent=todayJobs.some(j=>j.status==='storyboard_pending')?'Ada storyboard yang menunggu persetujuan':todayJobs.some(j=>['queued','running','assembling','auditing_final'].includes(j.status))?'Storyboard disetujui; produksi berjalan':'Belum ada storyboard aktif';
+  if(steps[3])steps[3].textContent=todayJobs.some(j=>j.status==='ready_for_review')?'Video siap di Review Video':todayJobs.some(j=>j.status==='approved')?'Hasil approved ada di Calendar': 'Belum ada video siap review';
+  work.querySelector('.tt-work-note').textContent='Sistem membaca status pekerjaan nyata dari server. Jadwal otomatis 08.00–18.00 WIB belum diaktifkan.';
+ }
+
  card.querySelector('[data-research-status]').textContent=data.sourceConnected?'Sumber produk terhubung. Hasil analisis akan ditampilkan jika tersedia.':'Belum ada hasil riset: koneksi katalog/showcase dan data performa produk TikTok belum tersedia. Login TikTok saja belum memberikan akses ini.';
  card.querySelector('[data-publishing-status]').textContent=data.publishingConnected?'Koneksi publikasi tersedia. Status tiap video mengikuti catatan server.':'Upload otomatis belum aktif: akses publikasi affiliate TikTok belum terhubung. Video yang disetujui masuk antrean tayang yang tertahan, tanpa jadwal aktif.';
  const waiting=jobs.filter(j=>j.status==='ready_for_review').length;
@@ -80,7 +92,7 @@ async function refresh(){
  const badge=el('span',stages[job.status]||'Memeriksa status','tt-badge');badge.dataset.ready=String(['ready_for_review','approved'].includes(job.status));
  info.append(badge,el('h4',job.product));
  if(job.productSource){const source=el('p','Sumber produk: '+job.productSource,'tt-muted');info.append(source);}
- info.append(el('p','Keranjang kuning: '+job.product+' · akses penautan produk belum terverifikasi.','tt-note'));
+ if(job.status==='approved')info.append(el('p','Status publikasi: tertahan sampai koneksi TikTok Shop tersedia. Tidak ada jadwal upload aktif.','tt-note'));
  if(job.selectionReason)info.append(el('p','Alasan pemilihan: '+job.selectionReason,'tt-note'));
  const progress=el('p',job.status==='approved'?'Masuk antrean tayang · tertahan akses TikTok Shop. Belum ada jadwal aktif atau unggahan.':`${job.scenes.filter(s=>s.status==='complete').length}/3 scene selesai · Revisi ${job.revision||0}`,'tt-muted');info.append(progress);
  if(job.storyboard?.length){const details=el('details',undefined,'tt-storyboard');const summary=el('summary',job.status==='storyboard_pending'?'Cek storyboard sebelum generate':'Lihat storyboard 3 scene');details.append(summary);for(const scene of job.storyboard){const part=el('div',undefined,'tt-story-scene');part.append(el('strong',`Scene ${scene.scene} · ${scene.durationSeconds} detik`),el('p',scene.visual),el('p','VO: '+scene.voice),el('small',scene.audio+' · '+scene.format));details.append(part);}info.append(details);}
