@@ -48,3 +48,6 @@
 #tt-google-review .tt-tools{display:none}
 #tt-google-review[data-view="publishing"] .tt-tools{display:block}
 #tt-google-review[data-view="ringkasan"] [data-blockers],#tt-google-review[data-view="ringkasan"] .tt-budget{display:none!important}
+
+/* Keep the exit from maintenance mode accessible on every section. */
+#tiktokWorkspace:not(.tt-owner-mode) #tt-google-review .tt-tools{display:block!important}
