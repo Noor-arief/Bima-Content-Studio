@@ -51,3 +51,11 @@
 
 /* Keep the exit from maintenance mode accessible on every section. */
 #tiktokWorkspace:not(.tt-owner-mode) #tt-google-review .tt-tools{display:block!important}
+
+/* TikTok-only verified pilot intake, never a fake Showcase connection. */
+#tt-google-review .tt-manual-intake form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+#tt-google-review .tt-manual-intake label{display:grid;gap:6px;font-size:12px;color:#d3e3e5}
+#tt-google-review .tt-manual-intake input:not([type="checkbox"]){width:100%;min-width:0;background:#0d1c26;border:1px solid #4b6974;border-radius:9px;padding:12px;color:#edf5f5;font:inherit}
+#tt-google-review .tt-manual-intake .tt-intake-check{display:flex;align-items:center;gap:9px}
+#tt-google-review .tt-manual-intake [data-intake-result]{grid-column:1/-1}
+@media(max-width:700px){#tt-google-review .tt-manual-intake form{grid-template-columns:1fr}}
