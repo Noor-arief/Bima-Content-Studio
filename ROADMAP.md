@@ -1,7 +1,25 @@
 # BIMA Content Studio — Affiliate Roadmap
 Updated: 2026-10-15 · Planning document, not proof of deployment or integration.
 
-## TikTok Shop Open Toolkit — immediate diagnostics (2026-10-15)
+## Latest owner-verified status — 2026-10-15, after local Open Toolkit run
+
+**DO NOT REPEAT completed setup. The only integration target now is Creator Showcase API.** This section supersedes older "not authenticated" and generic "run toolkit" instructions below.
+
+| Component | Status / evidence | Next action |
+| --- | --- | --- |
+| TikTok Shop Partner Center application | **EXISTS**: BIMA Content Studio, Public, Indonesia, Creator Collaborations; Draft. Existing app appeared in authenticated `app list`, total=1. | Keep the existing app; do not create another. |
+| App key / redirect | Existing app key and Railway TikTok Shop callback shown in authorized app listing; do not copy credentials into tickets. | Do not repeat setup. |
+| Open Toolkit | **LOCAL AUTH PASS**: Windows VS Code CLI v0.1.7 installed, OAuth callback completed, authenticated app listing returned `code:0`. | No more Toolkit login/installation diagnosis. |
+| Sandbox / Login Kit | Previously reported connected in existing BIMA settings; separate from Creator Showcase. Toolkit `sandbox shop list` without region reported missing region, `--region-code ID` failed type validation, `--region-code 1` returned HTTP 200 / `data:{}`; **not proof of Indonesian creator sandbox, not a blocker to pursue further now**. | STOP repeating sandbox tests. |
+| Creator scopes | Four scopes selected, including `creator.showcase.read` and `creator.affiliate_collaboration.read`. **Selected does not mean granted**. | Verify grant only after app review / authorization. |
+| App Review | **BLOCKED / DRAFT**. Form omits `feature_intro` and `test_instruction`, though TikTok backend requires both. Existing support ticket pending. | Investigate *supported* review form flow/field mapping, category eligibility, engineering escalation; no undocumented bypass. |
+| Creator Showcase live | **NOT CONNECTED**. No approved creator-scoped TikTok Shop token, no verified live GET Showcase results. | Build/test pending official authorization; then validate real response. |
+| Showcase offline contract tests | **IMPLEMENTED**: `backend/tiktok-showcase-contract.mjs` and `qa/tiktok-showcase-contract.test.mjs` cover paginated fixtures, ID, verified GMV gating. | Integrate to actual creator adapter only when approved. |
+| Shoppable publishing | **BLOCKED** pending its own API permission; Product ID preserved as intended publication linkage; never draw a fake yellow basket. | Separate from Showcase read. |
+
+**Immediate Work handoff:** (1) audit existing TikTok Shop creator OAuth/Showcase code; (2) investigate App Review missing-field error using official documented paths and identify one supported fix or clear external engineering blocker; (3) implement remaining authorized Creator Showcase adapter, safe token lifecycle, pagination and mock regression tests (not fake live data); (4) keep YouTube, Shopee, Google Flow setup, TikTok menus and scheduled content unchanged; (5) never claim live Showcase until official endpoint succeeds. Do not ask owner to reinstall Toolkit, re-login, create an app, or recheck sandbox.
+
+## TikTok Shop Open Toolkit — historical diagnostics (superseded by latest status above)
 
 **Tool verified from public package documentation:** `@tts-open-toolkit/cli` (`tts_open_toolkit`). Its supported authenticated commands include listing Partner Center apps, sandbox shops/products and available DevAPI operations. This is a *diagnostic/test harness*, **not** an App Review bypass, guaranteed creator sandbox, or approved Showcase token. The installed environment has not authenticated to this account; no connected-app verification is claimed.
 
