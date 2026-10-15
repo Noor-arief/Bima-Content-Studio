@@ -51,7 +51,7 @@ test('uncertain paid submission remains locked across restart',async t=>{
   await restored.tick();assert.equal(restored.job(j.id).status,'requires_reconciliation');
 });
 test('restart resumes an existing operation without new paid submission',async t=>{
-  const x=await setup(t);const j=await x.worker.enqueue(input);await x.worker.tick();
+  const x=await setup(t);const j=await x.worker.enqueue(input);await x.worker.approveStoryboard(j.id);await x.worker.tick();
   const restored=createGoogleAffiliateWorker({db:x.snapshot(),persist:async()=>{},mediaDir:x.dir,env:x.env,provider:x.provider,assemble:x.assemble});
   await restored.tick();assert.equal(x.calls.submit,1);assert.equal(restored.job(j.id).scenes[0].status,'complete');
 });
@@ -62,7 +62,7 @@ test('bad audio/product QA blocks later scene spend and approval',async t=>{
   await assert.rejects(x.worker.review(j.id,{decision:'approve'}),/current_reviewable/);
 });
 test('revision preserves previous video and queues a separate bounded job',async t=>{
-  const x=await setup(t);const j=await x.worker.enqueue(input);for(let i=0;i<8;i++)await x.worker.tick();
+  const x=await setup(t);const j=await x.worker.enqueue(input);await x.worker.approveStoryboard(j.id);for(let i=0;i<8;i++)await x.worker.tick();
   const original=x.worker.job(j.id);const hash=original.hash;
   const revision=await x.worker.review(j.id,{decision:'request_revision',mediaHash:hash,notes:'Buat kamera lebih pelan.'});
   assert.notEqual(revision.id,j.id);assert.equal(original.hash,hash);assert.equal(original.status,'revision_requested');
