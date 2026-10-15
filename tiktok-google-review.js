@@ -50,7 +50,7 @@ async function refresh(){
  const data=await request(token()?'/api/tiktok/google/status':'/public/tiktok/google/status');
  const jobs=data.jobs||[],blockers=data.blockers||[];
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
- const todayJobs=jobs.filter(j=>String(j.createdAt||'').slice(0,10)===today);
+ const todayJobs=jobs.filter(j=>j.createdAt&&new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(j.createdAt))===today);
  const work=card.querySelector('.tt-workflow');
  if(work){
   const steps=work.querySelectorAll('.tt-work-steps li small');
