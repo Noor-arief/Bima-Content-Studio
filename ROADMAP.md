@@ -1,5 +1,25 @@
 # BIMA Content Studio — Affiliate Roadmap
-Updated: 2026-10-14 · Planning document, not proof of deployment or integration.
+Updated: 2026-10-15 · Planning document, not proof of deployment or integration.
+
+## TikTok Showcase unblock + test track — 2026-10-15 (P0)
+
+**Verified from owner Partner Center support screenshot, not inferred from old onboarding notes:** BIMA Content Studio **Public** application exists in Indonesia under `App Developer > Customer Engagement > Creator Collaborations`. Four Affiliate Creator scopes are selected, including `creator.showcase.read` and `creator.affiliate_collaboration.read`, but **scopes are not approved yet**. App Review remains **Draft** because backend requires `feature_intro` and `test_instruction` while the form does not expose either field. Support ticket **2026101415120200008** is pending engineering help. Do not claim a creator token, approved scopes, live Showcase or authorized GMV data.
+
+**Root-cause candidates, not proven:** incorrect review-form mapping for the selected market/category; account entitlement gap because the documented Affiliate ISV category is `App developer > Customer Engagement > Affiliate`, rather than Creator Collaborations. Request category confirmation and form-field fix in same ticket. Do **not** forge private review API requests, alter hidden form fields, or bypass approval.
+
+**Path A — permitted tests NOW (no creator token):**
+- [x] Create isolated, deterministic mock Showcase contract + paginated fixture tests; never label fixtures as live or feed them into production job scheduling.
+- [ ] Test BIMA candidate selection, GMV evidence validation, storyboard, review/revision and approved publication-intent **offline**, with `ENABLE_TIKTOK_GOOGLE=false`, budget zero, no video spending and no posting.
+- [ ] QA owner UI against that fixture and verify data origin visibly reads TEST. This is not a production Showcase connection.
+
+**Path B — official TikTok test access, parallel to support ticket:**
+- [ ] Check whether Partner Center allows creating **Affiliate (custom)** app under correct eligible category; official Affiliate Integration documentation explicitly names this for testing. Do not create a Local Seller replacement.
+- [ ] Ask App Store/Partner Manager whether a **beta creator test account** can be provisioned for Indonesia; official Creator Authorization documentation limits test accounts to beta members.
+- [ ] Once TikTok activates scopes and app key, register the TikTok Shop creator callback separately from TikTok Login Kit, authorize creator with CSRF state, exchange shop creator token server-side, then use official API testing tool/GET `/affiliate_creator/202405/showcases/products`.
+- [ ] Check pagination, source timestamps, actual GMV availability and publish eligibility; never treat order count as GMV, or fabricated test products as winning.
+- [ ] Treat yellow basket/shoppable posting as a separate permission and integration from reading Showcase.
+
+**Official references:** https://partner.tiktokshop.com/docv2/page/affiliate-integration ; https://partner.tiktokshop.com/docv2/page/678e3a362dccb8030ea6f98c ; https://partner.tiktokshop.com/docv2/page/get-showcase-products-202405
 
 ## Scope and preservation rules
 - Three strictly separated workspaces: YouTube (Science & Nature), TikTok Shop Affiliate, Shopee Video Affiliate.
