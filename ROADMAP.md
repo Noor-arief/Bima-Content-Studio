@@ -1,7 +1,24 @@
 # BIMA Content Studio — Affiliate Roadmap
 Updated: 2026-10-15 · Planning document, not proof of deployment or integration.
 
-## Latest owner-verified status — 2026-10-15, after local Open Toolkit run
+## CURRENT REVIEW RESULT — 2026-10-15 (supersedes earlier blocked/draft descriptions)
+
+**OWNER-VERIFIED: TikTok Shop App Review successfully submitted.** After filling all required form fields and uploading Product Screenshots, Product Walkthrough, and Product Design PDF, TikTok displayed the successful-submission notification. Reopening **Ulasan Aplikasi** showed **“Review app sedang diproses untuk 1 pasar — Indonesia (Lokal)”**. The review lists **Read Showcase Products**, **Read Creator Affiliate Collaborations**, **Affiliate Information**, and **Read Affiliate Share Link**. This is **IN REVIEW**, not APPROVED; the general application header may still say Draft while review is pending.
+
+**CORRECTED ROOT CAUSE:** Previous assertion that missing `feature_intro` / `test_instruction` necessarily represented an unresolved TikTok backend bug was wrong. Owner completed the review form and submission succeeded; stop troubleshooting or escalating that obsolete blocker. The only external gate now is TikTok's review/approval and subsequent creator authorization.
+
+**NEW VERIFIED BACKEND GAP:** `backend/server.mjs` currently registers GET `/auth/tiktok-shop/callback` but always responds HTTP 400 `tiktok_shop_creator_authorization_not_configured` (lines around 270–274 of source at this audit). The TikTok Login Kit callback is a separate feature and **is not** a TikTok Shop Creator OAuth token. The existing `backend/tiktok-showcase-contract.mjs` provides offline fixture normalization only, not a live signed TikTok Shop Showcase API adapter.
+
+**NEXT ENGINEERING PRIORITIES (no repeated onboarding):**
+1. Build a secure owner-initiated TikTok Shop creator consent initiation route and validate one-time state/expiry and redirect match; do not rely on TikTok Login Kit tokens.
+2. Implement official creator code/token exchange, encrypted persistence, refresh/revocation, scope checks (including granted `creator.showcase.read`) and redacted logs, based on the **current documented TikTok Shop Affiliate Creator authorization specification**. Do not guess endpoint names, query parameters, signing rules or use private APIs.
+3. Implement real Showcase Products read, pagination, API validation, Product ID normalization and reliable source labeling; do not infer GMV values missing from a response or mark mock data live.
+4. Test offline with mock HTTPS responses and QA that authorization attempts show correct pending/blocked status; don't spend video-generation credits or publish. After official approval, perform explicit owner creator authorization and a single real Showcase read as live acceptance.
+5. Keep TikTok existing UI, YouTube/Shopee workspaces, scheduled content and all deployed configurations unchanged unless required by a verified fix.
+
+**Do not click Publish merely because review submission succeeded; do not re-submit the review unless TikTok requests changes.**
+
+## Previous verification — 2026-10-15 (historical; superseded where contradictory)
 
 **DO NOT REPEAT completed setup. The only integration target now is Creator Showcase API.** This section supersedes older "not authenticated" and generic "run toolkit" instructions below.
 
