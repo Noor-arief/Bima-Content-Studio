@@ -16,7 +16,7 @@ test('owner gets a clear workflow and advanced tools stay available',async({page
   await page.locator('.sidebar [data-go="desk"]').click();
   await expect(page.locator('#tt-production-pack')).toBeHidden();
   await expect(page.locator('[data-bima-working]')).toContainText('Menunggu akses Showcase');
-  await expect(page.locator('.aff-notice')).toBeHidden();
+  await expect(page.locator('#tiktokWorkspace .aff-notice')).toBeHidden();
   await expect(page.locator('#tt-production-pack')).toBeHidden();
   for(const channel of ['youtube','shopee']){
     await page.locator(`#channelBar [data-channel="${channel}"]`).click();
