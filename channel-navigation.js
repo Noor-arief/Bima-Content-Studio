@@ -16,8 +16,18 @@ for(const button of menu.querySelectorAll('[data-go]')){
  const icon=button.querySelector('.ico');const text=document.createElement('span');text.className='channel-menu-name';
  button.replaceChildren(...(icon?[icon]:[]),text);
 }
+const originalItems=[...menu.querySelectorAll('[data-go]')];
+function orderMenus(channel){
+ const target=channel==='tiktok'?['desk','ringkasan','kalender','publishing']:originalItems.map(b=>b.dataset.go);
+ for(const id of target){const b=originalItems.find(n=>n.dataset.go===id);if(b)menu.appendChild(b);}
+ if(channel==='tiktok')for(const [id,label] of Object.entries({desk:'01',ringkasan:'02',kalender:'03',publishing:'04'})){const b=originalItems.find(n=>n.dataset.go===id);const icon=b?.querySelector('.ico');if(icon)icon.textContent=label;}
+ else for(const b of originalItems){const icon=b.querySelector('.ico');if(icon&&icon.dataset.originalIcon!==undefined)icon.textContent=icon.dataset.originalIcon;}
+}
+for(const b of originalItems){const icon=b.querySelector('.ico');if(icon)icon.dataset.originalIcon=icon.textContent;}
+let lastOrdered='';
 function sync(){
  const ch=state.active,known=!!names[ch],yt=ch==='youtube';
+ if(ch!==lastOrdered){orderMenus(ch);lastOrdered=ch;}
  sidebar.dataset.menuChannel=ch;
  context.querySelector('strong').textContent=PLATFORM_COPY[ch]?.name||ch;
  context.querySelector('small').textContent=yt?'Orbit & Ocean · Faceless Shorts':ch==='tiktok'?'BIMA riset & produksi · Kamu review':ch==='shopee'?'Shopee Video · Affiliate':'Workspace belum dibuka';
