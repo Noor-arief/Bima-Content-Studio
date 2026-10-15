@@ -7,8 +7,8 @@
 **Creator account to authorize:** @noor_arief (existing TikTok Shop affiliate creator)
 **Product:** https://noor-arief.github.io/Bima-Content-Studio/
 **Backend:** https://content-studio-api-production-3fe2.up.railway.app/
-**Existing integration:** TikTok for Developers Login Kit Sandbox only; NOT TikTok Shop API.
-**Updated 2026-10-15 from owner support screenshot:** Public application **created** in Indonesia, category **App Developer / Customer Engagement / Creator Collaborations**, four Affiliate Creator API scopes selected (not approved). Application remains **Draft**, App Review submission is blocked by backend validation requiring missing form fields `feature_intro` and `test_instruction`. TikTok Shop app key and approved entitlement are **not verified**. Prior 'app not created' status below is stale historical text; do not repeat it as current fact.
+**Existing integration:** Partner Center Public app is registered, TikTok Shop Open Toolkit authentication and app listing verified; TikTok Login Kit/Sandbox settings are separate and do not establish Creator Showcase authorization.
+**Updated 2026-10-15 from owner support screenshot:** Public application **created** in Indonesia, category **App Developer / Customer Engagement / Creator Collaborations**, four Affiliate Creator API scopes selected (not approved). Application remains **Draft**, App Review submission is blocked by backend validation requiring missing form fields `feature_intro` and `test_instruction`. TikTok Shop app key existence and callback registration are **verified through authenticated app list**; approved Creator scopes and actual Creator Showcase data access are **not verified**. Prior 'app not created' status below is stale historical text; do not repeat it as current fact.
 
 **Support ticket:** 2026101415120200008 — ask engineering to fix App Review field mapping and verify whether Creator Collaborations vs documented Affiliate category has the correct entitlement. Do not submit unsupported hidden API parameters.
 
@@ -20,9 +20,9 @@
 
 Hello TikTok Shop Partner Center team,
 
-We are developing BIMA Content Studio, a web-based, owner-operated AI affiliate content workflow for the existing Indonesian TikTok Shop affiliate creator @noor_arief. We already have a Partner Center account but have not created a TikTok Shop Affiliate application.
+We are developing BIMA Content Studio, a web-based, owner-operated AI affiliate content workflow for the existing Indonesian TikTok Shop affiliate creator @noor_arief. We have an existing TikTok Shop Partner Center Public application named BIMA Content Studio for Indonesia, but its App Review is blocked on required fields missing from the review UI.
 
-We request **Affiliate API program eligibility / activation** and guidance on creating the correct **Affiliate (public)** app for the compliance review and an **Affiliate (custom)** app for testing, as instructed by the official Affiliate Integration guide.
+We request **Affiliate API program eligibility / activation** and confirmation of entitlement for our **existing Public application** and official review/test access, without creating a replacement app, as instructed by the official Affiliate Integration guide.
 
 **Registration mismatch that blocks us:** The Indonesian Partner Center category selector shown to us does not expose the documented “App developer > Customer Engagement > Affiliate” category. The visible adjacent options include “Creator collaborations” and an “Affiliate Partner > Scalable Seller and Creator Matching” category. A custom-app form we reached only supported “Local seller,” not creator-side access. Please enable the appropriate Affiliate ISV category / eligibility for this Partner Center account, or provide the exact supported path for Indonesia. We do not want to misclassify an app.
 
@@ -53,9 +53,9 @@ Contact: hello@vireqo.id
 ## Technical readiness / acceptance
 
 - [ ] Partner Center account category can create Affiliate app for Indonesia.
-- [ ] Affiliate public app created; TikTok Shop **14-character app key** issued.
+- [x] Existing Public application registered and TikTok Shop app key present (verified by authenticated Open Toolkit app list, not published here).
 - [ ] Required Affiliate API access approved and creator allowlist activated.
-- [ ] Separate TikTok Shop creator redirect URL registered in app settings.
+- [x] TikTok Shop redirect URL registered to Railway callback, confirmed by authenticated app list. Creator authorization/granted scopes remain unverified.
 - [ ] Creator @noor_arief explicitly authorizes; creator token obtained and encrypted.
 - [ ] Actual GET `/affiliate_creator/202405/showcases/products` returns products from authorized creator.
 - [ ] Open collaboration discovery validated with real creator-eligible results and reliable commission values.
