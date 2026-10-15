@@ -94,3 +94,33 @@
 /* Production 1 owns storyboard and revisions; Production 2 owns actual generation/QA. */
 #tt-google-review[data-view="desk"] .tt-job[data-job-group="processing"]:not([data-job-status="storyboard_pending"]):not([data-job-status="revision_requested"]){display:none!important}
 #tt-google-review[data-view="ringkasan"] .tt-job[data-job-status="storyboard_pending"],#tt-google-review[data-view="ringkasan"] .tt-job[data-job-status="revision_requested"]{display:none!important}
+
+/* TikTok 4-step design. Spacious, clear typography, restrained cards and visible hierarchy. */
+.sidebar[data-menu-channel="tiktok"] nav.menu{display:flex;flex-direction:column;gap:7px}
+.sidebar[data-menu-channel="tiktok"] nav.menu [data-go]{min-height:58px;padding:11px 14px;border:1px solid transparent;border-radius:13px;display:flex;align-items:center;gap:13px}
+.sidebar[data-menu-channel="tiktok"] nav.menu [data-go] .ico{width:31px;height:31px;min-width:31px;font-size:11px;font-weight:800;letter-spacing:-.02em;border:1px solid #274b55;border-radius:9px;background:#122932;color:#83e7dc;display:flex;align-items:center;justify-content:center}
+.sidebar[data-menu-channel="tiktok"] nav.menu [data-go].active{background:#133332;border:1px solid #66cabe;box-shadow:inset 3px 0 #66cabe}
+.sidebar[data-menu-channel="tiktok"] nav.menu [data-go] .channel-menu-name{font-size:13px;line-height:1.35;letter-spacing:0;font-weight:650}
+#tt-google-review{max-width:1000px;margin:16px auto 60px}
+#tt-google-review .tt-owner-intro{padding:30px 32px;margin-bottom:24px;background:linear-gradient(130deg,#12262e,#0d1925 80%);border:1px solid #2c4653;border-radius:20px;align-items:center}
+#tt-google-review .tt-owner-intro h3{font-size:clamp(26px,3vw,36px);margin:12px 0 10px;letter-spacing:-.035em}
+#tt-google-review .tt-owner-intro p{font-size:14px;line-height:1.7;max-width:580px}
+#tt-google-review .tt-workflow{background:#0e1b27;border:1px solid #284451;border-radius:20px;padding:26px}
+#tt-google-review .tt-work-head{padding-bottom:17px;border-bottom:1px solid #284451}
+#tt-google-review .tt-work-head strong{font-size:17px}
+#tt-google-review .tt-work-steps{display:grid;grid-template-columns:1fr;gap:0;margin:0;padding:0;list-style:none;counter-reset:flow}
+#tt-google-review .tt-work-steps li{position:relative;display:grid;grid-template-columns:1fr;gap:6px;margin:0 0 0 18px;padding:23px 18px 23px 32px;border:0;border-left:2px solid #286a6a;border-radius:0;background:none}
+#tt-google-review .tt-work-steps li:last-child{border-left-color:transparent}
+#tt-google-review .tt-work-steps li:before{content:"";position:absolute;left:-8px;top:29px;height:14px;width:14px;background:#6adac8;border:4px solid #103035;border-radius:50%;box-sizing:border-box}
+#tt-google-review .tt-work-steps strong{font-size:15px;color:#ecfaf9}
+#tt-google-review .tt-work-steps small{font-size:13px;line-height:1.6;color:#a9bec8}
+#tt-google-review .tt-review-hint,#tt-google-review .tt-calendar-hint{padding:24px 26px;background:#0e1b27;border:1px solid #284451;border-radius:18px}
+#tt-google-review .tt-review-hint strong,#tt-google-review .tt-calendar-hint strong{display:block;font-size:18px;margin-bottom:10px;color:#dcf7f0}
+#tt-google-review .tt-review-hint p,#tt-google-review .tt-calendar-hint p{max-width:730px;color:#aac3ca;font-size:13px;line-height:1.75;margin:9px 0}
+#tt-google-review .tt-section-heading{margin:26px 0 14px}
+#tt-google-review .tt-section-heading h4{font-size:20px}
+#tt-google-review .tt-empty{background:#0c1a25;border:1px dashed #315560;padding:52px 24px}
+#tt-google-review .tt-metrics{display:none}
+#tt-google-review .tt-job{box-shadow:none;border:1px solid #31515c;background:#10222c}
+#tt-google-review[data-view="publishing"] .tt-research,#tt-google-review[data-view="publishing"] .tt-readiness{background:#111f2a;border:1px solid #334e5b}
+@media(max-width:700px){#tt-google-review .tt-owner-intro{padding:22px 18px}#tt-google-review .tt-workflow{padding:18px}#tt-google-review .tt-work-steps li{padding:19px 6px 19px 24px}}
