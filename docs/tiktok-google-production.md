@@ -64,3 +64,21 @@ assembly of synthetic clips. Synthetic media is only a technical test and is nev
 presented as a generated affiliate sample.
 
 `npm test --prefix backend` covers the existing backend and private route access.
+
+## Owner workflow (15 October 2026)
+
+The default owner workspace now has three task views: **Perlu Review**, **BIMA Sedang Bekerja**, and **Jadwal & Hasil**. Connection setup is separate. Review shows only reviewable server jobs; work shows processing and failed/revision jobs; results shows approved jobs. Legacy local drafts are hidden by default on every owner view, so they cannot be mistaken for server production or live upload schedules.
+
+The intended business flow is product discovery and evidence-based selection → video production and QA → owner review → scheduled shoppable upload. This is NOT yet an operational end-to-end pipeline. Current hard blockers:
+
+- TikTok Shop Affiliate Creator authorization, catalog/showcase intake and product performance data are not integrated. Login Kit is not catalog authorization. Verified manual intake does not make the source connector connected, nor prove a product is winning.
+- Google generation requires its independently approved API budget; Flow consumer credits are not wired to the server.
+- No shoppable publishing connector or server publisher is implemented. Approved videos remain **approved, not scheduled/published**. Connecting an ordinary scheduler alone does not prove product-link attachment is supported.
+- Metricool account lookup in this session reports no connected social networks. No posts were scheduled or sent.
+
+Relevant official capabilities to validate against the app's granted region/scopes before implementation:
+https://partner.tiktokshop.com/docv2/page/get-showcase-products
+https://partner.tiktokshop.com/docv2/page/post-shoppable-video-202603
+https://developers.tiktok.com/docs/en/content-sharing-guidelines
+
+Do not present a mock scan, unsupported winning score, local calendar date, or plain-video upload as a successful affiliate workflow.

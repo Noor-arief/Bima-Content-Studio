@@ -1,5 +1,5 @@
 /* All visual rules are scoped to the TikTok owner workspace. */
-#tiktokWorkspace.tt-owner-mode[data-sec="ringkasan"]>:not(.aff-head):not(.aff-tabs):not(#tt-google-review),#tiktokWorkspace.tt-owner-mode[data-sec="desk"]>:not(.aff-head):not(.aff-tabs):not(#tt-google-review){display:none!important}
+#tiktokWorkspace.tt-owner-mode>:not(#tt-google-review){display:none!important}
 #tt-google-review{--tt-text:#edf5f5;--tt-muted:#a4b7c5;--tt-line:#29434d;color:var(--tt-text);font-family:inherit;max-width:1180px;margin:0 auto 28px}
 #tt-google-review *{box-sizing:border-box}#tt-google-review h3,#tt-google-review h4,#tt-google-review p{margin:0}#tt-google-review p{line-height:1.65}#tt-google-review h4{font-size:19px;letter-spacing:-.02em}#tt-google-review small{line-height:1.55}
 #tt-google-review .tt-hero{display:grid;grid-template-columns:1fr 210px;gap:34px;padding:34px;border:1px solid #36565d;border-radius:22px;background:radial-gradient(ellipse at top right,#16494c 0,transparent 65%),#11232e}
@@ -17,3 +17,19 @@
 #tt-google-review .tt-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 10px}#tt-google-review button{border:1px solid #8ed6c9;border-radius:10px;background:#91dfcf;color:#102825;font-family:inherit;font-size:12px;font-weight:700;padding:11px 16px;cursor:pointer;min-height:42px}#tt-google-review button.tt-secondary{background:transparent;border-color:#526873;color:#d3e3e5}#tt-google-review button:hover{filter:brightness(1.12)}#tt-google-review button:disabled{opacity:.55;cursor:wait}#tt-google-review button:focus-visible,#tt-google-review summary:focus-visible,#tt-google-review textarea:focus-visible{outline:3px solid #8ed6c9;outline-offset:3px}#tt-google-review textarea{width:100%;min-height:100px;background:#0d1c26;color:#edf5f5;border:1px solid #4b6974;border-radius:10px;padding:12px;margin:10px 0;font:inherit;resize:vertical}
 #tt-google-review .tt-tools{margin-top:26px;text-align:center;border-top:1px solid var(--tt-line);padding-top:22px}#tt-google-review .tt-tools p{color:var(--tt-muted);font-size:12px;margin-bottom:10px}#tt-google-review .tt-tools small{display:block;color:var(--tt-muted);font-size:11px;margin-top:9px}
 @media(max-width:700px){#tt-google-review .tt-hero{grid-template-columns:1fr;padding:24px;gap:20px}#tt-google-review .tt-role{border-left:0;border-top:1px solid #397079;padding:18px 0 0;display:none}#tt-google-review .tt-flow{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#tt-google-review .tt-flow li{padding:15px}#tt-google-review .tt-metrics{gap:8px}#tt-google-review .tt-metrics>div{display:block;padding:14px 10px}#tt-google-review .tt-metrics span{font-size:10px;display:block;min-height:30px}#tt-google-review .tt-metrics strong{font-size:25px}#tt-google-review [data-blockers]{grid-template-columns:1fr}#tt-google-review .tt-readiness{padding:18px}#tt-google-review .tt-section-heading>.tt-muted{display:none}#tt-google-review .tt-job{grid-template-columns:1fr;padding:16px;gap:16px}#tt-google-review .tt-job-preview{max-width:250px;width:100%;justify-self:center;min-height:140px}#tt-google-review .tt-actions button{flex:1}#tt-google-review .tt-empty{padding:28px 18px}}
+
+#tt-google-review .tt-owner-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}
+#tt-google-review .tt-owner-tabs button{background:#10202b;color:#c4dadd;border-color:#39515c}
+#tt-google-review .tt-owner-tabs button[aria-current="page"]{background:#91dfcf;color:#102825}
+#tt-google-review .tt-research{border:1px solid var(--tt-line);border-radius:16px;background:#11212c;padding:24px;margin:20px 0}
+#tt-google-review .tt-research h4{margin:10px 0}#tt-google-review .tt-research p,#tt-google-review .tt-research li,#tt-google-review .tt-research small{font-size:13px;color:var(--tt-muted);line-height:1.7}
+#tt-google-review[data-view="ringkasan"] [data-job-group]:not([data-job-group="review"]),
+#tt-google-review[data-view="desk"] [data-job-group]:not([data-job-group="processing"]),
+#tt-google-review[data-view="kalender"] [data-job-group]:not([data-job-group="approved"]),
+#tt-google-review:not([data-view="desk"]) [data-owner-pane="desk"],
+#tt-google-review:not([data-view="kalender"]) [data-owner-pane="kalender"],
+#tt-google-review[data-view="publishing"] .tt-jobs{display:none!important}
+#tt-google-review[data-view="ringkasan"] .tt-hero,#tt-google-review[data-view="kalender"] .tt-hero,#tt-google-review[data-view="publishing"] .tt-hero{display:none}
+#tt-google-review .tt-flow li:nth-child(3){border-color:#599e92;background:#153533}
+#tt-google-review .tt-flow li:last-child{border-color:var(--tt-line);background:#12202b}
+@media(max-width:700px){#tt-google-review .tt-owner-tabs{display:grid;grid-template-columns:1fr;width:100%}}
