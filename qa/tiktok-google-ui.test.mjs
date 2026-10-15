@@ -43,10 +43,10 @@ test('one inbox groups review, production and blocked publication without fake s
  assert.equal(p.doc.querySelector('[data-job-group="processing"] h4').textContent,'Produk b');
  assert.match(p.doc.querySelector('article[data-job-group="approved"]').textContent,/tertahan akses TikTok Shop/);
  const root=p.doc.querySelector('#tiktokWorkspace');root.dataset.sec='desk';p.doc.dispatchEvent(new p.dom.window.CustomEvent('bima:channel-section',{detail:'desk'}));
- assert.equal(p.doc.querySelector('#tt-google-review').dataset.view,'ringkasan');
- assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Perlu kamu review');
+ assert.equal(p.doc.querySelector('#tt-google-review').dataset.view,'desk');
+ assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Pekerjaan BIMA');
  assert.match(p.doc.querySelector('[data-research-status]').textContent,/Belum ada hasil riset/);
  root.dataset.sec='kalender';p.doc.dispatchEvent(new p.dom.window.CustomEvent('bima:channel-section',{detail:'kalender'}));
- assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Perlu kamu review');
+ assert.equal(p.doc.querySelector('[data-view-title]').textContent,'Video yang kamu setujui');
  assert.equal(p.calls.filter(x=>x.options.method==='POST').length,0);
 });
