@@ -7,6 +7,11 @@ test.beforeEach(async({page})=>{
 test('owner gets a clear workflow and advanced tools stay available',async({page})=>{
   await expect(page.locator('#tt-google-review')).toBeVisible();
   await expect(page.locator('.sidebar nav.menu [data-go]:visible')).toHaveCount(4);
+  await expect(page.locator('.sidebar [data-tiktok-calendar]')).toBeVisible();
+  await page.locator('.sidebar [data-tiktok-calendar]').click();
+  await expect(page.locator('[data-main-title]')).toHaveText('TikTok Calendar & Live');
+  await expect(page.locator('.tt-calendar-board')).toBeVisible();
+  await expect(page.locator('[data-publishing-calendar-status]')).toContainText('Belum ada jadwal tayang aktif');
   expect(await page.locator('.sidebar nav.menu [data-go]').evaluateAll(nodes=>nodes.map(n=>n.dataset.go))).toEqual(['desk','ringkasan','kalender','publishing']);
   expect(await page.locator('.sidebar nav.menu [data-go] .channel-menu-name').allTextContents()).toEqual(['TikTok Production 1','TikTok Production 2','Owner Section','Pengaturan']);
   await page.locator('#tt-google-review [data-sec-go="publishing"]').click();
