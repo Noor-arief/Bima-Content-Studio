@@ -29,7 +29,7 @@ export function validateCreatorToken(response){
   const scopes=Array.isArray(d.granted_scopes)?d.granted_scopes:typeof d.granted_scopes==="string"?d.granted_scopes.split(/[\s,]+/):[];
   if(!scopes.includes(REQUIRED_CREATOR_SCOPE))throw Error("creator_showcase_scope_not_granted");
   if(typeof d.access_token!=="string"||!d.access_token||typeof d.refresh_token!=="string"||!d.refresh_token)throw Error("creator_token_missing");
-  return {accessToken:d.access_token,refreshToken:d.refresh_token,openId:d.open_id||null,userType:1,scopes};
+  return {accessToken:d.access_token,refreshToken:d.refresh_token,openId:d.open_id||null,userType:1,scopes,expiresIn:Number.isFinite(Number(d.access_token_expire_in))?Number(d.access_token_expire_in):null};
 }
 export async function exchangeCreatorCode({appKey,appSecret,authCode,fetchImpl=fetch}){
   if(!appKey||!appSecret||!authCode)throw Error("creator_exchange_args_missing");
@@ -64,4 +64,22 @@ export async function getCreatorShowcasePage({appKey,appSecret,creatorAccessToke
   const j=await r.json();
   if(j?.code!==0||!Array.isArray(j?.data?.products))throw Error("creator_showcase_api_error");
   return {products:j.data.products.map(p=>({id:String(p.id||""),name:String(p.name||p.title||""),origin:"tiktok_shop_creator_live",gmv:null,gmvVerified:false})),nextPageToken:j.data.next_page_token||null};
+}
+
+export async function collectCreatorShowcase({appKey,appSecret,creatorAccessToken,fetchImpl=fetch,maxPages=10}){
+  if(!Number.isInteger(maxPages)||maxPages<1||maxPages>20)throw Error("creator_showcase_page_limit_invalid");
+  const seen=new Set(),ids=new Set(),products=[];
+  let cursor=null;
+  for(let n=0;n<maxPages;n++){
+    const page=await getCreatorShowcasePage({appKey,appSecret,creatorAccessToken,pageToken:cursor,fetchImpl});
+    for(const product of page.products){
+      if(!product.id||!product.name)throw Error("creator_showcase_product_invalid");
+      if(!ids.has(product.id)){ids.add(product.id);products.push(product);}
+    }
+    const next=page.nextPageToken;
+    if(!next)return {products,pageCount:n+1,source:"tiktok_shop_creator_live",gmvVerified:false};
+    if(typeof next!=="string"||seen.has(next))throw Error("creator_showcase_pagination_cycle");
+    seen.add(next);cursor=next;
+  }
+  throw Error("creator_showcase_page_limit_reached");
 }

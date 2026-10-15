@@ -19,7 +19,7 @@ import { submitTikTokLtxPilot } from "./tiktok-ltx-pilot.mjs";
 
 import { createTikTokLtxWorker } from "./tiktok-ltx-worker.mjs";
 import { createGoogleAffiliateWorker } from "./tiktok-google-worker.mjs";
-import { beginCreatorAuthorization, validateCreatorCallback, exchangeCreatorCode, getCreatorShowcasePage } from "./tiktok-shop-creator.mjs";
+import { beginCreatorAuthorization, validateCreatorCallback, exchangeCreatorCode, refreshCreatorToken, collectCreatorShowcase } from "./tiktok-shop-creator.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -306,6 +306,7 @@ async function handler(req,res){
       const result=await exchangeCreatorCode({appKey:TIKTOK_SHOP_APP_KEY,appSecret:TIKTOK_SHOP_APP_SECRET,authCode:code});
       db.tiktokShopCreator={openId:result.openId,scopes:result.scopes,
         accessToken:seal(result.accessToken),refreshToken:seal(result.refreshToken),
+        expiresAt:result.expiresIn?Date.now()+result.expiresIn*1000:null,
         connectedAt:new Date().toISOString()};
       logEvent("tiktok_shop_creator_connected","owner",{scopes:result.scopes});
       await persist();
@@ -321,9 +322,19 @@ async function handler(req,res){
     const saved=db.tiktokShopCreator;
     if(!saved?.accessToken||!saved.scopes?.includes("creator.showcase.read"))return error(res,403,"creator_showcase_scope_not_granted");
     try{
-      const page=await getCreatorShowcasePage({appKey:TIKTOK_SHOP_APP_KEY,appSecret:TIKTOK_SHOP_APP_SECRET,
-        creatorAccessToken:unseal(saved.accessToken),pageToken:u.searchParams.get("page_token")||null});
-      return respond(res,200,{...page,source:"tiktok_shop_creator_live",gmvVerified:false});
+      // Refresh before expiry when TTL is known. Uncertain TTL is not guessed.
+      if(saved.expiresAt&&Date.now()+300000>=saved.expiresAt){
+        const renewed=await refreshCreatorToken({appKey:TIKTOK_SHOP_APP_KEY,appSecret:TIKTOK_SHOP_APP_SECRET,
+          refreshToken:unseal(saved.refreshToken)});
+        saved.accessToken=seal(renewed.accessToken);
+        saved.refreshToken=seal(renewed.refreshToken);
+        saved.scopes=renewed.scopes;
+        saved.expiresAt=renewed.expiresIn?Date.now()+renewed.expiresIn*1000:null;
+        await persist();
+      }
+      const page=await collectCreatorShowcase({appKey:TIKTOK_SHOP_APP_KEY,appSecret:TIKTOK_SHOP_APP_SECRET,
+        creatorAccessToken:unseal(saved.accessToken),maxPages:10});
+      return respond(res,200,page);
     }catch{return error(res,502,"tiktok_shop_showcase_unavailable");}
   }
   // TikTok access is separate from the YouTube OAuth and upload state.
