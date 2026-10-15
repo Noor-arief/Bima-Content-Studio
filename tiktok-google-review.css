@@ -124,3 +124,13 @@
 #tt-google-review .tt-job{box-shadow:none;border:1px solid #31515c;background:#10222c}
 #tt-google-review[data-view="publishing"] .tt-research,#tt-google-review[data-view="publishing"] .tt-readiness{background:#111f2a;border:1px solid #334e5b}
 @media(max-width:700px){#tt-google-review .tt-owner-intro{padding:22px 18px}#tt-google-review .tt-workflow{padding:18px}#tt-google-review .tt-work-steps li{padding:19px 6px 19px 24px}}
+
+/* Remove obsolete manual affiliate publishing forms from TikTok's simplified workflow. */
+#tiktokWorkspace .aff-notice,#tiktokWorkspace #aff-tiktok-picker,#tiktokWorkspace #aff-tiktok-form,#tiktokWorkspace #aff-tiktok-empty,#tiktokWorkspace [id="aff-tiktok-agenda"]{display:none!important}
+#tt-google-review .tt-live-head{display:grid;grid-template-columns:14px minmax(0,1fr);align-items:center;gap:5px 12px;margin:20px 0 8px;padding:16px 20px;border:1px solid #345360;background:#122731;border-radius:12px}
+#tt-google-review [data-bima-dot]{width:11px;height:11px;border-radius:50%;background:#8e9da9}
+#tt-google-review [data-bima-dot][data-active="true"]{background:#67d5c5;box-shadow:0 0 0 5px #67d5c51f}
+#tt-google-review [data-bima-working]{font-size:14px;color:#edf7f5}
+#tt-google-review [data-bima-detail]{grid-column:2;font-size:12px;color:#a8c0ca;line-height:1.5}
+#tt-google-review .tt-work-steps li[data-stage="pending"]::before{background:#f0c77c}
+#tt-google-review .tt-work-steps li[data-stage="done"]::before{background:#65d1bc}
