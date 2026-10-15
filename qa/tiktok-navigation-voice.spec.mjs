@@ -5,9 +5,10 @@ test('TikTok workflow navigation follows owner tasks, voice preview is clearly l
  await expect(page.locator('.sidebar .channel-menu-name').first()).toHaveText('TikTok Production 1');
  await page.locator('.sidebar [data-go="desk"]').click();
  await expect(page.locator('#tt-voice-preview')).toContainText('Ini bukan file VO final');
- await expect(page.locator('#tt-voice-play')).toBeVisible();
- await page.locator('#tt-voice-play').click();
- await expect(page.locator('#tt-pack-status')).toContainText('Pilih atau impor satu produk');
+ await expect(page.locator('#tt-voice-play')).toBeHidden();
+ await expect(page.locator('.sidebar [data-tiktok-calendar]')).toBeVisible();
+ await page.locator('.sidebar [data-tiktok-calendar]').click();
+ await expect(page.locator('[data-main-title]')).toHaveText('TikTok Calendar & Live');
  await page.locator('#channelBar [data-channel="youtube"]').click();
  await expect(page.locator('.sidebar .channel-menu-name').first()).toHaveText('Ringkasan YouTube');
  await page.locator('#channelBar [data-channel="shopee"]').click();
