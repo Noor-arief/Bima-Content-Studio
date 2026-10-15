@@ -3,7 +3,7 @@
 'use strict';
 const root=document.getElementById('tiktokWorkspace');if(!root)return;
 root.classList.add('tt-owner-mode');
-const card=document.createElement('section');card.dataset.secs='ringkasan desk kalender publishing';card.id='tt-google-review';
+const card=document.createElement('section');card.dataset.secs='ringkasan desk kalender publishing tt-calendar';card.id='tt-google-review';
 card.innerHTML=`
 <div class="tt-hero"><div><span class="tt-eyebrow">BIMA CONTENT STUDIO / TIKTOK</span><h3>Ide jadi video.<br><span>Kamu pegang keputusan.</span></h3><p>BIMA mencari produk, membuat video, lalu menyiapkan publikasi. Tugasmu hanya review dan approve.</p><div class="tt-pills"><span>Google Veo</span><span>24 detik · 9:16</span><span>Suara Indonesia</span></div></div><div class="tt-role"><span>PERAN KAMU</span><strong>Review &amp;<br>Approval</strong><small>Keputusan akhir tetap di tanganmu.</small></div></div>
 <ol class="tt-flow" aria-label="Alur produksi video"><li><span>01</span><strong>Riset produk winning</strong><small>BIMA menilai tren, penjualan, komisi, dan kelayakan produk.</small></li><li><span>02</span><strong>Buat &amp; cek video</strong><small>BIMA membuat visual, narasi, musik, subtitle, lalu memeriksa kualitas.</small></li><li><span>03</span><strong>Kamu review</strong><small>Tonton hasil → approve atau minta revisi.</small></li><li><span>04</span><strong>Upload terjadwal</strong><small>BIMA menerbitkan versi disetujui setelah koneksi publikasi siap.</small></li></ol>
