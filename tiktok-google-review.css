@@ -134,3 +134,17 @@
 #tt-google-review [data-bima-detail]{grid-column:2;font-size:12px;color:#a8c0ca;line-height:1.5}
 #tt-google-review .tt-work-steps li[data-stage="pending"]::before{background:#f0c77c}
 #tt-google-review .tt-work-steps li[data-stage="done"]::before{background:#65d1bc}
+
+/* TikTok Calendar is its own menu, not a hidden Owner subsection. */
+.sidebar [data-tiktok-calendar][hidden]{display:none!important}
+.sidebar[data-menu-channel="tiktok"] [data-tiktok-calendar]{display:flex;align-items:center;gap:13px;padding:11px 14px;min-height:58px;border-radius:13px}
+.sidebar[data-menu-channel="tiktok"] [data-tiktok-calendar] .ico{display:flex;align-items:center;justify-content:center;width:31px;height:31px;min-width:31px;font-size:11px;font-weight:800;border:1px solid #274b55;border-radius:9px;background:#122932;color:#83e7dc}
+.sidebar[data-menu-channel="tiktok"] [data-tiktok-calendar].active{background:#133332;border:1px solid #66cabe;box-shadow:inset 3px 0 #66cabe}
+#tt-google-review .tt-calendar-board{border:1px solid #34515a;border-radius:16px;background:#10212b;padding:22px;margin-bottom:20px}
+#tt-google-review .tt-calendar-board strong{font-size:19px}
+#tt-google-review .tt-calendar-board p{font-size:13px;color:#bbd2d6;margin-top:8px}
+#tt-google-review[data-view="tt-calendar"] [data-owner-pane="tt-calendar"]{display:block!important}
+#tt-google-review[data-view="tt-calendar"] .tt-metrics,#tt-google-review[data-view="tt-calendar"] .tt-flow,#tt-google-review[data-view="tt-calendar"] .tt-hero{display:none!important}
+#tt-google-review[data-view="tt-calendar"] .tt-job[data-job-group="approved"]{display:grid!important}
+#tt-google-review[data-view="tt-calendar"] .tt-empty[data-job-group="approved"]{display:block!important}
+#tt-google-review[data-view="tt-calendar"] .tt-jobs>[data-job-group]:not([data-job-group="approved"]),#tt-google-review[data-view="tt-calendar"] .tt-job:not([data-job-group="approved"]){display:none!important}
