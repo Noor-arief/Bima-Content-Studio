@@ -31,7 +31,7 @@ function syncView(){
  for(const b of card.querySelectorAll('.tt-owner-tabs button'))b.setAttribute('aria-current',b.dataset.secGo===section?'page':'false');
 }
 document.addEventListener('bima:channel-section',syncView);syncView();
-const actions=card.querySelector('[data-legacy-toggle]');actions.onclick=()=>{const open=root.classList.toggle('tt-owner-mode')===false;document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',open);actions.setAttribute('aria-expanded',String(open));actions.textContent=open?'Tutup alat lanjutan':'Buka alat lanjutan';};
+const actions=card.querySelector('[data-legacy-toggle]');actions.onclick=()=>{const open=root.classList.toggle('tt-owner-mode')===false;document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',open);actions.setAttribute('aria-expanded',String(open));actions.textContent=open?'Tutup alat lanjutan':'Buka alat lanjutan';if(open)card.querySelector('[data-sec-go="ringkasan"]').click();};
 card.querySelector('[data-login]').onclick=()=>location.assign(base+'/auth/google/start');
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
 async function request(url,body){
