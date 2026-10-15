@@ -90,3 +90,7 @@
 #tt-google-review[data-view="ringkasan"] .tt-review-hint,#tt-google-review[data-view="kalender"] .tt-calendar-hint{display:block!important}
 #tt-google-review[data-view="ringkasan"] .tt-workflow,#tt-google-review[data-view="ringkasan"] .tt-empty[data-job-group="review"]{display:none!important}
 #tt-google-review[data-view="kalender"] .tt-empty[data-job-group="review"]{display:block}
+
+/* Production 1 owns storyboard and revisions; Production 2 owns actual generation/QA. */
+#tt-google-review[data-view="desk"] .tt-job[data-job-group="processing"]:not([data-job-status="storyboard_pending"]):not([data-job-status="revision_requested"]){display:none!important}
+#tt-google-review[data-view="ringkasan"] .tt-job[data-job-status="storyboard_pending"],#tt-google-review[data-view="ringkasan"] .tt-job[data-job-status="revision_requested"]{display:none!important}
