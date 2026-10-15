@@ -1,6 +1,12 @@
 # BIMA Content Studio — Affiliate Roadmap
 Updated: 2026-10-15 · Planning document, not proof of deployment or integration.
 
+## Creator Showcase next-stage progress — PR #59 merged (2026-10-15)
+
+**CODE + CI PASS (9/9), not approved live access.** Implemented expiry-aware token refresh in the owner-protected Showcase route, encrypted storage of refreshed access/refresh tokens, bounded multi-page collection (up to 10 pages), Product ID deduplication, invalid-product/cursor-cycle checks, and unit regression tests. GitHub Actions on PR head `d5ba34a0f9cbf047e39bce9f5ce46af268f25ef5` returned 9/9 success. PR #59 merged to main at `bcfc5b2d8c2d156da2b5dd606085512ee017ed76`.
+
+**Remain blocked/pending:** TikTok review approval; Creator authorization; runtime credentials and explicit feature enable; live authorized Showcase API read; UI wiring to Production 1; end-to-end production verification. GMV is not returned/verified by this module and must not be invented. Feature stays disabled by default; no changes to YouTube/Shopee/scheduled content.
+
 ## Implemented next stage — PR #57 merged (2026-10-15)
 
 **CODE MERGED, QA PASS — NOT LIVE AUTHORIZED.** PR #57 introduced `backend/tiktok-shop-creator.mjs`, module unit tests, and owner-protected routes in `backend/server.mjs`:
