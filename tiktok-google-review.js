@@ -91,7 +91,7 @@ async function refresh(){
  const group=rank(job)===0?'review':rank(job)===2?'approved':'processing';
  if(group!==previousGroup){const heading=el('h4',group==='approved'?'Video disetujui — menunggu publikasi':'Storyboard & produksi BIMA','tt-group-heading');heading.dataset.jobGroup=group;list.append(heading);previousGroup=group;}
  const item=el('article',undefined,'tt-job'),info=el('div',undefined,'tt-job-info'),visual=el('div',undefined,'tt-job-preview');
- item.dataset.jobGroup=group;
+ item.dataset.jobGroup=group;item.dataset.jobStatus=job.status;
  visual.append(el('span','▷','tt-empty-icon'),el('small',job.videoReady?'24 detik · Video tersedia':'Video sedang disiapkan'));
  const badge=el('span',stages[job.status]||'Memeriksa status','tt-badge');badge.dataset.ready=String(['ready_for_review','approved'].includes(job.status));
  info.append(badge,el('h4',job.product));
