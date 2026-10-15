@@ -1,0 +1,30 @@
+name: TikTok Google production QA
+on:
+  pull_request:
+    paths: ['backend/tiktok-google-*.mjs', 'backend/server.mjs', 'tiktok-google-review.*', 'qa/tiktok-google*', '.github/workflows/tiktok-google-qa.yml']
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix backend --no-audit --no-fund
+      - run: node --check tiktok-google-review.js
+      - run: node --test qa/tiktok-google.test.mjs
+      - run: npm install --no-save --no-package-lock jsdom
+      - run: node --test qa/tiktok-google-ui.test.mjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - run: npx playwright install chromium --with-deps
+      - run: python3 -m http.server 8765 >/tmp/bima-google-ui.log 2>&1 &
+      - run: npx playwright test qa/tiktok-google-owner.spec.mjs qa/tiktok-owner-render.spec.mjs --browser chromium --reporter=line

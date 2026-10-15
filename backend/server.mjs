@@ -18,6 +18,7 @@ import { quoteTikTokMotion } from "./tiktok-motion-budget.mjs";
 import { submitTikTokLtxPilot } from "./tiktok-ltx-pilot.mjs";
 
 import { createTikTokLtxWorker } from "./tiktok-ltx-worker.mjs";
+import { createGoogleAffiliateWorker } from "./tiktok-google-worker.mjs";
 
 const ORIGIN = "https://noor-arief.github.io";
 const DATA_DIR = process.env.DATA_DIR || "./data";
@@ -74,6 +75,7 @@ let veoWorker=null;
 let piapiWorker=null;
 let venusProduction=null;
 let tiktokLtxWorker=null;
+let tiktokGoogleWorker=null;
 
 const logEvent=(action,id,extra={})=>{
   db.events.push({at:new Date().toISOString(),action,id,...extra});
@@ -385,6 +387,10 @@ async function handler(req,res){
       return redirect(res,ORIGIN+"/Bima-Content-Studio/#bima_session="+session);
     }catch(e){return error(res,403,String(e.message||e).slice(0,150));}
   }
+  if(req.method==="GET"&&u.pathname==="/public/tiktok/google/status"){
+    const {jobs,...safe}=tiktokGoogleWorker.overview();
+    return respond(res,200,{...safe,jobCount:jobs.length});
+  }
   if(!u.pathname.startsWith("/api/"))return error(res,404,"not_found");
   if(!access(req))return error(res,401,"authentication_required");
   if(req.method==="GET"&&u.pathname==="/api/production/plan"){
@@ -446,6 +452,29 @@ async function handler(req,res){
   }
   // TikTok-only owner preview production, NEVER publishing. Assets/licenses must
   // be approved on the server; browser flags cannot grant audio or product rights.
+  if(u.pathname.startsWith("/api/tiktok/google/")){
+    if(!access(req))return error(res,401,"owner_login_required");
+    if(req.method==="GET"&&u.pathname==="/api/tiktok/google/status")return respond(res,200,tiktokGoogleWorker.overview());
+    if(req.method==="POST"&&u.pathname==="/api/tiktok/google/products"){
+      try{return respond(res,201,await tiktokGoogleWorker.enqueue(await readJSON(req,1100000)));}
+      catch(e){return error(res,422,String(e.message).slice(0,120));}
+    }
+    const match=/^\/api\/tiktok\/google\/jobs\/([a-f0-9]{24})\/(video|review)$/.exec(u.pathname);
+    if(match){
+      const job=tiktokGoogleWorker.job(match[1]);if(!job)return error(res,404,"tiktok_job_missing");
+      if(req.method==="POST"&&match[2]==="review"){
+        try{return respond(res,200,await tiktokGoogleWorker.review(job.id,await readJSON(req,2000)));}
+        catch(e){return error(res,409,String(e.message).slice(0,120));}
+      }
+      if(req.method==="GET"&&match[2]==="video"){
+        if(!job.file)return error(res,404,"tiktok_video_not_ready");
+        const stat=await fs.stat(job.file).catch(()=>null);if(!stat)return error(res,404,"tiktok_video_missing");
+        res.writeHead(200,{"Content-Type":"video/mp4","Content-Length":stat.size,"Cache-Control":"private,no-store"});
+        return createReadStream(job.file).pipe(res);
+      }
+    }
+    return error(res,404,"tiktok_google_route_not_found");
+  }
   if(u.pathname.startsWith("/api/tiktok/production/")){
     if(!access(req))return error(res,401,"owner_login_required");
     const motionConfigured=[1,2,3].every(i=>Boolean(process.env["TIKTOK_PRODUCT_VIDEO_"+i]));
@@ -854,6 +883,9 @@ async function handler(req,res){
   return error(res,405,"method_not_allowed");
 }
 await init();
+tiktokGoogleWorker=createGoogleAffiliateWorker({db,persist,mediaDir:MEDIA_DIR});
+await persist();
+setInterval(()=>void tiktokGoogleWorker.tick().catch(()=>console.warn('tiktok_google_worker_failed')),15000).unref();
 tiktokLtxWorker=createTikTokLtxWorker({db,persist,mediaDir:MEDIA_DIR,
  onState:state=>console.log("tiktok_motion_worker",JSON.stringify(state))});
 setTimeout(()=>void tiktokLtxWorker.tick().catch(()=>{}),2000).unref();
