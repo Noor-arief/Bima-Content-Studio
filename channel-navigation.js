@@ -10,7 +10,7 @@ sidebar.insertBefore(channelLabel,menuLabel);sidebar.insertBefore(channels,menuL
 const context=document.createElement('div');context.className='channel-menu-context';context.setAttribute('aria-live','polite');
 context.innerHTML='<span class="channel-menu-dot" aria-hidden="true"></span><div><strong></strong><small></small></div>';
 sidebar.insertBefore(context,menuLabel);
-const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'Review Video',desk:'Proses BIMA',kalender:'Calendar & Upload',publishing:'Setup Google & TikTok'},shopee:{ringkasan:'Ringkasan',kalender:'Jadwal Shopee Video',desk:'Riset & Produksi',publishing:'Publikasi & Performa'}};
+const names={youtube:{ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'TikTok Production 2',desk:'TikTok Production 1',kalender:'Owner Section',publishing:'Pengaturan'},shopee:{ringkasan:'Ringkasan',kalender:'Jadwal Shopee Video',desk:'Riset & Produksi',publishing:'Publikasi & Performa'}};
 let tiktokSection='ringkasan',shopeeSection='ringkasan';
 for(const button of menu.querySelectorAll('[data-go]')){
  const icon=button.querySelector('.ico');const text=document.createElement('span');text.className='channel-menu-name';
