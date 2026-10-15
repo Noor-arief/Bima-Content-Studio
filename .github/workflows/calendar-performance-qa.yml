@@ -1,0 +1,19 @@
+name: BIMA Calendar Performance QA
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'qa/calendar-render-performance.test.mjs'
+      - '.github/workflows/calendar-performance-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test qa/calendar-render-performance.test.mjs
