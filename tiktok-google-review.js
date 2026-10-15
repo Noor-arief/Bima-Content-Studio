@@ -15,7 +15,7 @@ card.innerHTML=`
 <div class="tt-tools"><p>Butuh melihat draft atau pengaturan sebelumnya?</p><button type="button" data-legacy-toggle class="tt-secondary" aria-expanded="false">Buka alat lanjutan</button><small>Pengaturan koneksi dan alat lama untuk pemeliharaan; bukan pekerjaan harian owner.</small></div>`;
 root.querySelector('.aff-head')?.insertAdjacentElement('afterend',card);
 if(!card.isConnected)root.append(card);
-const css=document.createElement('link');css.rel='stylesheet';css.href='tiktok-google-review.css?v=20261015-owner2';document.head.append(css);
+const css=document.createElement('link');css.rel='stylesheet';css.href='tiktok-google-review.css?v=20261015-flow2';document.head.append(css);
 const label=card.querySelector('[data-status]'),list=card.querySelector('[data-jobs]');
 const base='https://content-studio-api-production-3fe2.up.railway.app';
 const token=()=>sessionStorage.getItem('bima_content_server_session');
