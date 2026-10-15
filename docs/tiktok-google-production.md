@@ -82,3 +82,14 @@ https://partner.tiktokshop.com/docv2/page/post-shoppable-video-202603
 https://developers.tiktok.com/docs/en/content-sharing-guidelines
 
 Do not present a mock scan, unsupported winning score, local calendar date, or plain-video upload as a successful affiliate workflow.
+
+
+## Owner inbox — 15 October 2026
+
+The default TikTok sidebar now exposes only Video TikTok. The single inbox groups reviewable videos, approved publication intents, and production/revision activity. Technical setup and legacy tools are behind Pengaturan.
+
+Approval persists a publication intent bound to the reviewed media hash and product ID/URL. Its status is blocked, with no scheduled time, until an authorized shoppable publisher is implemented. This is not a working scheduler or a verified product attachment. Product discovery and affiliate eligibility still require a real source and creator authorization. Never mark a basket as attached from an analytics product ID alone.
+
+Revision requests enqueue a separate worker job and return successful output to ready_for_review. After the existing two-revision limit, the request is preserved and an explicit limit blocker is shown. No silent unlimited paid retries.
+
+Target workflow: automatic research and verification → video production and QA with product association → owner review → approved publication queue → scheduled shoppable upload and status verification. Only the existing production/review worker and blocked publication intent are implemented; discovery and publication remain integration blockers. Google Flow subscription credits are not assumed to fund the Google API worker.

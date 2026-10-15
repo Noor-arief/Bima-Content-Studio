@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('TikTok product production pack selects appropriate music direction without falsely licensing tracks',async({page})=>{
  await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
- await page.locator('#channelBar [data-channel="tiktok"]').click();await page.locator('[data-legacy-toggle]').click();
+ await page.locator('#channelBar [data-channel="tiktok"]').click();await page.locator('#tt-google-review [data-sec-go="publishing"]').click();await page.locator('[data-legacy-toggle]').click();
  await page.locator('#tt-import-text').fill('Kipas Mini Portable\nhttps://shop.tiktok.com/view/product/123456');
  await page.locator('#tt-import-go').click();
  await expect(page.locator('#tt-pack-status')).toContainText('sleek, modern, punchy');
