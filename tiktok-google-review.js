@@ -18,12 +18,12 @@ card.innerHTML=`
 <div class="tt-tools"><p>Butuh melihat draft atau pengaturan sebelumnya?</p><button type="button" data-legacy-toggle class="tt-secondary" aria-expanded="false">Buka alat lanjutan</button><small>Pengaturan koneksi dan alat lama untuk pemeliharaan; bukan pekerjaan harian owner.</small></div>`;
 root.querySelector('.aff-head')?.insertAdjacentElement('afterend',card);
 if(!card.isConnected)root.append(card);
-const css=document.createElement('link');css.rel='stylesheet';css.href='tiktok-google-review.css?v=20261015-ownerflow4';document.head.append(css);
+const css=document.createElement('link');css.rel='stylesheet';css.href='tiktok-google-review.css?v=20261015-storyboard1';document.head.append(css);
 const label=card.querySelector('[data-status]'),list=card.querySelector('[data-jobs]');
 const base='https://content-studio-api-production-3fe2.up.railway.app';
 const token=()=>sessionStorage.getItem('bima_content_server_session');
 const labels={google_api_key_missing:'Koneksi Google belum siap.',google_automation_not_enabled:'Produksi Google belum diaktifkan.',google_budget_not_available:'Anggaran API Google belum tersedia.',verified_product_source_missing:'Riset tertahan: akses katalog/showcase dan data produk TikTok belum terhubung.'};
-const stages={queued:'Dalam antrean',blocked_budget:'Menunggu anggaran',running:'Membuat scene',assembling:'Menggabungkan video',auditing_final:'Memeriksa kualitas',ready_for_review:'Siap direview',approved:'Disetujui',qa_failed:'Perlu perbaikan',failed:'Produksi tertahan',requires_reconciliation:'Sedang perlu pemeriksaan',revision_requested:'Revisi diminta'};
+const stages={storyboard_pending:'Storyboard menunggu persetujuan',queued:'Dalam antrean',blocked_budget:'Menunggu anggaran',running:'Membuat scene',assembling:'Menggabungkan video',auditing_final:'Memeriksa kualitas',ready_for_review:'Siap direview',approved:'Disetujui',qa_failed:'Perlu perbaikan',failed:'Produksi tertahan',requires_reconciliation:'Sedang perlu pemeriksaan',revision_requested:'Revisi diminta'};
 const safeError=code=>code==='owner_login_required'||code==='authentication_required'?'Sesi berakhir. Silakan masuk kembali.':'Proses belum berhasil. Coba perbarui status; hasil sebelumnya tetap tersimpan.';
 let busy=false,signature='',urls=[],interaction=false;
 function syncView(){
@@ -83,6 +83,8 @@ async function refresh(){
  info.append(el('p','Keranjang kuning: '+job.product+' · akses penautan produk belum terverifikasi.','tt-note'));
  if(job.selectionReason)info.append(el('p','Alasan pemilihan: '+job.selectionReason,'tt-note'));
  const progress=el('p',job.status==='approved'?'Masuk antrean tayang · tertahan akses TikTok Shop. Belum ada jadwal aktif atau unggahan.':`${job.scenes.filter(s=>s.status==='complete').length}/3 scene selesai · Revisi ${job.revision||0}`,'tt-muted');info.append(progress);
+ if(job.storyboard?.length){const details=el('details',undefined,'tt-storyboard');const summary=el('summary',job.status==='storyboard_pending'?'Cek storyboard sebelum generate':'Lihat storyboard 3 scene');details.append(summary);for(const scene of job.storyboard){const part=el('div',undefined,'tt-story-scene');part.append(el('strong',`Scene ${scene.scene} · ${scene.durationSeconds} detik`),el('p',scene.visual),el('p','VO: '+scene.voice),el('small',scene.audio+' · '+scene.format));details.append(part);}info.append(details);}
+ if(job.status==='storyboard_pending'){const gate=el('button','Setujui storyboard & mulai produksi');gate.type='button';gate.onclick=async()=>{gate.disabled=true;try{await request('/api/tiktok/google/jobs/'+job.id+'/storyboard-approve',{});signature='';await refresh();}catch(e){progress.textContent=safeError(e.message);gate.disabled=false;}};info.append(gate,el('p','Belum ada kredit Google digunakan sebelum storyboard disetujui dan anggaran API aktif.','tt-muted'));}
  if(job.error||job.qa?.issues?.length)info.append(el('p','BIMA menahan hasil ini karena pemeriksaan belum lolos. Video ini belum bisa disetujui.','tt-issue'));
  if(job.revisionBlockedReason)info.append(el('p','Revisi tertahan: batas dua revisi otomatis tercapai. Perlu penanganan produksi sebelum dilanjutkan.','tt-issue'));
  if(job.reviewNotes)info.append(el('p','Catatanmu: '+job.reviewNotes,'tt-note'));
