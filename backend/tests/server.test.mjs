@@ -16,7 +16,7 @@ test("backend is healthy but blocks OAuth, uploads and private API until configu
     cwd:path.resolve(import.meta.dirname,".."),
     env:{...process.env,PORT:String(port),DATA_DIR:tmp,
       GOOGLE_CLIENT_ID:"",GOOGLE_CLIENT_SECRET:"",OWNER_EMAIL:owner,
-      ENABLE_UPLOADS:"false",ENABLE_PUBLIC_SCHEDULING:"false"},
+      ENABLE_UPLOADS:"false",ENABLE_PUBLIC_SCHEDULING:"false",ENABLE_TIKTOK_GOOGLE:"false"},
     stdio:["ignore","pipe","pipe"]
   });
   t.after(async()=>{child.kill("SIGTERM");await rm(tmp,{recursive:true,force:true});});
@@ -27,6 +27,14 @@ test("backend is healthy but blocks OAuth, uploads and private API until configu
     await wait(100);
   }
   assert.equal(started,true,"health endpoint becomes ready");
+  const publicGoogle=await fetch(url+"/public/tiktok/google/status");
+  assert.equal(publicGoogle.status,200);
+  const google=await publicGoogle.json();assert.equal(google.enabled,false);assert.equal(google.jobs,undefined);
+  for(const route of ["status","products","jobs/aaaaaaaaaaaaaaaaaaaaaaaa/video"]){
+    assert.equal((await fetch(url+"/api/tiktok/google/"+route)).status,401);
+  }
+  const googlePrivate=await fetch(url+"/api/tiktok/google/status",{headers:{Authorization:"Bearer "+session}});
+  assert.equal(googlePrivate.status,200);assert.deepEqual((await googlePrivate.json()).jobs,[]);
   const health=await (await fetch(url+"/health")).json();
   const locked=await fetch(url+"/api/content/review-job/media",{method:"POST",headers:{Authorization:"Bearer "+session,"Content-Type":"video/mp4"},body:Buffer.alloc(1024)});
   assert.equal(locked.status,409,"uncertain upload must not be reset by replacing media");

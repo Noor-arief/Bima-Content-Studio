@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-test.beforeEach(async({page})=>{await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});await page.locator('#channelBar [data-channel="tiktok"]').click();});
+test.beforeEach(async({page})=>{await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});await page.locator('#channelBar [data-channel="tiktok"]').click();await page.locator('[data-legacy-toggle]').click();});
 test('import automatically creates a grounded 3 scene video production pack',async({page})=>{
  await page.locator('#tt-import-text').fill('Kipas Mini Portable\nhttps://shop.tiktok.com/view/product/123456');
  await page.locator('#tt-import-go').click();
