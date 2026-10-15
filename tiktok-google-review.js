@@ -29,7 +29,7 @@ let busy=false,signature='',urls=[],interaction=false;
 function syncView(){
  const section=['ringkasan','desk','kalender','publishing'].includes(root.dataset.sec)?root.dataset.sec:'ringkasan';card.dataset.view=section;
  // Settings restores the existing setup panels rather than hiding them behind owner mode.
- const settings=section==='publishing';if(settings)root.dataset.advancedMode='true';const advanced=root.dataset.advancedMode==='true';root.classList.toggle('tt-owner-mode',!advanced);document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',advanced);
+ const settings=section==='publishing';if(settings)root.dataset.advancedMode='true';const advanced=root.dataset.advancedMode==='true';root.classList.toggle('tt-owner-mode',!advanced);document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',advanced);const legacyButton=card.querySelector('[data-legacy-toggle]');legacyButton.setAttribute('aria-expanded',String(advanced));legacyButton.textContent=advanced?'Tutup alat lanjutan':'Buka alat lanjutan';
  const copy={ringkasan:['KEPUTUSAN KAMU','Perlu kamu review'],desk:['PROSES OTOMATIS','Pekerjaan BIMA'],kalender:['JADWAL & HASIL','Video yang kamu setujui'],publishing:['PENGATURAN','Kesiapan sistem']};
  const [kicker,title]=copy[section]||copy.ringkasan;
  const intro={ringkasan:['Review Video','Tonton hasil, approve atau revisi.'],desk:['Proses BIMA','Pantau riset dan produksi video. Target kerja harian 08.00–18.00 WIB belum aktif sebagai scheduler.'],kalender:['Calendar & Upload','Video approved tercatat di sini. Upload masih menunggu izin TikTok Shop.'],publishing:['Setup Google & TikTok','Konfigurasi Google dan koneksi TikTok yang sudah ada. Setup tidak dihapus, hanya dipisahkan dari pekerjaan harian.']};
