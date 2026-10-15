@@ -6,12 +6,11 @@ test.beforeEach(async({page})=>{
 });
 test('owner gets a clear workflow and advanced tools stay available',async({page})=>{
   await expect(page.locator('#tt-google-review')).toBeVisible();
-  await expect(page.locator('.sidebar nav.menu [data-go]:visible')).toHaveCount(3);
+  await expect(page.locator('.sidebar nav.menu [data-go]:visible')).toHaveCount(4);
   await page.locator('#tt-google-review [data-sec-go="publishing"]').click();
   await expect(page.locator('[data-blockers]')).toContainText('Anggaran API Google belum tersedia');
   await expect(page.locator('[data-count="review"]')).toHaveText('—');
   await expect(page.locator('#tt-production-pack')).toBeHidden();
-  await page.locator('[data-legacy-toggle]').click();
   await page.locator('.sidebar [data-go="desk"]').click();
   await expect(page.locator('#tt-production-pack')).toBeVisible();
   await page.locator('[data-legacy-toggle]').click();
