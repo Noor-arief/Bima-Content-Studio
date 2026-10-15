@@ -1,7 +1,7 @@
 name: TikTok Google production QA
 on:
   pull_request:
-    paths: ['backend/tiktok-google-*.mjs', 'backend/server.mjs', 'tiktok-google-review.*', 'qa/tiktok-google*', '.github/workflows/tiktok-google-qa.yml']
+    paths: ['backend/tiktok-google-*.mjs', 'backend/server.mjs', 'tiktok-google-review.*', 'qa/tiktok-google*', 'qa/tiktok-showcase-contract.test.mjs', 'backend/tiktok-showcase-contract.mjs', '.github/workflows/tiktok-google-qa.yml']
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -13,7 +13,7 @@ jobs:
           node-version: '22'
       - run: npm install --prefix backend --no-audit --no-fund
       - run: node --check tiktok-google-review.js
-      - run: node --test qa/tiktok-google.test.mjs
+      - run: node --test qa/tiktok-google.test.mjs qa/tiktok-showcase-contract.test.mjs
       - run: npm install --no-save --no-package-lock jsdom
       - run: node --test qa/tiktok-google-ui.test.mjs
   browser:
