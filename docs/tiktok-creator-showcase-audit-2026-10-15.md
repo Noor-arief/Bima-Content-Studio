@@ -2,7 +2,7 @@
 
 ## Scope and evidence
 
-Inspected main commit `b5b186f26b756a41004fbd5137d786f329a2c88e`. No AGENTS.md found in checkout. No runtime code changed, Sandbox tests repeated, credentials requested, app created, support message sent or live content modified.
+Inspected main commit `b5b186f26b756a41004fbd5137d786f329a2c88e`. Main subsequently advanced to `a2f2795749abf87b632fee07d2968cacb2f1ffec` (#53, ROADMAP-only change); its owner-verified status and handoff are preserved in this PR. No AGENTS.md found in checkout. No runtime code changed, Sandbox tests repeated, credentials requested, app created, support message sent or live content modified.
 
 Owner handoff is the evidence for app configuration and pending ticket; this audit did not independently reopen Partner Center or recheck ticket status.
 
