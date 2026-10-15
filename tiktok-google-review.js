@@ -10,6 +10,17 @@ card.innerHTML=`
 <div class="tt-owner-intro"><div><span class="tt-eyebrow">VIDEO TIKTOK</span><h3 data-main-title>Review Video</h3><p data-main-description>Tonton hasil video, approve atau minta revisi.</p><p class="tt-hours">Target kerja BIMA: 08.00–18.00 WIB · jadwal otomatis belum aktif</p></div><button type="button" class="tt-secondary" data-sec-go="publishing">Pengaturan</button><button type="button" class="tt-secondary" data-sec-go="ringkasan">Kembali ke video</button></div><div class="tt-metrics"><div><span>Perlu review</span><strong data-count="review">—</strong></div><div><span>Sedang diproses</span><strong data-count="processing">—</strong></div><div><span>Sudah disetujui</span><strong data-count="approved">—</strong></div></div>
 <section class="tt-readiness"><div class="tt-row"><h4>Status produksi</h4><span class="tt-badge" data-health>Memeriksa</span></div><p data-status role="status" aria-live="polite">Menghubungkan ke BIMA…</p><ul data-blockers></ul><div class="tt-actions"><button type="button" data-login hidden>Masuk untuk review</button><button type="button" data-refresh class="tt-secondary">Perbarui status</button></div><details class="tt-budget"><summary>Biaya &amp; kesiapan koneksi</summary><p data-budget></p><p>Persetujuan video belum berarti tayang. Koneksi publikasi dan keranjang produk masih perlu diselesaikan.</p></details></section>
 <section class="tt-research" data-owner-pane="desk"><span class="tt-eyebrow">RISET PRODUK OLEH BIMA</span><h4>Produk yang layak dibuatkan video</h4><p data-research-status>Memeriksa akses sumber produk…</p><ul><li>Permintaan: tren dan perubahan penjualan, beserta periode datanya.</li><li>Potensi: komisi, harga, stok, dan kecocokan dengan audiens.</li><li>Kualitas: reputasi penjual, ulasan, fakta serta izin aset produk.</li></ul><small>Belum ada label “winning” sebelum ada data yang mendukung. Kamu tidak perlu mengisi formulir riset.</small></section>
+<section class="tt-research tt-manual-intake" data-owner-pane="desk"><span class="tt-eyebrow">SUMBER PRODUK SEMENTARA</span><h4>Masukkan 1 produk terverifikasi</h4><p>Showcase belum tersambung. Ini jalur pilot sementara untuk menguji BIMA tanpa mengarang data produk. Produk hanya dikirim ke server jika sumber, fakta dan izin foto sudah kamu verifikasi. Tidak ada pemotongan biaya otomatis dari formulir ini.</p>
+<form data-intake-form>
+<label>Nama produk <input name="productName" required maxlength="60" placeholder="Nama dan varian asli"></label>
+<label>URL produk resmi <input name="productUrl" required type="url" placeholder="https://..."></label>
+<label>Fakta produk yang sudah dicek <input name="productFact" required minlength="15" maxlength="100" placeholder="Spesifikasi yang terbukti pada listing"></label>
+<label>Sumber bukti <input name="evidence" required minlength="10" maxlength="1000" placeholder="Sumber atau catatan verifikasi"></label>
+<label>Foto referensi produk berizin (PNG/JPG/WebP, maks 750 KB) <input name="productImage" required type="file" accept="image/png,image/jpeg,image/webp"></label>
+<label class="tt-intake-check"><input name="factsVerified" required type="checkbox"> Saya telah memeriksa kebenaran fakta produk</label>
+<label class="tt-intake-check"><input name="assetsLicensed" required type="checkbox"> Saya memiliki hak menggunakan foto ini untuk produksi video</label>
+<button type="submit">Kirim ke antrean BIMA</button><p data-intake-result role="status" aria-live="polite"></p>
+</form><small>Untuk operasional penuh, input ini harus digantikan koneksi Showcase resmi. BIMA belum otomatis menilai penjualan atau komisi.</small></section>
 <section class="tt-research" data-owner-pane="kalender"><span class="tt-eyebrow">PUBLIKASI TIKTOK</span><h4>Disetujui belum berarti sudah tayang</h4><p data-publishing-status>Memeriksa koneksi publikasi…</p><small>Jadwal aktif dan tautan hasil hanya ditampilkan setelah tercatat di server. Tidak ada upload sebelum approval.</small></section>
 <div class="tt-section-heading"><div><span class="tt-eyebrow" data-view-kicker>MEJA REVIEW</span><h4 data-view-title>Video untukmu</h4></div><span class="tt-muted">Tersimpan di server</span></div><div data-jobs class="tt-jobs"></div>
 <div class="tt-tools"><p>Butuh melihat draft atau pengaturan sebelumnya?</p><button type="button" data-legacy-toggle class="tt-secondary" aria-expanded="false">Buka alat lanjutan</button><small>Pengaturan koneksi dan alat lama untuk pemeliharaan; bukan pekerjaan harian owner.</small></div>`;
@@ -35,6 +46,27 @@ function syncView(){
 document.addEventListener('bima:channel-section',syncView);syncView();
 const actions=card.querySelector('[data-legacy-toggle]');actions.onclick=()=>{const open=root.classList.toggle('tt-owner-mode')===false;document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',open);actions.setAttribute('aria-expanded',String(open));actions.textContent=open?'Tutup alat lanjutan':'Buka alat lanjutan';if(open)card.querySelector('[data-sec-go="ringkasan"]').click();};
 card.querySelector('[data-login]').onclick=()=>location.assign(base+'/auth/google/start');
+const intake=card.querySelector('[data-intake-form]');
+intake.addEventListener('submit',async event=>{
+ event.preventDefault();
+ const result=card.querySelector('[data-intake-result]'),submit=intake.querySelector('[type="submit"]');
+ if(!token()){result.textContent='Masuk sebagai owner terlebih dahulu melalui Review Video.';return;}
+ const form=new FormData(intake),file=form.get('productImage');
+ if(!(file instanceof File)||!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>750000||file.size<1500){result.textContent='Foto harus PNG/JPG/WebP, ukuran 1,5–750 KB.';return;}
+ submit.disabled=true;result.textContent='Mengirim produk ke server...';
+ try{
+  const imageData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('image_read_failed'));reader.readAsDataURL(file);});
+  const name=String(form.get('productName')||'').trim(),url=String(form.get('productUrl')||'').trim(),fact=String(form.get('productFact')||'').trim(),evidence=String(form.get('evidence')||'').trim();
+  const digestInput=new TextEncoder().encode(url+'|'+name);
+  const hash=await crypto.subtle.digest('SHA-256',digestInput);
+  const id='pilot_'+Array.from(new Uint8Array(hash)).slice(0,16).map(b=>b.toString(16).padStart(2,'0')).join('');
+  await request('/api/tiktok/google/products',{product:{id,name,url,fact,evidence,factsVerified:form.get('factsVerified')==='on',assetsLicensed:form.get('assetsLicensed')==='on'},imageData});
+  result.textContent='Produk diterima server. Lihat antrean BIMA di bawah. Produksi video tetap tergantung kesiapan Google API dan anggarannya.';
+  intake.reset();signature='';refresh();
+ }catch(e){result.textContent=e.message==='owner_login_required'?'Sesi habis, masuk ulang.':'Belum masuk antrean. Periksa data, sesi owner, izin aset, dan koneksi server.';}
+ finally{submit.disabled=false;}
+});
+
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
 async function request(url,body){
  const r=await fetch(base+url,{cache:'no-store',...(body?{method:'POST',body:JSON.stringify(body)}:{}),headers:{...(token()?{Authorization:'Bearer '+token()}:{}),'Content-Type':'application/json'}});
