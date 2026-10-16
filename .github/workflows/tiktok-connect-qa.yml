@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'tiktok-connection.js'
+      - 'tiktok-showcase.js'
+      - 'qa/tiktok-showcase.spec.mjs'
       - 'qa/tiktok-connect.spec.mjs'
       - '.github/workflows/tiktok-connect-qa.yml'
   workflow_dispatch:
@@ -21,4 +23,4 @@ jobs:
       - run: npx playwright install chromium --with-deps
       - run: node --check tiktok-connection.js
       - run: python3 -m http.server 8765 >/tmp/bima-web.log 2>&1 &
-      - run: npx playwright test qa/tiktok-connect.spec.mjs --browser chromium --reporter=line
+      - run: npx playwright test qa/tiktok-connect.spec.mjs qa/tiktok-showcase.spec.mjs --browser chromium --reporter=line

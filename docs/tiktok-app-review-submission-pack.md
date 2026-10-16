@@ -1,6 +1,25 @@
+# Current review recovery — 16 October 2026
+
+Status: REJECTED in Indonesia, per owner screenshot. Review form submission works. Reviewer requires authentic TikTok Shop product synchronization evidence. Earlier missing-field guidance and intended UI screenshots below are historical and must not be resubmitted unchanged.
+
+## Current reviewer walkthrough (requires permitted Creator access)
+1. Open BIMA, choose TikTok, then Settings. Sign in using the existing authorized owner flow; do not share production passwords. A separate safe reviewer access arrangement must be agreed before inviting reviewers.
+2. In Products Showcase TikTok, inspect server readiness. If disabled, stop and arrange official test access/configuration. Login Kit is a different integration.
+3. Click Hubungkan Creator. Complete TikTok consent in the new tab using a creator account TikTok permits for this app. Return to BIMA and click Perbarui status.
+4. Click Sinkronkan Showcase. Capture actual product names, exact IDs, source and read time. Match them against the authorized account's Showcase. A zero-product response proves only a successful empty read.
+5. Record this continuous flow and use actual screenshots. Redact credentials/tokens. The product read does not prove GMV, winning-product discovery, video generation or shoppable publishing.
+6. Submit corrected review material only after successful permitted testing. No resubmission has been made by this fix.
+
+## Prepared follow-up for existing support case 2026101415120200008 (NOT SENT)
+Our Indonesia application BIMA Content Studio was submitted successfully, but its review was rejected because the evidence did not show TikTok Shop product/order synchronization. The app is a Creator Affiliate workflow using Read Showcase Products, not seller order management. We have implemented Creator authorization and signed Showcase reads. Please confirm the supported pre-review test access for our existing application and whether an eligible beta Creator testing account can be provided for Indonesia. If beta access is unavailable, please specify the permitted alternative for demonstrating authentic Showcase product synchronization before approval. Please also confirm that Creator Showcase product evidence satisfies this application's review scope. We will provide a genuine API synchronization walkthrough after permitted access is available.
+
+Reference: https://partner.tiktokshop.com/docv2/page/creator-authorization-guide
+
+---
+
 # TikTok Shop App Review — BIMA Content Studio (submission pack)
 
-**Status (15 October 2026): PREPARED, NOT SUBMITTED.** Existing Partner Center Public application; App Review still blocked by TikTok validation requesting hidden `feature_intro` and `test_instruction`. This pack describes the product and what to capture; it does **not** substitute for real screenshot, walkthrough, authorized reviewer account, or TikTok approval.
+**HISTORICAL MATERIAL BELOW — superseded by the 16 October update.** Existing Partner Center Public application; App Review still blocked by TikTok validation requesting hidden `feature_intro` and `test_instruction`. This pack describes the product and what to capture; it does **not** substitute for real screenshot, walkthrough, authorized reviewer account, or TikTok approval.
 
 ## Existing application / submission identity
 - App display name: **BIMA Content Studio**
