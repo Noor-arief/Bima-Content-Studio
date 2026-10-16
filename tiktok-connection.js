@@ -8,7 +8,7 @@ if(!root||document.getElementById('bima-tiktok-connection'))return;
 const card=document.createElement('section');
 card.id='bima-tiktok-connection';
 card.className='aff-card';
-card.setAttribute('data-secs','ringkasan');
+card.setAttribute('data-secs','publishing');
 card.innerHTML='<h3>TikTok Account Connection</h3><p id="tt-connect-state" role="status" aria-live="polite">Memeriksa koneksi Sandbox…</p><div class="aff-actions"><button type="button" id="tt-connect-action" class="aff-primary">Connect TikTok (Sandbox)</button><button type="button" id="tt-connect-check">Refresh status</button><button type="button" id="tt-owner-login">Sign in as BIMA owner</button></div><p class="aff-muted">Login Kit hanya membaca identitas yang disetujui. TikTok Shop Affiliate dan auto-posting belum terhubung.</p>';
 const notice=root.querySelector('.aff-notice');notice?.insertAdjacentElement('afterend',card);
 const badge=root.querySelector('.aff-head .aff-badge');
