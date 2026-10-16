@@ -1,6 +1,23 @@
 # BIMA Content Studio — Affiliate Roadmap
 Updated: 2026-10-16 · Planning document, not proof of deployment or integration.
 
+## Performance checkpoint — 16 October 2026 (latest performance work)
+
+**User report:** BIMA Content Studio website feels very slow. This is a browser/frontend performance issue; do not confuse it with slow ChatGPT responses or TikTok API approval. No browser performance measurements yet, so root cause of all slowness is **not confirmed**.
+
+**Completed and merged:**
+- [x] **PR #61** (`6308105dc9dfc39d6263dbf0fbbd9dbc0d1e386c`): calendar rendering now groups items by date once instead of rescanning all YouTube items for each of 42 calendar cells; retains deduplication and calendar content. BIMA Calendar Performance QA PASS.
+- [x] **PR #62** (`c1dfa18b6c903d978dab230f3ebfe174f1b3d89e`): `renderChannels()` reuses existing channel buttons/images/listeners during state renders rather than rebuilding every time. Calendar Performance QA PASS.
+- [x] Both changes are already merged into `main`; do **not** redo, revert, or repeat their implementation without evidence.
+
+**Next checkpoint — performance-only scope:**
+- [ ] Collect **measured** browser navigation/initial-load timings, long tasks, network waterfall, memory and localStorage size, ideally desktop and mobile. Distinguish initial loading from click-to-render slowness.
+- [ ] Profile expensive calls in `index.html` (`persist() → render()`, `renderCalendar`, `renderQueue`, `renderEditor`), image/thumbnail loading and startup cost of deferred scripts. Current main `index.html` is approximately 324 KiB and loads numerous scripts, but file size alone does not prove the bottleneck.
+- [ ] Apply *only* proven bottleneck fixes; minimize and isolate changes. Never delete or modify scheduled/published content, storage keys, YouTube/Shopee/TikTok workflows, menus, Creator OAuth, or working styling.
+- [ ] Run browser-based navigation, cross-channel, reload/persistence, desktop/mobile regression QA plus existing CI. Compare before/after measurements; don't claim website fully fast from static code tests alone.
+
+**Separate ongoing TikTok issue:** the **16 October App Review rejection and test-authorization path in the section below** is newer than the 15 October submission status further down. Do not reset its status back to “under review.”
+
 ## Current action — 16 October 2026 (supersedes historical review status below)
 
 Owner screenshot confirms Indonesia App Review was REJECTED: submitted screenshots/video did not demonstrate TikTok Shop product/order synchronization. The missing-form-fields issue is resolved and must not be reopened. PRs #57/#59 already implemented Creator authorization and signed Showcase reads; older statements that these are missing are historical.
