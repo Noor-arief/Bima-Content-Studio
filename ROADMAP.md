@@ -1,5 +1,16 @@
 # BIMA Content Studio — Affiliate Roadmap
-Updated: 2026-10-15 · Planning document, not proof of deployment or integration.
+Updated: 2026-10-16 · Planning document, not proof of deployment or integration.
+
+## Current action — 16 October 2026 (supersedes historical review status below)
+
+Owner screenshot confirms Indonesia App Review was REJECTED: submitted screenshots/video did not demonstrate TikTok Shop product/order synchronization. The missing-form-fields issue is resolved and must not be reopened. PRs #57/#59 already implemented Creator authorization and signed Showcase reads; older statements that these are missing are historical.
+
+The owner UI now provides Creator status, authorization in a separate tab (preserving the owner session), and explicit Showcase sync under TikTok Production 1 and Settings. It displays only successful API product names/IDs with read time, handles empty/error/disabled states, and does not claim GMV, automatic research or publishing. Existing video intake and publication remain separate, incomplete integrations.
+
+Next external gate: ask TikTok through the existing support case for permitted Creator testing access on the existing Indonesia application, and confirm eligibility for the beta test account documented in the Creator Authorization Guide. Do not enable live access until TikTok grants production or explicit development/test authorization. Production approval is not the only possible authorization; an official test grant is sufficient for isolated review testing.
+
+After permitted access: securely verify runtime configuration, owner consent, successful live Showcase read, then capture a genuine product synchronization walkthrough for resubmission. Do not send the previous design-only evidence again. Do not fabricate products or order data. No automatic resubmission, paid generation, or posting is performed by this fix.
+
 
 ## Creator Showcase next-stage progress — PR #59 merged (2026-10-15)
 
