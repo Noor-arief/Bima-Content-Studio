@@ -197,7 +197,10 @@
         say('Membuat thumbnail otomatis dari MP4 final…');
         const engine=window.BIMA_THUMBNAILS;
         if(!engine?.ensureFinal)throw Error('Thumbnail generator belum siap. Refresh dashboard sebelum publishing.');
-        const cover=await engine.ensureFinal(item);
+        const cover=await Promise.race([
+          engine.ensureFinal(item),
+          new Promise((_,reject)=>setTimeout(()=>reject(Error('Pembuatan thumbnail melebihi 35 detik. Video tetap tersimpan dan belum diunggah. Buka Production Desk, periksa preview thumbnail atau unggah ulang MP4 jika frame tidak bisa dibaca, lalu coba Publish with BIMA kembali.')),35000))
+        ]);
         if(!(cover?.blob instanceof Blob)||cover.blob.size<100)throw Error('Gagal membuat cover dari video; publikasi dihentikan agar thumbnail tidak berbeda.');
         if(cover.blob.size>12*1024*1024)throw Error('Cover PNG lebih dari 12 MB, pilih frame lain di Production Desk.');
         say('Menyimpan thumbnail video-matched di Railway…');
