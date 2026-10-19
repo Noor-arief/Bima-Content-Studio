@@ -86,7 +86,13 @@
     if(!owner)throw Error('LOGIN_REQUIRED');
     const headers={Authorization:'Bearer '+owner};
     if(data!==null)headers['Content-Type']=mime;
-    const response=await fetch(backend()+path,{method,headers,body:data===null?undefined:data,cache:'no-store'});
+    let response;
+    const endpoint=backend();
+    try{
+      response=await fetch(endpoint+path,{method,headers,body:data===null?undefined:data,cache:'no-store'});
+    }catch(error){
+      throw Error('Koneksi Railway gagal pada '+method+' '+path+'. Periksa apakah '+endpoint+'/health bisa dibuka; pastikan Railway service Online dan URL backend benar. Jika ini terjadi setelah tombol Submit, periksa status server sebelum mencoba ulang. Detail: '+(error?.message||'Network request failed'));
+    }
     const result=await response.json().catch(()=>({}));
     if(response.status===401){sessionStorage.removeItem(key);throw Error('LOGIN_REQUIRED');}
     if(!response.ok)throw Error(result.error||('Railway HTTP '+response.status));
