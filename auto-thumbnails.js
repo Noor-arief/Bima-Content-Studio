@@ -235,15 +235,22 @@
  async function seek(video,time){
    return new Promise((resolve,reject)=>{
      let done=false;
-     const finish=(e)=>{if(done)return;done=true;clearTimeout(timer);
+     const finish=e=>{if(done)return;done=true;clearTimeout(timer);
        video.removeEventListener('seeked',ok);video.removeEventListener('error',fail);
+       video.removeEventListener('loadeddata',ready);
        e?reject(e):resolve();
      };
      const ok=()=>finish(),fail=()=>finish(Error('Could not decode video frame'));
-     const timer=setTimeout(()=>finish(Error('Video frame extraction timed out')),7500);
-     video.addEventListener('seeked',ok,{once:true});
-     video.addEventListener('error',fail,{once:true});
-     try{video.currentTime=time;}catch(e){finish(e);}
+     const ready=()=>{if(Math.abs(video.currentTime-time)<.12&&video.readyState>=2)finish();};
+     const timer=setTimeout(()=>finish(Error('Video frame extraction timed out')),4200);
+     video.addEventListener('seeked',ok);
+     video.addEventListener('error',fail);
+     video.addEventListener('loadeddata',ready);
+     try{
+       if(Math.abs(video.currentTime-time)<.04&&video.readyState>=2){finish();return;}
+       video.currentTime=time;
+       ready();
+     }catch(e){finish(e);}
    });
  }
  function rating(canvas,ctx){
@@ -336,12 +343,27 @@
      for(let i=0;i<candidates.length;i++){
        const fraction=candidates[i],seconds=Math.max(.1,Math.min(v.duration-.07,v.duration*fraction));
        try{await seek(v,seconds);frame(sample,ctx,v);choices.push({ratio:fraction,score:rating(sample,ctx)});}
-       catch(e){if(!choices.length&&i===candidates.length-1)throw e;}
+       catch(e){console.warn('Thumbnail sample unavailable',fraction,e.message);}
+       if(choices.length>=2)break;
      }
-     if(!choices.length)throw Error('No decodable video frames found');
+     if(!choices.length){
+       // Some MP4s cannot seek to arbitrary positions before initial frame decode.
+       // Recover the browser-decoded first frame rather than blocking publishing indefinitely.
+       try{
+         v.currentTime=0;
+         await Promise.race([
+           new Promise((resolve,reject)=>{if(v.readyState>=2){resolve();return;}v.addEventListener('loadeddata',resolve,{once:true});v.addEventListener('error',()=>reject(Error('Video decode failed')),{once:true});}),
+           new Promise((_,reject)=>setTimeout(()=>reject(Error('MP4 could not decode an initial frame')),4500))
+         ]);
+         frame(sample,ctx,v);choices.push({ratio:0,score:rating(sample,ctx)});
+       }catch(e){throw Error('Browser could not extract any MP4 frame. Try re-exporting MP4 with H.264/AAC, faststart, then reattach the file. '+e.message);}
+     }
      choices.sort((a,b)=>b.score-a.score);
-     const picked=next<0?choices[0]:choices.find(x=>x.ratio===candidates[next])||choices[0];
-     await seek(v,Math.max(.1,Math.min(v.duration-.07,v.duration*picked.ratio)));
+     const picked=choices[0];
+     if(picked.ratio!==0){
+       try{await seek(v,Math.max(.1,Math.min(v.duration-.07,v.duration*picked.ratio)));}
+       catch(e){console.warn('Using last decoded video frame',e.message);}
+     }
      const blob=await toPng(drawFinal(v,item));
      if(signature(item)!==expected)return null;
      const saved={signature:expected,ratio:picked.ratio,blob,createdAt:Date.now()};
