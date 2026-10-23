@@ -1,0 +1,38 @@
+name: Content Studio disaster recovery endpoint validation
+on:
+  pull_request:
+    paths:
+      - 'backend-endpoints.js'
+      - 'index.html'
+      - 'youtube-analytics.js'
+      - 'bima-public-status.js'
+      - 'qa/backend-origin.test.mjs'
+      - '.github/workflows/dr-endpoint-check.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend-endpoints.js'
+      - 'index.html'
+      - 'youtube-analytics.js'
+      - 'bima-public-status.js'
+      - 'qa/backend-origin.test.mjs'
+      - '.github/workflows/dr-endpoint-check.yml'
+jobs:
+  provider-endpoint-safety:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax
+        run: |
+          node --check backend-endpoints.js
+          node --check youtube-analytics.js
+          node --check bima-public-status.js
+      - name: Run safe failover URL unit tests
+        run: node --test qa/backend-origin.test.mjs
