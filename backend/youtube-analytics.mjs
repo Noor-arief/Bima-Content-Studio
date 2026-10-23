@@ -81,6 +81,22 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
       }catch(e){videoReportUnavailable=true;console.warn('youtube_channel_video_report_unavailable',e.message);}
     }else diagnostic='channel_report_empty';
   }
+  // Fetch views independently: mixing slow metrics into a daily request makes
+  // Google's entire response stop at the slowest metric's available day.
+  // This is the canonical channel-wide view count, never a Shorts estimate.
+  let independentViews=null;
+  if(contentType==='CHANNEL_ALL'){
+    try{
+      const viewDaily=rows(await report({dimensions:'day',metrics:'views',sort:'day'}));
+      if(viewDaily.length){
+        const latest=viewDaily.at(-1).day;
+        const count=viewDaily.reduce((sum,row)=>sum+Number(row.views||0),0);
+        independentViews={views:count,latestDay:latest,complete:latest>=range.endDate};
+        daily=viewDaily.map(row=>({...row,estimatedMinutesWatched:daily.find(d=>d.day===row.day)?.estimatedMinutesWatched??null}));
+        summary.views=count;
+      }
+    }catch(e){console.warn('youtube_independent_views_unavailable',e.message);}
+  }
   // Independently reconcile reported daily totals against the period aggregate.
   // These values may differ while YouTube finalizes recent days.
   const dailyViews=daily.reduce((sum,row)=>sum+Number(row.views||0),0);
@@ -117,5 +133,5 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
     }catch{metadataUnavailable=true;for(const v of batch)v.title=v.video;}
   }
   return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,shortsFilterAttempted:!!filteredDaily,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
-    latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType,diagnostic,reporting,cutoffComparison};
+    latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType,diagnostic,reporting,cutoffComparison,independentViews};
 }
