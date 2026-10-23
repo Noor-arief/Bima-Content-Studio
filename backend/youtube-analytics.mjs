@@ -81,6 +81,13 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
       }catch(e){videoReportUnavailable=true;console.warn('youtube_channel_video_report_unavailable',e.message);}
     }else diagnostic='channel_report_empty';
   }
+  // Independently reconcile reported daily totals against the period aggregate.
+  // These values may differ while YouTube finalizes recent days.
+  const dailyViews=daily.reduce((sum,row)=>sum+Number(row.views||0),0);
+  const aggregateViews=summary?.views==null?null:Number(summary.views);
+  const reporting={aggregateViews,dailyViews,deltaViews:aggregateViews==null?null:aggregateViews-dailyViews,
+    lastReportedDay:daily.at(-1)?.day||null,completedThrough:range.endDate,
+    note:'YouTube Analytics API reports can lag behind YouTube Studio estimates and realtime counters.'};
   let metadataUnavailable=false;
   for(let i=0;i<videos.length;i+=50){
     const batch=videos.slice(i,i+50);
@@ -90,5 +97,5 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
     }catch{metadataUnavailable=true;for(const v of batch)v.title=v.video;}
   }
   return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,shortsFilterAttempted:!!filteredDaily,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
-    latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType,diagnostic};
+    latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType,diagnostic,reporting};
 }
