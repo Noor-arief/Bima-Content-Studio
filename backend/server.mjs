@@ -859,7 +859,7 @@ async function handler(req,res){
       if(!analyticsPending.has(key))analyticsPending.set(key,(async()=>{
         const token=await newAccessToken();await syncChannel(token);
         const data=await fetchAnalytics({token,channelId:db.oauth.channelId,days:range.days});
-        analyticsCache.set(key,{at:Date.now(),data});return data;
+        if(data.summary||data.daily.length||data.videos.length)analyticsCache.set(key,{at:Date.now(),data});return data;
       })().finally(()=>analyticsPending.delete(key)));
       return respond(res,200,await analyticsPending.get(key));
     }catch(e){const safe=/^(invalid_analytics_period|youtube_(channel_mismatch|analytics_api_disabled|analytics_consent_required|reconnect_required|quota_exceeded|analytics_query_invalid|analytics_unavailable))$/.test(e.message)?e.message:"youtube_analytics_unavailable"; console.error("youtube_analytics_request_failed",{code:safe,status:e.status||502,cause:String(e.message||"unknown").slice(0,150)});return error(res,e.status||502,safe);}
