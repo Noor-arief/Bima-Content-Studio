@@ -102,7 +102,7 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
   const dailyViews=daily.reduce((sum,row)=>sum+Number(row.views||0),0);
   const aggregateViews=summary?.views==null?null:Number(summary.views);
   const reporting={aggregateViews,dailyViews,deltaViews:aggregateViews==null?null:aggregateViews-dailyViews,
-    lastReportedDay:daily.at(-1)?.day||null,completedThrough:range.endDate,
+    lastReportedDay:daily.at(-1)?.day||null,completedThrough:range.endDate,viewsAsOf:independentViews?.latestDay||null,viewsComplete:independentViews?.complete??false,
     note:'YouTube Analytics API reports can lag behind YouTube Studio estimates and realtime counters.'};
   // Requery with an explicit endDate matching the last fully reported day.
   // Avoid comparing a partial API period to Studio's full 28 days.
