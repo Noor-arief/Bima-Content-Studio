@@ -1,4 +1,5 @@
 import http from "node:http";
+import { ANALYTICS_SCOPE, TARGET_CHANNEL, fetchAnalytics, reportRange } from "./youtube-analytics.mjs";
 import { randomBytes, createHash, createCipheriv, createDecipheriv, timingSafeEqual } from "node:crypto";
 import { createReadStream, createWriteStream, existsSync, promises as fs } from "node:fs";
 import { pipeline } from "node:stream/promises";
@@ -70,6 +71,8 @@ async function tiktokProfile(token){
 }
 
 const ACCESS_SCOPE = "openid email https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
+const analyticsCache=new Map();
+const analyticsPending=new Map();
 const sha = x => createHash("sha256").update(x).digest("hex");
 async function fileSha256(filepath){const h=createHash("sha256");for await(const chunk of createReadStream(filepath))h.update(chunk);return h.digest("hex");}
 const random = () => randomBytes(32).toString("base64url");
@@ -389,7 +392,7 @@ async function handler(req,res){
       connected:Boolean(db.tiktokSandbox?.openId),shopAffiliateConnected:false,postingConnected:false});
   }
   if(req.method==="GET"&&u.pathname==="/health")return respond(res,200,{
-    service:"bima-content-studio-api",status:"online",oauthConfigured:HAVE_OAUTH,
+    service:"bima-content-studio-api",status:"online",analyticsAvailable:true,oauthConfigured:HAVE_OAUTH,
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
     channelVerified:activeOauth()&&Boolean(EXPECTED_CHANNEL_ID)&&db.oauth.channelId===EXPECTED_CHANNEL_ID,
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING,
@@ -422,8 +425,9 @@ async function handler(req,res){
     if(!HAVE_OAUTH)return error(res,503,"oauth_not_configured");
     const state=random(),verifier=random();
     const challenge=createHash("sha256").update(verifier).digest("base64url");
-    db.oauthStates[sha(state)]={verifier,created:Date.now()};await persist();
-    const q=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:REDIRECT,response_type:"code",scope:ACCESS_SCOPE,access_type:"offline",
+    const analytics=u.searchParams.get("analytics")==="1";
+    db.oauthStates[sha(state)]={verifier,created:Date.now(),analytics};await persist();
+    const q=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:REDIRECT,response_type:"code",scope:ACCESS_SCOPE+(analytics?" "+ANALYTICS_SCOPE:""),include_granted_scopes:"true",access_type:"offline",
       prompt:"consent select_account",state,code_challenge:challenge,code_challenge_method:"S256"});
     return redirect(res,"https://accounts.google.com/o/oauth2/v2/auth?"+q);
   }
@@ -445,7 +449,8 @@ async function handler(req,res){
       if(EXPECTED_CHANNEL_ID&&ch.id!==EXPECTED_CHANNEL_ID)throw Error("wrong_youtube_channel");
       if(!tokens.refresh_token&&!db.oauth?.refreshToken)throw Error("google_refresh_token_missing");
       db.oauth={email:OWNER,refreshToken:tokens.refresh_token?seal(tokens.refresh_token):db.oauth.refreshToken,
-        channelId:ch.id,channelName:ch.name,connectedAt:new Date().toISOString()};
+        scopes:(tokens.scope||" ").split(/\s+/).filter(Boolean),channelId:ch.id,channelName:ch.name,connectedAt:new Date().toISOString()};
+      analyticsCache.clear();
       const session=random();db.sessions[sha(session)]={email:OWNER,expires:Date.now()+12*3600000};
       logEvent("youtube_oauth_connected","owner",{channel:ch.id});await persist();
       // Fragment never travels to Github Pages server; frontend removes it immediately.
@@ -842,6 +847,21 @@ async function handler(req,res){
       }catch(e){await fs.unlink(final).catch(()=>{});return error(res,500,"veo_media_import_failed");}
     }
     return error(res,405,"method_not_allowed");
+  }
+  if(req.method==="GET"&&u.pathname==="/api/youtube/analytics"){
+    if(!activeOauth())return error(res,409,"youtube_not_connected");
+    if(EXPECTED_CHANNEL_ID!==TARGET_CHANNEL||db.oauth.channelId!==TARGET_CHANNEL)return error(res,409,"youtube_channel_mismatch");
+    try{
+      const range=reportRange(u.searchParams.get("days")||28),key=range.days+":"+range.endDate;
+      const cached=analyticsCache.get(key);
+      if(cached&&Date.now()-cached.at<300000)return respond(res,200,cached.data);
+      if(!analyticsPending.has(key))analyticsPending.set(key,(async()=>{
+        const token=await newAccessToken();await syncChannel(token);
+        const data=await fetchAnalytics({token,channelId:db.oauth.channelId,days:range.days});
+        analyticsCache.set(key,{at:Date.now(),data});return data;
+      })().finally(()=>analyticsPending.delete(key)));
+      return respond(res,200,await analyticsPending.get(key));
+    }catch(e){const safe=/^(invalid_analytics_period|youtube_(channel_mismatch|analytics_api_disabled|analytics_consent_required|reconnect_required|quota_exceeded|analytics_unavailable))$/.test(e.message)?e.message:"youtube_analytics_unavailable";return error(res,e.status||502,safe);}
   }
   if(req.method==="GET"&&u.pathname==="/api/status"){
     return respond(res,200,{authenticated:true,email:OWNER,channel:activeOauth()?{
