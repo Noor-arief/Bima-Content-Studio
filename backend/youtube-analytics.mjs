@@ -88,6 +88,26 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
   const reporting={aggregateViews,dailyViews,deltaViews:aggregateViews==null?null:aggregateViews-dailyViews,
     lastReportedDay:daily.at(-1)?.day||null,completedThrough:range.endDate,
     note:'YouTube Analytics API reports can lag behind YouTube Studio estimates and realtime counters.'};
+  // Requery with an explicit endDate matching the last fully reported day.
+  // Avoid comparing a partial API period to Studio's full 28 days.
+  let cutoffComparison=null;
+  const cutoff=reporting.lastReportedDay;
+  if(cutoff && cutoff<range.endDate && cutoff>=range.startDate){
+    try{
+      const confirmed=await get('https://youtubeanalytics.googleapis.com/v2/reports?'+new URLSearchParams({
+        ids:'channel=='+channelId,startDate:range.startDate,endDate:cutoff,
+        metrics:'views,estimatedMinutesWatched,subscribersGained,subscribersLost'
+      }));
+      const point=rows(confirmed)[0];
+      if(point)cutoffComparison={
+        startDate:range.startDate,endDate:cutoff,requestedEndDate:range.endDate,
+        views:Number(point.views),watchHours:Number(point.estimatedMinutesWatched)/60,
+        netSubscribers:Number(point.subscribersGained)-Number(point.subscribersLost),
+        missingDays:Math.round((Date.parse(range.endDate+'T00:00:00Z')-Date.parse(cutoff+'T00:00:00Z'))/86400000),
+        matchesAggregate:Number(point.views)===aggregateViews
+      };
+    }catch(e){console.warn('youtube_analytics_cutoff_reconciliation_failed',e.message);}
+  }
   let metadataUnavailable=false;
   for(let i=0;i<videos.length;i+=50){
     const batch=videos.slice(i,i+50);
@@ -97,5 +117,5 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
     }catch{metadataUnavailable=true;for(const v of batch)v.title=v.video;}
   }
   return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,shortsFilterAttempted:!!filteredDaily,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
-    latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType,diagnostic,reporting};
+    latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType,diagnostic,reporting,cutoffComparison};
 }
