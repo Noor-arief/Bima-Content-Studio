@@ -1,6 +1,27 @@
 # BIMA Content Studio — Affiliate Roadmap
 Updated: 2026-10-16 · Planning document, not proof of deployment or integration.
 
+## P0 — Railway incident, security and disaster recovery (23 Oct 2026; NOT production-verified)
+
+**Cross-project tracker:** [BIMA Master Roadmap #1](https://github.com/Noor-arief/BIMA/issues/1). This temporary P0 supersedes ordinary feature rollout until backup / recovery safety is verified, without reversing prior accepted changes.
+
+**Verified facts:** Railway major outage/security response since 20–23 Oct; pre-incident Railway API tokens invalidated (provider status https://status.railway.com/). PHP2Shell CVE-2026-109618 / CVE-2026-109619 patched 21 Oct (https://www.php.net/archive/2026.php); this repository contains no tracked .php source, but deployed runtime/sidecars/external dependencies are **not verified**. These are distinct incidents, not a proven cause-and-effect chain. Backend GitHub Actions re-run on 23 Oct: **25/25 PASS** (mock/smoke tests only), not live API health.
+
+- [x] Review backend source and identify persisted state: `DATA_DIR/state.json`, `DATA_DIR/media/` plus Google/TikTok encrypted OAuth state and upload journals.
+- [x] Prepare local recovery kit and alternative-provider planning materials. **No standby service deployed; no independent data backup confirmed.**
+- [ ] Capture consistent encrypted off-Railway backup of state, media, task journal, OAuth ciphertext and deployment config; safely retain the matching encryption key **outside both GitHub and Railway**. Do not rotate `TOKEN_ENCRYPTION_KEY` before export/rekey planning.
+- [ ] Inventory actual runtime, container image, all secret scopes, incident indicators and PHP components; rotate potentially compromised credentials based on risk and Railway advisory.
+- [ ] Implement **configurable allowlisted backend URL** in `youtube-analytics.js`, `index.html`, and `bima-public-status.js`. Current `*.up.railway.app` restriction blocks Render standby; validate HTTPS + allowed hostnames without accepting arbitrary untrusted URLs.
+- [ ] Prepare isolated Render backup as **cold standby** behind approval for any charges; private OAuth callback/domain configuration and persistent volume must be validated. Do not auto-enable uploads/scheduling.
+- [ ] Run true restore drill: check media checksums, owner Google channel, analytics completeness/lag and status; test `/health` AND authenticated status/functional API.
+- [ ] Run single-writer failover exercise and rollback. **NEVER** simultaneously activate Railway and standby publishing, TikTok workers, paid generation, or schedulers; reconcile ambiguous YouTube video IDs and approvals before any resend.
+- [ ] Add provider-independent availability monitor, alerting, daily encrypted snapshots + retention checks; log actual RPO/RTO (initial targets <=24h / <=4h, not achieved).
+- [ ] Keep today's YouTube publishing **manual through YouTube Studio** if the backend is down; mark calendar automation/analytics as degraded, never fabricate live success.
+
+**Exit criteria:** off-provider backup exists and restore is proven; standby authenticated E2E + reversible failover proven; deployment/runtime PHP assessment and rotated keys documented; owner agrees to enable traffic shift.
+
+---
+
 ## Performance checkpoint — 16 October 2026 (latest performance work)
 
 **User report:** BIMA Content Studio website feels very slow. This is a browser/frontend performance issue; do not confuse it with slow ChatGPT responses or TikTok API approval. No browser performance measurements yet, so root cause of all slowness is **not confirmed**.
