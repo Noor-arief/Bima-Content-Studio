@@ -25,11 +25,25 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
   const range=reportRange(days,now);
   async function get(url){const r=await fetchImpl(url,{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(20000)});const j=await r.json();if(!r.ok)throw apiError(r.status,j);return j;}
   const report=params=>get('https://youtubeanalytics.googleapis.com/v2/reports?'+new URLSearchParams({ids:'channel=='+channelId,startDate:range.startDate,endDate:range.endDate,...params}));
-  const [dailyReport,playbackReport,videoReport]=await Promise.all([
-    report({dimensions:'day,creatorContentType',metrics,sort:'day'}),
-    report({dimensions:'creatorContentType',metrics:'views,engagedViews,estimatedMinutesWatched,averageViewDuration,averageViewPercentage'}),
-    report({dimensions:'video,creatorContentType',metrics:metrics+',averageViewDuration,averageViewPercentage',sort:'-views',maxResults:'200'})
-  ]);
+  // A rejected optional report must not blank the entire dashboard.
+  // Query a small supported metric set first; enrich only if Google accepts it.
+  const dailyReport=await report({dimensions:'day,creatorContentType',metrics:'views,engagedViews,estimatedMinutesWatched,likes,comments,shares,subscribersGained,subscribersLost',sort:'day'}).catch(async e=>{
+    if(e.message!=='youtube_analytics_query_invalid')throw e;
+    return report({dimensions:'day,creatorContentType',metrics:'views,estimatedMinutesWatched',sort:'day'});
+  });
+  let playbackReport;
+  try{playbackReport=await report({dimensions:'creatorContentType',metrics:'views,engagedViews,estimatedMinutesWatched,averageViewDuration,averageViewPercentage'});}
+  catch(e){
+    if(e.message!=='youtube_analytics_query_invalid')throw e;
+    playbackReport=await report({dimensions:'creatorContentType',metrics:'views,estimatedMinutesWatched'});
+  }
+  let videoReport={columnHeaders:[],rows:[]},videoReportUnavailable=false;
+  try{videoReport=await report({dimensions:'video,creatorContentType',metrics:metrics+',averageViewDuration,averageViewPercentage',sort:'-views',maxResults:'200'});}
+  catch(e){
+    if(e.message!=='youtube_analytics_query_invalid')throw e;
+    try{videoReport=await report({dimensions:'video,creatorContentType',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:'200'});}
+    catch(inner){if(inner.message!=='youtube_analytics_query_invalid')throw inner;videoReportUnavailable=true;}
+  }
   const daily=rows(dailyReport).filter(r=>r.creatorContentType==='SHORTS');
   const summary=rows(playbackReport).find(r=>r.creatorContentType==='SHORTS')||null;
   if(summary)for(const key of ['likes','comments','shares','subscribersGained','subscribersLost'])summary[key]=daily.reduce((s,r)=>s+Number(r[key]||0),0);
@@ -42,6 +56,6 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
       for(const v of batch){const s=byId.get(v.video);v.title=s?.title||v.video;v.publishedAt=s?.publishedAt||null;}
     }catch{metadataUnavailable=true;for(const v of batch)v.title=v.video;}
   }
-  return {channelId,range,summary,daily,videos,metadataUnavailable,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
+  return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
     latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType:'SHORTS'};
 }
