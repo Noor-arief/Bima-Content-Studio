@@ -12,9 +12,12 @@ export function reportRange(days, now=new Date()){
 export function rows(report){return (report.rows||[]).map(row=>Object.fromEntries(report.columnHeaders.map((h,i)=>[h.name,row[i]])));}
 export function apiError(status,body){
   const reasons=JSON.stringify(body?.error||{});
-  const code=/SERVICE_DISABLED|accessNotConfigured/i.test(reasons)?'youtube_analytics_api_disabled':
-    /ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficientPermissions/i.test(reasons)?'youtube_analytics_consent_required':
-    status===401?'youtube_reconnect_required':status===429||/quotaExceeded/.test(reasons)?'youtube_quota_exceeded':'youtube_analytics_unavailable';
+  const code=/SERVICE_DISABLED|accessNotConfigured|API has not been used|API is disabled/i.test(reasons)?'youtube_analytics_api_disabled':
+    /ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficientPermissions|insufficient authentication scopes/i.test(reasons)?'youtube_analytics_consent_required':
+    status===401?'youtube_reconnect_required':
+    status===429||/quotaExceeded|rateLimitExceeded/i.test(reasons)?'youtube_quota_exceeded':
+    status===400||/invalidMetrics|invalidDimension|invalidFilters|incompatible|invalid query/i.test(reasons)?'youtube_analytics_query_invalid':
+    'youtube_analytics_unavailable';
   return Object.assign(Error(code),{status:status===401||status===403?403:502});
 }
 export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,now=new Date()}){
