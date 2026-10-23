@@ -89,7 +89,7 @@ export async function restoreDirectory({archive,destination,keyHex}={}) {
   try {
     for(const item of manifest.files) {
       const rel=validateRel(item.path);
-      if(seen.has(rel)||!/^\\d{6}\.enc$/.test(item.file)||!Number.isSafeInteger(item.size)||
+      if(seen.has(rel)||!/^\d{6}\.enc$/.test(item.file)||!Number.isSafeInteger(item.size)||
           item.size<0 || !/^[\da-f]{64}$/i.test(item.sha256) ||
           !/^[\da-f]{24}$/i.test(item.iv) || !/^[\da-f]{32}$/i.test(item.tag))throw Error('bad_backup_entry');
       seen.add(rel);
