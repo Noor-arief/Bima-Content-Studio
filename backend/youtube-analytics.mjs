@@ -44,10 +44,20 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
     try{videoReport=await report({dimensions:'video,creatorContentType',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:'200'});}
     catch(inner){if(inner.message!=='youtube_analytics_query_invalid')throw inner;videoReportUnavailable=true;}
   }
-  const daily=rows(dailyReport).filter(r=>r.creatorContentType==='SHORTS');
-  const summary=rows(playbackReport).find(r=>r.creatorContentType==='SHORTS')||null;
+  // Google's grouped creatorContentType report may be empty despite channel activity.
+  // Explicitly request Shorts as a filter; do not mislabel channel-wide data.
+  let filteredDaily=null,filteredSummary=null,filteredVideos=null;
+  if(!rows(playbackReport).some(r=>r.creatorContentType==='SHORTS')){
+    try{
+      filteredDaily=await report({dimensions:'day',filters:'creatorContentType==SHORTS',metrics:'views,estimatedMinutesWatched,likes,comments,shares,subscribersGained,subscribersLost',sort:'day'});
+      filteredSummary=await report({filters:'creatorContentType==SHORTS',metrics:'views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage'});
+      filteredVideos=await report({dimensions:'video',filters:'creatorContentType==SHORTS',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:'200'});
+    }catch(e){console.warn('youtube_shorts_filtered_report_unavailable',e.message);}
+  }
+  const daily=filteredDaily?.rows?.length?rows(filteredDaily):rows(dailyReport).filter(r=>r.creatorContentType==='SHORTS');
+  const summary=rows(playbackReport).find(r=>r.creatorContentType==='SHORTS')||(filteredSummary?.rows?.length?rows(filteredSummary)[0]:null);
   if(summary)for(const key of ['likes','comments','shares','subscribersGained','subscribersLost'])summary[key]=daily.reduce((s,r)=>s+Number(r[key]||0),0);
-  const videos=rows(videoReport).filter(r=>r.creatorContentType==='SHORTS');
+  const videos=filteredVideos?.rows?.length?rows(filteredVideos):rows(videoReport).filter(r=>r.creatorContentType==='SHORTS');
   let metadataUnavailable=false;
   for(let i=0;i<videos.length;i+=50){
     const batch=videos.slice(i,i+50);
@@ -56,6 +66,6 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
       for(const v of batch){const s=byId.get(v.video);v.title=s?.title||v.video;v.publishedAt=s?.publishedAt||null;}
     }catch{metadataUnavailable=true;for(const v of batch)v.title=v.video;}
   }
-  return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
+  return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,shortsFilterAttempted:!!filteredDaily,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
     latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType:'SHORTS'};
 }
