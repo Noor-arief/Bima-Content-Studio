@@ -851,6 +851,7 @@ async function handler(req,res){
   if(req.method==="GET"&&u.pathname==="/api/youtube/analytics"){
     if(!activeOauth())return error(res,409,"youtube_not_connected");
     if(EXPECTED_CHANNEL_ID!==TARGET_CHANNEL||db.oauth.channelId!==TARGET_CHANNEL)return error(res,409,"youtube_channel_mismatch");
+    if(!db.oauth.scopes?.includes(ANALYTICS_SCOPE))return error(res,403,"youtube_analytics_consent_required");
     try{
       const range=reportRange(u.searchParams.get("days")||28),key=range.days+":"+range.endDate;
       const cached=analyticsCache.get(key);
@@ -861,7 +862,7 @@ async function handler(req,res){
         analyticsCache.set(key,{at:Date.now(),data});return data;
       })().finally(()=>analyticsPending.delete(key)));
       return respond(res,200,await analyticsPending.get(key));
-    }catch(e){const safe=/^(invalid_analytics_period|youtube_(channel_mismatch|analytics_api_disabled|analytics_consent_required|reconnect_required|quota_exceeded|analytics_unavailable))$/.test(e.message)?e.message:"youtube_analytics_unavailable";return error(res,e.status||502,safe);}
+    }catch(e){const safe=/^(invalid_analytics_period|youtube_(channel_mismatch|analytics_api_disabled|analytics_consent_required|reconnect_required|quota_exceeded|analytics_query_invalid|analytics_unavailable))$/.test(e.message)?e.message:"youtube_analytics_unavailable"; console.error("youtube_analytics_request_failed",{code:safe,status:e.status||502,cause:String(e.message||"unknown").slice(0,150)});return error(res,e.status||502,safe);}
   }
   if(req.method==="GET"&&u.pathname==="/api/status"){
     return respond(res,200,{authenticated:true,email:OWNER,channel:activeOauth()?{
