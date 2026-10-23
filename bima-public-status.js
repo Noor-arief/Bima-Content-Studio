@@ -31,8 +31,8 @@
     }catch(_){}
   }
   async function refresh(){
-    const base=($('apiEndpoint')?.value||'https://content-studio-api-production-3fe2.up.railway.app').trim().replace(/\/$/,'');
-    if(!/^https:\/\/[a-zA-Z0-9.-]+\.up\.railway\.app$/.test(base))return;
+    let base;
+    try{base=window.BIMA_BACKEND_ENDPOINTS.current();}catch{return;}
     try{
       const res=await fetch(base+'/public/stats',{cache:'no-store'});
       if(!res.ok)throw Error('stats unavailable');
@@ -46,7 +46,7 @@
     }catch(_){
       if(!latest){
         const info=$('scheduledInfo');
-        if(info)info.textContent='Railway status unavailable · Retry on refresh';
+        if(info)info.textContent='Backend status unavailable · Retry on refresh';
       }
     }
   }
