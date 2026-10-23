@@ -518,6 +518,18 @@ body:not(.bima-show-advanced) #publishingManualNotice{display:none}
 body[data-channel]:not([data-channel="youtube"]) #ytWorkspace,body[data-channel]:not([data-channel="youtube"]) #serverAutomation,body[data-channel]:not([data-channel="youtube"]) #autonomousPlanner{display:none!important}
 body[data-channel="tiktok"] #futureWorkspace,body[data-channel="shopee"] #futureWorkspace{display:none!important}
 </style>
+<style>
+body[data-view="analytics"] [data-panel]:not([data-panel="analytics"]){display:none!important}
+body:not([data-view="analytics"]) [data-panel="analytics"]{display:none!important}
+body[data-view="analytics"] .content-grid{display:none!important}
+body:not([data-channel="youtube"]) [data-go="analytics"]{display:none!important}
+.analytics-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
+.analytics-cards article{padding:18px;background:var(--panel2);border:1px solid var(--line);border-radius:14px}
+.analytics-cards small{display:block;color:var(--muted)}.analytics-cards strong{font-size:27px;display:block;margin-top:8px}
+.analytics-chart{display:flex;align-items:flex-end;gap:3px;height:140px;margin:16px 0;border-bottom:1px solid var(--line)}
+.analytics-chart span{flex:1;min-width:2px;background:linear-gradient(#8b7bff,#6ea0ff);border-radius:3px 3px 0 0}
+#analyticsPanel .queue{margin-top:20px}#analyticsPanel td:first-child{white-space:normal;min-width:210px}
+</style>
 </head>
 <body data-view="ringkasan">
 <div class="shell app">
@@ -528,6 +540,7 @@ body[data-channel="tiktok"] #futureWorkspace,body[data-channel="shopee"] #future
   <button type="button" class="menu-item active" data-go="ringkasan" aria-current="page"><span class="ico" aria-hidden="true">◧</span>Ringkasan</button>
   <button type="button" class="menu-item" data-go="kalender"><span class="ico" aria-hidden="true">▦</span>Kalender</button>
   <button type="button" class="menu-item" data-go="desk"><span class="ico" aria-hidden="true">▶</span>Production Desk</button>
+  <button type="button" class="menu-item" data-go="analytics"><span class="ico" aria-hidden="true">▥</span>Analytics YouTube</button>
   <button type="button" class="menu-item" data-go="publishing"><span class="ico" aria-hidden="true">⚙</span>Publishing</button>
  </nav>
  <div class="side-label">Channels</div>
@@ -1126,8 +1139,8 @@ render();
 <script>
 /* Unified navigation: URLs, back/forward and draft selection share one route. */
 (function(){
- const VIEWS=['ringkasan','kalender','desk','publishing'];
- const labels={ringkasan:'Ringkasan',kalender:'Kalender',desk:'Production Desk',publishing:'Publishing'};
+ const VIEWS=['ringkasan','kalender','desk','publishing','analytics'];
+ const labels={ringkasan:'Ringkasan',kalender:'Kalender',desk:'Production Desk',publishing:'Publishing',analytics:'YouTube Analytics'};
  const content=document.querySelector('.content');
  const bar=document.createElement('div');bar.className='workspace-bar';
  bar.innerHTML='<div><span class="overline">ORBIT &amp; OCEAN</span><h1 id="workspaceTitle" tabindex="-1"></h1></div><label class="draft-picker">Konten aktif<select id="activeDraft" aria-label="Pilih konten aktif"></select></label>';
@@ -1237,7 +1250,8 @@ render();
 <script src="tiktok-google-review.js?v=20261015-simple3" defer></script>
 <script src="tiktok-showcase.js?v=20261016-review1" defer></script>
 <script src="shopee-affiliate.js?v=20261014-split1" defer></script>
-<script src="channel-navigation.js?v=20261015-simple3" defer></script>
+<script src="youtube-analytics.js?v=20261022-1" defer></script>
+<script src="channel-navigation.js?v=20261022-analytics" defer></script>
 <script src="autonomous-planner.js?v=20261014-sync1" defer></script>
 <script src="mixed-calendar-sync.js?v=20261013-idea-bank-cleanup1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
