@@ -62,7 +62,13 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
   // of treating a missing Shorts classification as zero activity.
   let contentType='SHORTS',diagnostic='shorts_report';
   if(!summary && !daily.length && !videos.length){
-    const channelSummaryReport=await report({metrics:'views,estimatedMinutesWatched,likes,comments,shares,subscribersGained,subscribersLost'});
+    let channelSummaryReport;
+    try{
+      channelSummaryReport=await report({metrics:'views,engagedViews,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,likes,comments,shares,subscribersGained,subscribersLost'});
+    }catch(e){
+      if(e.message!=='youtube_analytics_query_invalid')throw e;
+      channelSummaryReport=await report({metrics:'views,estimatedMinutesWatched,likes,comments,shares,subscribersGained,subscribersLost'});
+    }
     const channelSummary=rows(channelSummaryReport)[0]||null;
     if(channelSummary){
       contentType='CHANNEL_ALL';diagnostic='shorts_breakdown_empty_channel_report_available';
