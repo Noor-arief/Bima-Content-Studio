@@ -1226,6 +1226,7 @@ render();
  document.getElementById('channelBar').addEventListener('click',sync);
  document.getElementById('backToYoutube').addEventListener('click',()=>setView('ringkasan'));
  function restore(){
+   if(new URLSearchParams(location.hash.slice(1)).get('channel')==='tiktok')return;
    const params=new URLSearchParams(location.hash.slice(1)),id=params.get('item');
    if(id&&items().some(i=>i.id===id)){const i=items().find(i=>i.id===id);state.selectedItem=id;state.selected=i.date;state.month=i.date.slice(0,7);render();}
    if(/^\d{4}-\d{2}-\d{2}$/.test(params.get('date')||'')){state.selected=params.get('date');if(!id)state.selectedItem='';}
@@ -1233,7 +1234,7 @@ render();
    render();setView(params.get('view')||'ringkasan',false,false);
  }
  window.addEventListener('popstate',()=>{if(mayLeave())restore();else route(document.body.dataset.view,true)});
- if(location.hash.startsWith('#view='))restore();else{let saved;try{saved=sessionStorage.getItem('bimaView')}catch(_){}setView(saved||'ringkasan',false,false);route(document.body.dataset.view,true)}
+ if(new URLSearchParams(location.hash.slice(1)).get('channel')==='tiktok'){/* TikTok restores its own channel route. */}else if(location.hash.startsWith('#view='))restore();else{let saved;try{saved=sessionStorage.getItem('bimaView')}catch(_){}setView(saved||'ringkasan',false,false);route(document.body.dataset.view,true)}
 })();
 </script>
 <script src="content-settings.js?v=20261014-sync1" defer></script>
