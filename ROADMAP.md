@@ -301,3 +301,8 @@ Validation: 47 backend tests passed, including exact listing identity, private p
 - BIMA now provides exact-product reference, Review/Unboxing briefs, a copy button, Flow link and final MP4 import. No automatic connection to Flow account or credits is claimed.
 - Imported final MP4 keeps original bytes and audio; verifies 9:16, 5–60 seconds, audio track and full decoding before review. Silent files rejected; audible music/speech and creative quality require owner review. Slideshow retained only as a collapsed fallback.
 - Tests: 50 passed, including imported-byte/audio preservation, stale-approval reset, silent and landscape rejection, and prompt reference checks.
+
+### 25 October 2026 — Remove incompatible frontend release pin
+- Fixed false Shopee maintenance message: frontend pinned production1 while healthy server used flow1.
+- Studio load now validates required response shape and render capability instead of exact deployment version. Existing drafts and owner sessions are preserved.
+- Regression verifies older/current/future compatible release identifiers load, while malformed responses preserve cached drafts and report an error. Frontend-only deployment; no server restart needed.
