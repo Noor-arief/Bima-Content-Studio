@@ -13,6 +13,23 @@ function seedOwnerProduction(){const d=get();d.content ||= [];let change=false;f
 seedOwnerProduction();
 const form=document.getElementById('productionForm'),root=document.getElementById('productionCards'),status=document.getElementById('productionStatus');if(!form||!root)return;
 const cardsPanel=root.closest('.panel'),formPanel=form.closest('.panel');if(cardsPanel&&formPanel&&formPanel.parentNode)formPanel.parentNode.insertBefore(cardsPanel,formPanel);
+if(cardsPanel){
+ const importer=document.createElement('div');importer.className='note';importer.innerHTML='<strong>Impor 6 foto scene sekaligus</strong><p>Impor paket ZIP BIMA satu kali. Keenam foto langsung masuk ke dua konten terjadwal; prompt dan caption sudah terisi.</p><label>Pilih paket BIMA (.zip)<input id="bimaProductionZip" type="file" accept=".zip,application/zip"></label><p id="bimaProductionZipStatus" role="status"></p>';root.before(importer);
+ document.getElementById('bimaProductionZip').addEventListener('change',async e=>{
+ const file=e.target.files?.[0],stat=document.getElementById('bimaProductionZipStatus');if(!file)return;
+ stat.textContent='Memproses paket scene…';
+ try{
+  if(!window.JSZip){const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';await new Promise((ok,bad)=>{script.onload=ok;script.onerror=()=>bad(Error('Pustaka ZIP gagal dimuat'));document.head.appendChild(script)})}
+  const zip=await window.JSZip.loadAsync(file);let completed=0;
+  for(const [folder,id] of [['2026-10-25_Kaos_Hijau','tt-owner-20261025-green-shirt'],['2026-10-26_Celana_Beige','tt-owner-20261026-beige-pants']]){
+   for(let i=1;i<=3;i++){const entry=zip.file(folder+'/Scene_'+i+'.png');if(!entry)throw Error('Scene tidak ditemukan: '+folder+'/Scene_'+i+'.png');const blob=await entry.async('blob');await put(id+':scene'+i,new File([blob],'Scene_'+i+'.png',{type:'image/png'}));completed++;}
+  }
+  const data=get();for(const id of ['tt-owner-20261025-green-shirt','tt-owner-20261026-beige-pants']){const item=data.content?.find(x=>x.id===id);if(item){item.uploadedScenes=[1,2,3];item.sceneMediaReady=true;item.status='Production Ready';}}
+  localStorage.setItem(KEY,JSON.stringify(data));window.dispatchEvent(new Event('storage'));render();
+  stat.textContent='6 foto tersimpan pada browser ini. Kedua paket Production siap direview.';
+ }catch(err){stat.textContent='Impor belum selesai: '+(err.message||err)}e.target.value='';
+ });
+}
 if(cardsPanel){cardsPanel.querySelector('h2').textContent='Konten TikTok · Paket Production';cardsPanel.insertAdjacentHTML('afterbegin','<p class="muted">Konten yang disiapkan BIMA tampil langsung di sini. Foto harus benar-benar tersedia agar bisa dipreview; video dan link boleh kosong.</p>')}
 
 form.querySelector('input[name=date]').value=new Date().toLocaleDateString('en-CA');
