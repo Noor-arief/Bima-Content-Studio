@@ -289,3 +289,9 @@ The production step now shows the exact listing link, catalog photo and seller i
 Owner action Pakai foto produk ini attaches the bundled catalog photo to all three scenes, invalidates old approvals, and leaves the existing media-rights confirmation/render/review flow in place. Exact shop+item matching prevents using a similar product's photo. Catalog identity is derived for existing drafts as well, so no private draft migration or credential change is needed. Uploading to Shopee remains manual.
 
 Validation: 47 backend tests passed, including exact listing identity, private path redaction, approval invalidation and an actual 24-second MP4 render using this catalog JPEG. The test MP4 is a local verification artifact, not an uploaded/published video.
+
+### 25 October 2026 — Shopee render failure on Railway
+- User reported source-media failure despite all 3 catalog assets being present. Runtime build only installed libatomic1; renderer relied on system font discovery.
+- Bundle a licensed DejaVu Sans Latin subset and pass its explicit path to drawtext, removing dependence on host fonts/fontconfig.
+- Run an isolated real 24-second catalog render before each server startup; log PASS/FAIL and stop deployment on failure. Never modifies user drafts or publishes video.
+- Preserve bounded FFmpeg diagnostics in private runtime logs and show a clear retry state in the UI.

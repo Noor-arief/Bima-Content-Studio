@@ -1,5 +1,6 @@
 import {promises as fs, createReadStream} from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {randomUUID} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import ffmpeg from 'ffmpeg-static';
@@ -11,7 +12,7 @@ const SLOTS=['scene1','scene2','scene3','voice','music'];
 const TYPES={'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp','video/mp4':'.mp4','audio/mpeg':'.mp3','audio/wav':'.wav','audio/x-wav':'.wav','audio/mp4':'.m4a','audio/aac':'.aac'};
 const ID=/^[a-zA-Z0-9_-]{3,80}$/;
 const fail=(code,status=422)=>Object.assign(Error(code),{status});
-export const SHOPEE_STUDIO_VERSION='20261025-production1';
+export const SHOPEE_STUDIO_VERSION='20261025-render-font1';
 export const seedDraft=()=>({id:'shopee-tumbler-41561442154',product:'Botol Tumbler 900ml Stainless Steel',productUrl:'https://shopee.co.id/product/607593297/41561442154',affLink:'https://s.shopee.co.id/9APfQhgJ4X',price:63990,videoCommission:10,socialCommission:11.5,rating:4.8,salesLabel:'10RB+',researchAt:'2026-10-25',researchSource:'Dashboard Shopee Affiliate · Rincian Tawaran Produk',facts:'Nama listing: Botol Tumbler 900ml Stainless Steel Tahan Panas Dingin. Harga saat riset Rp63.990; rating 4,8; 10RB+ terjual. Komisi Shopee Video 10%, media sosial hingga 11,5%. Harga dan komisi dapat berubah. Performa tahan suhu belum diuji sendiri.',scenes:[{text:'Cari tumbler untuk menemani aktivitas harian?',visual:'Foto produk asli: tampilan utuh, bentuk dan varian sesuai listing.'},{text:'Kenali tumbler stainless dengan kapasitas 900 ml ini.',visual:'Detail tutup, pegangan, dan bodi dari foto atau rekaman produk asli.'},{text:'Cek detail dan pilihan variannya lewat tag produk di video ini.',visual:'Hero shot produk asli. Tag produk ditambahkan di aplikasi Shopee.'}],caption:'Tumbler stainless 900 ml untuk dilihat lebih dekat. Cek detail dan pilihan varian pada tag produk.\n\nKonten affiliate; saya dapat menerima komisi dari pembelian. #ShopeeVideo #Affiliate #Tumbler',date:'',time:'19:00',stage:'draft',revision:1,assets:{},review:null});
 
 export function validateDraft(input){
@@ -39,7 +40,8 @@ export async function renderShopeeDraft({draft,directory,outputPath}){
   const part=path.join(directory,`part-${i}.mp4`);parts.push(part);
   // Owner assets only. Preserve the entire product rather than cropping its edges.
   const source=a.mime.startsWith('image/')?['-loop','1']:['-stream_loop','-1'];
-  const vf=`scale=720:1060:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x131927,setsar=1,drawtext=textfile=${textfile}:expansion=none:fontsize=29:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=12:x=(w-text_w)/2:y=h-text_h-100,format=yuv420p`;
+  const fontfile=fileURLToPath(new URL('./fonts/DejaVuSans-Latin.ttf',import.meta.url));
+  const vf=`scale=720:1060:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x131927,setsar=1,drawtext=fontfile=${fontfile}:textfile=${textfile}:expansion=none:fontsize=29:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=12:x=(w-text_w)/2:y=h-text_h-100,format=yuv420p`;
   await run(['-loglevel','error','-y','-threads','2',...source,'-i',a.file,'-t','8','-an','-vf',vf,'-filter_threads','1','-r','24','-c:v','libx264','-threads','2','-preset','veryfast','-crf','24',part]);
  }
  const list=path.join(directory,'parts.txt');await fs.writeFile(list,parts.map(p=>`file '${p}'`).join('\n'),{mode:0o600});
@@ -117,7 +119,7 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
     if(busy||d.stage==='rendering')throw fail('renderer_busy',409);if(!['scene1','scene2','scene3'].every(s=>d.assets[s]))throw fail('three_product_assets_required');
     busy=true;try{d.stage='rendering';d.review=null;d.render=null;d.outputFile=null;d.renderError=null;await persist();
     const rev=d.revision,dir=path.join(root,d.id,'render-'+randomUUID());await fs.mkdir(dir,{recursive:true,mode:0o700});const output=path.join(dir,'shopee-video.mp4');
-    void renderShopeeDraft({draft:structuredClone(d),directory:dir,outputPath:output}).then(async result=>{d.stage='review';d.outputFile=output;d.render={...result,revision:rev,finishedAt:new Date().toISOString()};await persist();}).catch(async e=>{d.stage='failed';d.renderError=e.status?e.message:'render_failed';await persist();}).finally(()=>{busy=false;});
+    void renderShopeeDraft({draft:structuredClone(d),directory:dir,outputPath:output}).then(async result=>{d.stage='review';d.outputFile=output;d.render={...result,revision:rev,finishedAt:new Date().toISOString()};await persist();}).catch(async e=>{console.error('shopee_render_failed',JSON.stringify({draftId:d.id,code:e.message,diagnostic:String(e.cause||'').slice(-1800)}));d.stage='failed';d.renderError=e.status?e.message:'render_failed';await persist();}).finally(()=>{busy=false;});
     respond(res,202,{draft:publicDraft(d)});return true;
     }catch(e){busy=false;d.stage='failed';d.renderError='render_setup_failed';await persist();throw e;}
    }
