@@ -295,3 +295,9 @@ Validation: 47 backend tests passed, including exact listing identity, private p
 - Bundle a licensed DejaVu Sans Latin subset and pass its explicit path to drawtext, removing dependence on host fonts/fontconfig.
 - Run an isolated real 24-second catalog render before each server startup; log PASS/FAIL and stop deployment on failure. Never modifies user drafts or publishes video.
 - Preserve bounded FFmpeg diagnostics in private runtime logs and show a clear retry state in the UI.
+
+### 25 October 2026 — Google Flow is the primary Shopee production method
+- Owner rejected the static slideshow and requested Review/Unboxing generation in Google Flow with speech and music.
+- BIMA now provides exact-product reference, Review/Unboxing briefs, a copy button, Flow link and final MP4 import. No automatic connection to Flow account or credits is claimed.
+- Imported final MP4 keeps original bytes and audio; verifies 9:16, 5–60 seconds, audio track and full decoding before review. Silent files rejected; audible music/speech and creative quality require owner review. Slideshow retained only as a collapsed fallback.
+- Tests: 50 passed, including imported-byte/audio preservation, stale-approval reset, silent and landscape rejection, and prompt reference checks.

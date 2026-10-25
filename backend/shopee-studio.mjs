@@ -8,11 +8,11 @@ import {catalogFor,catalogImageFile} from './shopee-catalog.mjs';
 import {createProductBank,wibDate,validDate} from './shopee-bank.mjs';
 import {createShopeeAnalytics} from './shopee-analytics.mjs';
 
-const SLOTS=['scene1','scene2','scene3','voice','music'];
+const SLOTS=['scene1','scene2','scene3','voice','music','final'];
 const TYPES={'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp','video/mp4':'.mp4','audio/mpeg':'.mp3','audio/wav':'.wav','audio/x-wav':'.wav','audio/mp4':'.m4a','audio/aac':'.aac'};
 const ID=/^[a-zA-Z0-9_-]{3,80}$/;
 const fail=(code,status=422)=>Object.assign(Error(code),{status});
-export const SHOPEE_STUDIO_VERSION='20261025-render-font1';
+export const SHOPEE_STUDIO_VERSION='20261025-flow1';
 export const seedDraft=()=>({id:'shopee-tumbler-41561442154',product:'Botol Tumbler 900ml Stainless Steel',productUrl:'https://shopee.co.id/product/607593297/41561442154',affLink:'https://s.shopee.co.id/9APfQhgJ4X',price:63990,videoCommission:10,socialCommission:11.5,rating:4.8,salesLabel:'10RB+',researchAt:'2026-10-25',researchSource:'Dashboard Shopee Affiliate · Rincian Tawaran Produk',facts:'Nama listing: Botol Tumbler 900ml Stainless Steel Tahan Panas Dingin. Harga saat riset Rp63.990; rating 4,8; 10RB+ terjual. Komisi Shopee Video 10%, media sosial hingga 11,5%. Harga dan komisi dapat berubah. Performa tahan suhu belum diuji sendiri.',scenes:[{text:'Cari tumbler untuk menemani aktivitas harian?',visual:'Foto produk asli: tampilan utuh, bentuk dan varian sesuai listing.'},{text:'Kenali tumbler stainless dengan kapasitas 900 ml ini.',visual:'Detail tutup, pegangan, dan bodi dari foto atau rekaman produk asli.'},{text:'Cek detail dan pilihan variannya lewat tag produk di video ini.',visual:'Hero shot produk asli. Tag produk ditambahkan di aplikasi Shopee.'}],caption:'Tumbler stainless 900 ml untuk dilihat lebih dekat. Cek detail dan pilihan varian pada tag produk.\n\nKonten affiliate; saya dapat menerima komisi dari pembelian. #ShopeeVideo #Affiliate #Tumbler',date:'',time:'19:00',stage:'draft',revision:1,assets:{},review:null});
 
 export function validateDraft(input){
@@ -58,6 +58,21 @@ export async function renderShopeeDraft({draft,directory,outputPath}){
  return {width:720,height:1280,durationSeconds:24,subtitlesBurned:true,voiceIncluded:!!voice,musicIncluded:!!music,visualSource:'owner_product_assets',published:false};
 }
 
+
+export async function inspectFlowVideo(file){
+ const meta=await run(['-i',file],15000,true);
+ const duration=meta.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+ const dimensions=meta.match(/Video:[^\n]*?\b(\d{2,5})x(\d{2,5})\b/);
+ const seconds=duration?Number(duration[1])*3600+Number(duration[2])*60+Number(duration[3]):0;
+ if(!dimensions||seconds<5||seconds>60)throw fail('flow_video_duration_or_format');
+ const width=Number(dimensions[1]),height=Number(dimensions[2]);
+ if(Math.abs(width/height-9/16)>0.025||/rotation of (?:-?90|270)/.test(meta))throw fail('flow_video_needs_portrait');
+ if(!/Audio:/.test(meta))throw fail('flow_video_needs_audio');
+ // Decode the full video and audio, so a truncated container is not accepted.
+ await run(['-loglevel','error','-xerror','-i',file,'-map','0:v:0','-map','0:a:0','-f','null','-'],60000);
+ return {width,height,durationSeconds:seconds,subtitlesBurned:false,audioIncluded:true,voiceIncluded:null,musicIncluded:null,visualSource:'google_flow_import'};
+}
+
 // All routes run only after server.mjs has verified the existing owner session.
 export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON}){
  let busy=false;
@@ -86,7 +101,7 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
    if(u.pathname==='/api/shopee/studio/bank/refresh'&&req.method==='POST'){await bank.tick();respond(res,200,{bank:bank.snapshot()});return true;}
    if(u.pathname==='/api/shopee/studio/bank/open'&&req.method==='POST'){respond(res,200,await bank.open(await readJSON(req,1000)));return true;}
    if(u.pathname==='/api/shopee/studio/drafts'&&req.method==='POST'){respond(res,201,{draft:publicDraft(await saveDraft(await readJSON(req,20000)))});return true;}
-   const m=/^\/api\/shopee\/studio\/drafts\/([a-zA-Z0-9_-]{3,80})\/(assets\/(scene[123]|voice|music)|catalog-assets|render|review|video|subtitles|package|publication|performance)$/.exec(u.pathname);
+   const m=/^\/api\/shopee\/studio\/drafts\/([a-zA-Z0-9_-]{3,80})\/(assets\/(scene[123]|voice|music|final)|catalog-assets|render|review|video|subtitles|package|publication|performance)$/.exec(u.pathname);
    if(!m){error(res,404,'shopee_route_not_found');return true;}
    const d=state().drafts[m[1]];if(!d){error(res,404,'draft_not_found');return true;}const action=m[2];
    if(action==='catalog-assets'&&req.method==='POST'){
@@ -98,7 +113,7 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
    }
    if(action.startsWith('assets/')&&req.method==='POST'){
     if(d.stage==='rendering')throw fail('render_in_progress',409);
-    const slot=m[3],mime=String(req.headers['content-type']||'').split(';')[0],ext=TYPES[mime];if(!ext||(slot.startsWith('scene')?!/^(image\/|video\/mp4)/.test(mime):!mime.startsWith('audio/')))throw fail('unsupported_asset_type');
+    const slot=m[3],mime=String(req.headers['content-type']||'').split(';')[0],ext=TYPES[mime];if(!ext||(slot==='final'?mime!=='video/mp4':slot.startsWith('scene')?!/^(image\/|video\/mp4)/.test(mime):!mime.startsWith('audio/')))throw fail('unsupported_asset_type');
     const max=30*1024*1024,list=[];let n=0;for await(const chunk of req){n+=chunk.length;if(n>max)throw fail('asset_max_30mb',413);list.push(chunk);}if(!n)throw fail('empty_asset');
     const dir=path.join(root,d.id);await fs.mkdir(dir,{recursive:true,mode:0o700});const file=path.join(dir,slot+'-'+randomUUID()+ext);
     const bytes=Buffer.concat(list);
@@ -109,7 +124,14 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
       mime.includes('wav')?bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WAVE':
       bytes.toString('ascii',0,3)==='ID3'||(bytes[0]===255&&(bytes[1]&224)===224);
     if(!valid)throw fail('asset_content_mismatch');
-    await fs.writeFile(file,bytes,{mode:0o600});const old=d.assets[slot]?.file;d.assets[slot]={file,mime,size:n,uploadedAt:new Date().toISOString()};invalidate(d);await persist();if(old)await fs.rm(old,{force:true}).catch(()=>{});respond(res,201,{draft:publicDraft(d)});return true;
+    await fs.writeFile(file,bytes,{mode:0o600});
+    if(slot==='final'){
+     let metadata;try{metadata=await inspectFlowVideo(file);}catch(e){await fs.rm(file,{force:true});throw e;}
+     const old=d.assets.final?.file;invalidate(d);d.assets.final={file,mime,size:n,uploadedAt:new Date().toISOString()};
+     d.outputFile=file;d.stage='review';d.renderError=null;d.render={...metadata,revision:d.revision,finishedAt:new Date().toISOString(),source:'google_flow_import',published:false};
+     await persist();if(old&&old!==file)await fs.rm(old,{force:true}).catch(()=>{});respond(res,201,{draft:publicDraft(d)});return true;
+    }
+    const old=d.assets[slot]?.file;d.assets[slot]={file,mime,size:n,uploadedAt:new Date().toISOString()};invalidate(d);await persist();if(old)await fs.rm(old,{force:true}).catch(()=>{});respond(res,201,{draft:publicDraft(d)});return true;
    }
    if(action.startsWith('assets/')&&req.method==='DELETE'){
     if(d.stage==='rendering')throw fail('render_in_progress',409);const old=d.assets[m[3]]?.file;delete d.assets[m[3]];invalidate(d);await persist();if(old)await fs.rm(old,{force:true});respond(res,200,{draft:publicDraft(d)});return true;
