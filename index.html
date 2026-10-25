@@ -1148,7 +1148,7 @@ render();
  content.prepend(bar);
  const picker=document.getElementById('activeDraft');
  let dirty=false;
- document.addEventListener('input',e=>{if(e.target.matches('#fTitle,#fDate,#fTime,#fFormat,#fStatus,#fCaption,#fNotes'))dirty=true});
+ document.addEventListener('input',e=>{if(e.target.matches('#fTitle,#fDate,#fTime,#fFormat,#fStatus,#fPrompt,#fCaption,#fNotes'))dirty=true});
  document.addEventListener('bima:episode-selected',()=>{dirty=false});
  function mayLeave(){
    const event=new CustomEvent('bima:before-navigate',{cancelable:true});document.dispatchEvent(event);
@@ -1216,7 +1216,7 @@ render();
  for(const id of ['prev','next'])document.getElementById(id).addEventListener('click',()=>route('kalender'));
  const todayButton=document.createElement('button');todayButton.type='button';todayButton.className='btn ghost';todayButton.textContent='Hari ini';
  document.getElementById('next').after(todayButton);
- todayButton.addEventListener('click',()=>{if(!mayLeave())return;state.selected=today();state.month=state.selected.slice(0,7);state.selectedItem=items().find(i=>i.date===state.selected)?.id||'';persist();route('kalender')});
+ todayButton.addEventListener('click',()=>{if(!mayLeave())return;state.selected=today();state.month=state.selected.slice(0,7);state.selectedItem=items().find(i=>i.date===state.selected)?.id||'';persist();render();setView('kalender')});
  document.getElementById('queueBody').addEventListener('click',e=>{const b=e.target.closest('[data-open-item]');if(b)openItem(b.dataset.openItem)});
  const back=document.createElement('button');back.type='button';back.className='btn ghost';back.dataset.go='desk';back.textContent='‹ Kembali ke Production Desk';document.getElementById('publishingQuickActions').prepend(back);
  const create=document.createElement('button');create.type='button';create.className='btn primary';create.textContent='+ Buat konten';document.querySelector('[data-panel="ringkasan"] .controls').prepend(create);
@@ -1260,5 +1260,5 @@ render();
 <script src="mixed-calendar-sync.js?v=20261013-idea-bank-cleanup1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
 <script src="piapi-pilot.js?v=20261013-episode-scoped-review" defer></script>
-<script src="tiktok-unified-navigation.js?v=20261104-skintific-v27" defer></script>
+<script src="tiktok-unified-navigation.js?v=20261026-ui-nav1" defer></script>
 </body></html>
