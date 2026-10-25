@@ -19,7 +19,7 @@ function boot(){
  nav.querySelectorAll('[data-tt-page]').forEach(b=>{const on=b.dataset.ttPage===tab;b.classList.toggle('active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
  try{sessionStorage.setItem('bimaTikTokTab',tab)}catch(_){}
  if(write&&isTikTok()){const hash='#'+new URLSearchParams({channel:'tiktok',tab});if(location.hash!==hash)history.pushState(null,'',hash)}
- panel.querySelector('iframe').contentWindow?.postMessage({type:'bima:tiktok:set-tab',tab},window.location.origin)
+ const target=panel.querySelector('iframe');try{const button=target.contentDocument?.querySelector('[data-tab="'+tab+'"]');if(button){if(!button.classList.contains('active'))button.click();return}}catch(_){}target.contentWindow?.postMessage({type:'bima:tiktok:set-tab',tab},window.location.origin)
  }
  window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==panel.querySelector('iframe').contentWindow||e.data?.type!=='bima:tiktok:tab-changed')return;setTab(e.data.tab,false)});
  window.addEventListener('popstate',()=>{const p=new URLSearchParams(location.hash.slice(1));if(p.get('channel')==='tiktok'){if(!isTikTok())channels.querySelector('[data-channel="tiktok"]')?.click();restoreTab()}});
