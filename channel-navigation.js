@@ -35,7 +35,7 @@ function sync(){
  context.querySelector('strong').textContent=PLATFORM_COPY[ch]?.name||ch;
  context.querySelector('small').textContent=yt?'Orbit & Ocean · Faceless Shorts':ch==='tiktok'?'BIMA riset & produksi · Kamu review':ch==='shopee'?'Shopee Video · Affiliate':'Workspace belum dibuka';
  menuLabel.textContent='Menu '+(PLATFORM_COPY[ch]?.name||ch);
- menuLabel.hidden=!known;menu.hidden=!known;
+ menuLabel.hidden=!known||ch==='tiktok';menu.hidden=!known||ch==='tiktok';
  menu.setAttribute('aria-label','Menu '+(PLATFORM_COPY[ch]?.name||ch));
  for(const b of menu.querySelectorAll('[data-go]')){
   b.hidden=ch==='shopee'&&['kalender'].includes(b.dataset.go);
