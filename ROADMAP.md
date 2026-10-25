@@ -252,3 +252,7 @@ If a test shop ID is actually returned, `tts_open_toolkit sandbox product list -
 Implemented owner-only persistent drafts and private source uploads, three-scene storyboards, 24-second portrait MP4 rendering with burned captions and optional voice/music, revision-aware review, approved export package, manual publication records and manually entered performance. No paid AI generation or automatic publishing occurs. The researched tumbler seed separates Shopee Video commission (10%) from social media (11.5%).
 
 Account verification: Affiliate Open API access is unavailable; Seller Centre is inactive. Upload and product tagging remain manual in Shopee app. Publication dates are planning fields, not an automatic scheduler. Source product photos/clips and any licensed audio must be supplied before rendering.
+
+
+### Shopee usability — 25 October 2026
+Simplified to three steps: choose product, make video, review/download. One photo or clip can populate all three scenes. Script, per-scene assets, audio, publication records and settings are optional expandable sections. Continue saves edits; saving an unchanged draft preserves approval. Workspace badge is ACTIVE for production; upload and product tagging remain manual in the Shopee app.
