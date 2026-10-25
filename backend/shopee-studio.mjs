@@ -3,6 +3,7 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import ffmpeg from 'ffmpeg-static';
+import {createProductBank} from './shopee-bank.mjs';
 
 const SLOTS=['scene1','scene2','scene3','voice','music'];
 const TYPES={'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp','video/mp4':'.mp4','audio/mpeg':'.mp3','audio/wav':'.wav','audio/x-wav':'.wav','audio/mp4':'.m4a','audio/aac':'.aac'};
@@ -61,14 +62,20 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
  const publicDraft=d=>{const {outputFile,...safe}=d;return {...safe,assets:Object.fromEntries(Object.entries(d.assets||{}).map(([key,{file,...asset}])=>[key,asset])),render:d.render?{...d.render,available:!!d.outputFile}:null};};
  const invalidate=d=>{d.revision=(d.revision||0)+1;d.review=null;d.stage='draft';d.render=null;d.outputFile=null;d.updatedAt=new Date().toISOString();};
  const saveDraft=async input=>{const id=input.id||'shopee-'+randomUUID();if(!ID.test(id))throw fail('invalid_draft_id');let d=state().drafts[id];if(d?.stage==='rendering')throw fail('render_in_progress',409);const valid=validateDraft(input);if(!d)d=state().drafts[id]={id,revision:0,assets:{}};Object.assign(d,valid);invalidate(d);await persist();return d;};
+ const bank=createProductBank({state,persist,saveDraft,publicDraft});
  async function handle(req,res,u){
   if(!u.pathname.startsWith('/api/shopee/studio'))return false;
   try{
    if(u.pathname==='/api/shopee/studio'&&req.method==='GET'){
     // Reconcile interrupted renders after a process restart; never regenerate automatically.
     for(const d of Object.values(state().drafts))if(d.stage==='rendering'&&!busy){d.stage='failed';d.renderError='render_interrupted_retry';await persist();}
-    respond(res,200,{version:SHOPEE_STUDIO_VERSION,capabilities:{render:true,autoUpload:false,affiliateApi:false,publishMode:'shopee_app'},drafts:Object.values(state().drafts).map(publicDraft)});return true;
+    await bank.tick();
+    respond(res,200,{bank:bank.snapshot(),version:SHOPEE_STUDIO_VERSION,capabilities:{render:true,autoUpload:false,affiliateApi:false,publishMode:'shopee_app'},drafts:Object.values(state().drafts).map(publicDraft)});return true;
    }
+   if(u.pathname==='/api/shopee/studio/bank/products'&&req.method==='POST'){respond(res,200,{bank:await bank.upsert(await readJSON(req,12000))});return true;}
+   if(u.pathname==='/api/shopee/studio/bank/settings'&&req.method==='POST'){respond(res,200,{bank:await bank.settings(await readJSON(req,1000))});return true;}
+   if(u.pathname==='/api/shopee/studio/bank/refresh'&&req.method==='POST'){await bank.tick();respond(res,200,{bank:bank.snapshot()});return true;}
+   if(u.pathname==='/api/shopee/studio/bank/open'&&req.method==='POST'){respond(res,200,await bank.open(await readJSON(req,1000)));return true;}
    if(u.pathname==='/api/shopee/studio/drafts'&&req.method==='POST'){respond(res,201,{draft:publicDraft(await saveDraft(await readJSON(req,20000)))});return true;}
    const m=/^\/api\/shopee\/studio\/drafts\/([a-zA-Z0-9_-]{3,80})\/(assets\/(scene[123]|voice|music)|render|review|video|subtitles|package|publication|performance)$/.exec(u.pathname);
    if(!m){error(res,404,'shopee_route_not_found');return true;}
@@ -125,5 +132,5 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
    throw fail('method_not_allowed',405);
   }catch(e){error(res,e.status||500,e.status?e.message:'shopee_studio_error');return true;}
  }
- return {handle,saveDraft,publicDraft};
+ return {handle,saveDraft,publicDraft,tick:bank.tick};
 }

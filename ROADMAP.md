@@ -256,3 +256,16 @@ Account verification: Affiliate Open API access is unavailable; Seller Centre is
 
 ### Shopee usability — 25 October 2026
 Simplified to three steps: choose product, make video, review/download. One photo or clip can populate all three scenes. Script, per-scene assets, audio, publication records and settings are optional expandable sections. Continue saves edits; saving an unchanged draft preserves approval. Workspace badge is ACTIVE for production; upload and product tagging remain manual in the Shopee app.
+
+
+## Shopee product bank and daily target — 25 October 2026
+
+Added server-persisted Bank Produk with seven real catalog candidates, separate catalog maximum and verified Shopee Video commission, explainable rule scoring, editable niche focus, and a 14-day planning window. Initial focus: home/daily essentials. Only the tumbler has verified Video commission evidence; six candidates require detail/variant/rating/link checks. Shopee blocked this browser with a failed verification page while opening the home category; do not treat missing evidence as verified.
+
+A server tick allocates one unique listing per WIB date and fills new slots from new candidates. Existing work is retained. No automatic product repetition when bank is exhausted; missing dates are explicit. Data older than seven days requires review. Daily goal counts owner-confirmed publication records on the actual WIB confirmation date, not drafts, renders, approvals or scheduled intentions. Upload/tagging remain manual in the Shopee app.
+
+Owner endpoints: bank/products (evidence upsert), bank/settings (niche/time), bank/refresh (local allocation, no API research), bank/open (resume/create dated production only for eligible items). No paid AI generation, Shopee publishing or unauthenticated private data access added. New seed candidates are merged on service initialization without overwriting owner-reviewed records.
+
+Daily morning research task configured in Asia/Jakarta to investigate up to three evidence-backed new candidates using official Shopee sources and the GitHub seed, with explicit unknowns and access-block reporting. It never invents affiliate URLs, auto-verifies catalog maxima, approves or uploads video.
+
+Validation: 37 backend tests passed, including WIB midnight rollover, no-repeat allocation, incomplete/old commission evidence, listing deduplication, resuming approved work, actual publication goal counting, and niche changes preserving started work.

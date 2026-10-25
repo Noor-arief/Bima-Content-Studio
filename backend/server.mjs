@@ -977,6 +977,8 @@ async function handler(req,res){
 }
 await init();
 shopeeStudio=createShopeeStudio({db,persist,mediaDir:MEDIA_DIR,respond,error,readJSON});
+await shopeeStudio.tick();
+setInterval(()=>void shopeeStudio.tick().catch(e=>console.error('Shopee daily plan failed:',e.message)),60000).unref();
 tiktokGoogleWorker=createGoogleAffiliateWorker({db,persist,mediaDir:MEDIA_DIR});
 await persist();
 setInterval(()=>void tiktokGoogleWorker.tick().catch(()=>console.warn('tiktok_google_worker_failed')),15000).unref();
