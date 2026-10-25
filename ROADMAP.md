@@ -238,3 +238,10 @@ If a test shop ID is actually returned, `tts_open_toolkit sandbox product list -
 **Latest GitHub-only verified state:** Content Studio draft PR [#65](https://github.com/Noor-arief/Bima-Content-Studio/pull/65) (origin guard + manual encrypted snapshot tool, CI 27/27 PASS using test fixtures); Bima Ginga draft PR [#67](https://github.com/Noor-arief/Bima.Ginga.ai/pull/67) (fail-closed owner access + cold worker lock, CI 10/10 PASS); Vireqo AI Client Assistant draft PR [#81](https://github.com/Noor-arief/Vireqo-AI-Client-Assistant/pull/81) (Render blueprint/runbook). The eight-repository source scan contains no tracked PHP or Composer files; deployed PHP runtime status remains unknown. Details and evidence in [Security #157](https://github.com/Noor-arief/BIMA/issues/157) and [DR #158](https://github.com/Noor-arief/BIMA/issues/158).
 
 **NOT DONE:** no verified off-Railway backup of production `/data` / DB / media, no restored production data, no activated alternate provider, no safe failover/rollback drill, no Railway credential audit or rotation. Keep P0 OPEN; never describe mock/CI success as live service recovery. Do not auto-enable paid Render resources, uploads, outreach or trading.
+
+### Analytics query repair — 25 Oct 2026
+
+- Removed unsupported `creatorContentType==SHORTS` filters; use the documented grouped dimension and select Shorts from returned rows. If Google supplies no Shorts classification, explicitly retain the channel-wide report.
+- Recover the per-video report using supported ungrouped queries with engagement/playback metrics and clear the failure flag after recovery. Missing metrics stay unknown instead of becoming zero; channel fallback records its actual video limit.
+- Preserve interaction metrics when merging the independent views-only daily report. Never compare Shorts totals against a channel-wide cutoff aggregate.
+- Validation: analytics regression suite 7/7 passed locally; deployment and live owner dashboard verification pending. Data freshness remains governed by Google processing; this fix does not fabricate recent days.

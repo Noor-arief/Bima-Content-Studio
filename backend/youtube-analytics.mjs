@@ -44,20 +44,17 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
     try{videoReport=await report({dimensions:'video,creatorContentType',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:'200'});}
     catch(inner){if(inner.message!=='youtube_analytics_query_invalid')throw inner;videoReportUnavailable=true;}
   }
-  // Google's grouped creatorContentType report may be empty despite channel activity.
-  // Explicitly request Shorts as a filter; do not mislabel channel-wide data.
-  let filteredDaily=null,filteredSummary=null,filteredVideos=null;
-  if(!rows(playbackReport).some(r=>r.creatorContentType==='SHORTS')){
-    try{
-      filteredDaily=await report({dimensions:'day',filters:'creatorContentType==SHORTS',metrics:'views,estimatedMinutesWatched,likes,comments,shares,subscribersGained,subscribersLost',sort:'day'});
-      filteredSummary=await report({filters:'creatorContentType==SHORTS',metrics:'views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage'});
-      filteredVideos=await report({dimensions:'video',filters:'creatorContentType==SHORTS',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:'200'});
-    }catch(e){console.warn('youtube_shorts_filtered_report_unavailable',e.message);}
+  // creatorContentType is a dimension, not a supported filter on these reports.
+  // Select Shorts from Google's grouped rows. If classification is absent, keep
+  // the channel fallback explicit rather than issuing rejected filter queries.
+  let daily=rows(dailyReport).filter(r=>r.creatorContentType==='SHORTS');
+  let summary=rows(playbackReport).find(r=>r.creatorContentType==='SHORTS')||null;
+  if(summary)for(const key of ['likes','comments','shares','subscribersGained','subscribersLost']){
+    const available=daily.filter(r=>r[key]!=null);
+    summary[key]=available.length?available.reduce((sum,r)=>sum+Number(r[key]),0):null;
   }
-  let daily=filteredDaily?.rows?.length?rows(filteredDaily):rows(dailyReport).filter(r=>r.creatorContentType==='SHORTS');
-  let summary=rows(playbackReport).find(r=>r.creatorContentType==='SHORTS')||(filteredSummary?.rows?.length?rows(filteredSummary)[0]:null);
-  if(summary)for(const key of ['likes','comments','shares','subscribersGained','subscribersLost'])summary[key]=daily.reduce((s,r)=>s+Number(r[key]||0),0);
-  let videos=filteredVideos?.rows?.length?rows(filteredVideos):rows(videoReport).filter(r=>r.creatorContentType==='SHORTS');
+  let videos=rows(videoReport).filter(r=>r.creatorContentType==='SHORTS');
+  let videoLimitReached=(videoReport.rows||[]).length===200;
   // If the Shorts breakdown is empty, expose verifiable channel-wide reports instead
   // of treating a missing Shorts classification as zero activity.
   let contentType='SHORTS',diagnostic='shorts_report';
@@ -73,11 +70,19 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
     if(channelSummary){
       contentType='CHANNEL_ALL';diagnostic='shorts_breakdown_empty_channel_report_available';
       summary=channelSummary;
-      const channelDailyReport=await report({dimensions:'day',metrics:'views,estimatedMinutesWatched',sort:'day'});
+      const channelDailyReport=await report({dimensions:'day',metrics,sort:'day'}).catch(e=>{
+        if(e.message!=='youtube_analytics_query_invalid')throw e;
+        return report({dimensions:'day',metrics:'views,estimatedMinutesWatched',sort:'day'});
+      });
       daily=rows(channelDailyReport);
       try{
-        const channelVideoReport=await report({dimensions:'video',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:'200'});
+        const channelVideoReport=await report({dimensions:'video',metrics:metrics+',averageViewDuration,averageViewPercentage',sort:'-views',maxResults:'200'}).catch(e=>{
+          if(e.message!=='youtube_analytics_query_invalid')throw e;
+          return report({dimensions:'video',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:'200'});
+        });
         videos=rows(channelVideoReport);
+        videoReportUnavailable=false;
+        videoLimitReached=(channelVideoReport.rows||[]).length===200;
       }catch(e){videoReportUnavailable=true;console.warn('youtube_channel_video_report_unavailable',e.message);}
     }else diagnostic='channel_report_empty';
   }
@@ -92,7 +97,7 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
         const latest=viewDaily.at(-1).day;
         const count=viewDaily.reduce((sum,row)=>sum+Number(row.views||0),0);
         independentViews={views:count,latestDay:latest,complete:latest>=range.endDate};
-        daily=viewDaily.map(row=>({...row,estimatedMinutesWatched:daily.find(d=>d.day===row.day)?.estimatedMinutesWatched??null}));
+        daily=viewDaily.map(row=>({...daily.find(d=>d.day===row.day),...row}));
         summary.views=count;
       }
     }catch(e){console.warn('youtube_independent_views_unavailable',e.message);}
@@ -108,7 +113,7 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
   // Avoid comparing a partial API period to Studio's full 28 days.
   let cutoffComparison=null;
   const cutoff=reporting.lastReportedDay;
-  if(cutoff && cutoff<range.endDate && cutoff>=range.startDate){
+  if(contentType==='CHANNEL_ALL' && cutoff && cutoff<range.endDate && cutoff>=range.startDate){
     try{
       const confirmed=await get('https://youtubeanalytics.googleapis.com/v2/reports?'+new URLSearchParams({
         ids:'channel=='+channelId,startDate:range.startDate,endDate:cutoff,
@@ -132,6 +137,6 @@ export async function fetchAnalytics({token,channelId,days=28,fetchImpl=fetch,no
       for(const v of batch){const s=byId.get(v.video);v.title=s?.title||v.video;v.publishedAt=s?.publishedAt||null;}
     }catch{metadataUnavailable=true;for(const v of batch)v.title=v.video;}
   }
-  return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,shortsFilterAttempted:!!filteredDaily,videoLimit:200,videoLimitReached:(videoReport.rows||[]).length===200,
+  return {channelId,range,summary,daily,videos,metadataUnavailable,videoReportUnavailable,shortsFilterAttempted:false,shortsBreakdownUnavailable:contentType==='CHANNEL_ALL',videoLimit:200,videoLimitReached,
     latestReportedDay:daily.at(-1)?.day||null,fetchedAt:now.toISOString(),source:'YouTube Analytics API',contentType,diagnostic,reporting,cutoffComparison,independentViews};
 }
