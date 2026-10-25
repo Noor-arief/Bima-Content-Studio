@@ -5,11 +5,12 @@ const form=document.getElementById('productionForm'),root=document.getElementByI
 if(!form||!root)return;
 const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const get=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}};
-const save=d=>{localStorage.setItem(KEY,JSON.stringify(d));window.dispatchEvent(new Event('storage'))};
+const save=d=>{localStorage.setItem(KEY,JSON.stringify(d));window.dispatchEvent(new Event('storage'));document.dispatchEvent(new CustomEvent('bima:tiktok:production-saved'))};
 let d=get();d.content||=[];let changed=false;
 for(const seed of seeds){if(!d.content.some(x=>x.id===seed.id)){d.content.push(seed);changed=true}}
 if(changed)save(d);
 const cardsPanel=root.closest('.panel'),formPanel=form.closest('.panel');
+const tabs=document.getElementById('tabs');if(tabs){tabs.querySelector('[data-tab="production"]')?.addEventListener('click',()=>{render()})}
 if(cardsPanel&&formPanel&&formPanel.parentNode)formPanel.parentNode.insertBefore(cardsPanel,formPanel);
 if(cardsPanel)cardsPanel.querySelector('h2').textContent='Paket TikTok Production · Terjadwal';
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open(DB,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE))request.result.createObjectStore(STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
@@ -23,6 +24,7 @@ function render(){
  return '<article class="metric" style="margin-bottom:16px"><h3>'+escapeHtml(x.title)+'</h3><p>'+escapeHtml(x.date)+' · '+escapeHtml(x.status)+'</p><div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">'+scenes+'</div><h4>Prompt Google Flow</h4><textarea readonly rows="7">'+escapeHtml(x.prompt)+'</textarea><h4>Caption & Hashtag</h4><textarea readonly rows="3">'+escapeHtml(x.caption)+'</textarea><p>Link produk: '+escapeHtml(x.product||'—')+' · Link video: '+escapeHtml(x.url||'—')+'</p><label>Video (opsional)<input type="file" accept="video/*" data-video="'+escapeHtml(x.id)+'"></label></article>';
  }).join('')||'<p>Belum ada konten Production.</p>';previews();
 }
+root.addEventListener('click',e=>{const button=e.target.closest('[data-save-id]');if(!button)return;const d=get(),item=(d.content||[]).find(x=>x.id===button.dataset.saveId);if(!item)return;for(const field of ['prompt','caption']){const el=[...root.querySelectorAll('[data-edit-field]')].find(n=>n.dataset.editId===item.id&&n.dataset.editField===field);if(el)item[field]=el.value}save(d);render();});
 root.addEventListener('change',async e=>{const inp=e.target;if(inp.dataset.scene){const file=inp.files?.[0];if(!file)return;try{await storeFile(inp.dataset.id+':scene'+inp.dataset.scene,file);render()}catch(err){alert(err.message)}}else if(inp.dataset.video){const file=inp.files?.[0];if(!file)return;try{await storeFile(inp.dataset.video+':video',file);const d=get(),item=d.content.find(x=>x.id===inp.dataset.video);if(item){item.videoReady=true;item.status='Video Ready';save(d)}render()}catch(err){alert(err.message)}}});
 form.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(form),id='ttprod-'+Date.now();try{for(let i=1;i<=3;i++){const file=f.get('scene'+i);if(!file||!file.size)throw Error('Dibutuhkan tiga gambar untuk konten baru.');await storeFile(id+':scene'+i,file)}const d=get();d.content||=[];d.content.push({id,title:String(f.get('title')||''),date:String(f.get('date')||''),type:String(f.get('type')||'Affiliate'),product:String(f.get('product')||''),url:'',status:'Production Ready',production:true,scenes:['Scene 1','Scene 2','Scene 3'],prompt:String(f.get('prompt')||''),caption:String(f.get('caption')||'')});save(d);render();form.reset();status.textContent='Konten masuk Production dan Calendar.'}catch(err){status.textContent=err.message}});
 window.addEventListener('storage',render);
