@@ -280,3 +280,12 @@ Data access remains owner-only. The current Shopee plugin exposes product search
 Added manual publication records for videos uploaded in the Shopee app, including external production tools. Goals use the actual owner-confirmed publication date, deduplicate the same canonical URL, and do not infer upload from rendering/approval. The existing production publication form also records the true date. Goal counts are shared with the product-bank daily card. No automatic upload, new account permissions, paid generation, or invented account analytics added.
 
 Validation: 45 backend tests passed, including report coverage, account/video overlap, locale-aware CSV, preview without writes, idempotent and atomic import, preserving known metrics during partial updates, safe dates/URLs, actual publication dates and goal deduplication. Frontend navigation, period/metric changes, populated simulated tables and empty states are checked in the local preview; simulation is not account data.
+
+
+## Product identity and first production test — 25 October 2026
+
+The production step now shows the exact listing link, catalog photo and seller identity. Tumbler item 41561442154 / shop 607593297 was matched through the connected Shopee search: HLF24oke, listing title Botol Tumbler 900ml Stainless Steel Tahan Panas Dingin. Original catalog JPEG hash id-11134207-7ra0o-mcx19on2d22d2e is included as a reference, with no AI replacement or image alteration.
+
+Owner action Pakai foto produk ini attaches the bundled catalog photo to all three scenes, invalidates old approvals, and leaves the existing media-rights confirmation/render/review flow in place. Exact shop+item matching prevents using a similar product's photo. Catalog identity is derived for existing drafts as well, so no private draft migration or credential change is needed. Uploading to Shopee remains manual.
+
+Validation: 47 backend tests passed, including exact listing identity, private path redaction, approval invalidation and an actual 24-second MP4 render using this catalog JPEG. The test MP4 is a local verification artifact, not an uploaded/published video.

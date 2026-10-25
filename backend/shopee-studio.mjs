@@ -3,6 +3,7 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import ffmpeg from 'ffmpeg-static';
+import {catalogFor,catalogImageFile} from './shopee-catalog.mjs';
 import {createProductBank,wibDate,validDate} from './shopee-bank.mjs';
 import {createShopeeAnalytics} from './shopee-analytics.mjs';
 
@@ -60,7 +61,7 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
  let busy=false;
  const root=path.resolve(mediaDir,'shopee-studio');
  const state=()=>db.shopeeStudio||=( {drafts:{}} );
- const publicDraft=d=>{const {outputFile,...safe}=d;return {...safe,assets:Object.fromEntries(Object.entries(d.assets||{}).map(([key,{file,...asset}])=>[key,asset])),render:d.render?{...d.render,available:!!d.outputFile}:null};};
+ const publicDraft=d=>{const {outputFile,...safe}=d;return {...safe,catalog:catalogFor(d.productUrl),assets:Object.fromEntries(Object.entries(d.assets||{}).map(([key,{file,...asset}])=>[key,asset])),render:d.render?{...d.render,available:!!d.outputFile}:null};};
  const invalidate=d=>{d.revision=(d.revision||0)+1;d.review=null;d.stage='draft';d.render=null;d.outputFile=null;d.updatedAt=new Date().toISOString();};
  const saveDraft=async input=>{const id=input.id||'shopee-'+randomUUID();if(!ID.test(id))throw fail('invalid_draft_id');let d=state().drafts[id];if(d?.stage==='rendering')throw fail('render_in_progress',409);const valid=validateDraft(input);if(!d)d=state().drafts[id]={id,revision:0,assets:{}};Object.assign(d,valid);invalidate(d);await persist();return d;};
  const analytics=createShopeeAnalytics({state,persist});
@@ -83,9 +84,16 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
    if(u.pathname==='/api/shopee/studio/bank/refresh'&&req.method==='POST'){await bank.tick();respond(res,200,{bank:bank.snapshot()});return true;}
    if(u.pathname==='/api/shopee/studio/bank/open'&&req.method==='POST'){respond(res,200,await bank.open(await readJSON(req,1000)));return true;}
    if(u.pathname==='/api/shopee/studio/drafts'&&req.method==='POST'){respond(res,201,{draft:publicDraft(await saveDraft(await readJSON(req,20000)))});return true;}
-   const m=/^\/api\/shopee\/studio\/drafts\/([a-zA-Z0-9_-]{3,80})\/(assets\/(scene[123]|voice|music)|render|review|video|subtitles|package|publication|performance)$/.exec(u.pathname);
+   const m=/^\/api\/shopee\/studio\/drafts\/([a-zA-Z0-9_-]{3,80})\/(assets\/(scene[123]|voice|music)|catalog-assets|render|review|video|subtitles|package|publication|performance)$/.exec(u.pathname);
    if(!m){error(res,404,'shopee_route_not_found');return true;}
    const d=state().drafts[m[1]];if(!d){error(res,404,'draft_not_found');return true;}const action=m[2];
+   if(action==='catalog-assets'&&req.method==='POST'){
+    await readJSON(req,1000);
+    if(d.stage==='rendering')throw fail('render_in_progress',409);const catalog=catalogFor(d.productUrl);if(!catalog)throw fail('catalog_photo_not_available',404);
+    const bytes=await fs.readFile(catalogImageFile),dir=path.join(root,d.id);await fs.mkdir(dir,{recursive:true,mode:0o700});const next={},created=[];
+    try{for(const slot of ['scene1','scene2','scene3']){const file=path.join(dir,slot+'-'+randomUUID()+'.jpg');await fs.writeFile(file,bytes,{mode:0o600});created.push(file);next[slot]={file,mime:'image/jpeg',size:bytes.length,uploadedAt:new Date().toISOString(),source:'catalog',catalogId:catalog.id};}}catch(e){await Promise.all(created.map(f=>fs.rm(f,{force:true}).catch(()=>{})));throw e;}
+    const old=['scene1','scene2','scene3'].map(slot=>d.assets[slot]?.file).filter(Boolean);Object.assign(d.assets,next);invalidate(d);await persist();await Promise.all(old.map(f=>fs.rm(f,{force:true}).catch(()=>{})));respond(res,200,{draft:publicDraft(d)});return true;
+   }
    if(action.startsWith('assets/')&&req.method==='POST'){
     if(d.stage==='rendering')throw fail('render_in_progress',409);
     const slot=m[3],mime=String(req.headers['content-type']||'').split(';')[0],ext=TYPES[mime];if(!ext||(slot.startsWith('scene')?!/^(image\/|video\/mp4)/.test(mime):!mime.startsWith('audio/')))throw fail('unsupported_asset_type');
