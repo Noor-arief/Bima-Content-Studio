@@ -268,4 +268,4 @@ Owner endpoints: bank/products (evidence upsert), bank/settings (niche/time), ba
 
 Daily morning research task configured in Asia/Jakarta to investigate up to three evidence-backed new candidates using official Shopee sources and the GitHub seed, with explicit unknowns and access-block reporting. It never invents affiliate URLs, auto-verifies catalog maxima, approves or uploads video.
 
-Validation: 37 backend tests passed, including WIB midnight rollover, no-repeat allocation, incomplete/old commission evidence, listing deduplication, resuming approved work, actual publication goal counting, and niche changes preserving started work.
+Validation: 38 backend tests passed, including WIB midnight rollover, no-repeat allocation, incomplete/old commission evidence, listing deduplication, resuming approved work, actual publication goal counting, and niche changes preserving started work.
