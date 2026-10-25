@@ -12,14 +12,22 @@ if(changed)save(d);
 const cardsPanel=root.closest('.panel'),formPanel=form.closest('.panel');
 const tabs=document.getElementById('tabs');if(tabs){tabs.querySelector('[data-tab="production"]')?.addEventListener('click',()=>{render()})}
 if(cardsPanel&&formPanel&&formPanel.parentNode)formPanel.parentNode.insertBefore(cardsPanel,formPanel);
-if(cardsPanel)cardsPanel.querySelector('h2').textContent='Paket TikTok Production · Terjadwal';
+if(cardsPanel){
+ cardsPanel.querySelector('h2').textContent='TikTok Production · Per Tanggal';
+ const chooser=document.createElement('div');chooser.id='tiktokProductionDates';chooser.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:15px 0;';
+ root.before(chooser);
+ chooser.addEventListener('click',e=>{const b=e.target.closest('button[data-date]');if(!b)return;activeDate=b.dataset.date;render()});
+}
+let activeDate='2026-10-25';
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open(DB,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE))request.result.createObjectStore(STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
 async function storeFile(key,file){const db=await dbPromise;return new Promise((ok,bad)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(file,key);tx.oncomplete=ok;tx.onerror=()=>bad(tx.error)})}
 async function readFile(key){const db=await dbPromise;return new Promise((ok,bad)=>{const request=db.transaction(STORE).objectStore(STORE).get(key);request.onsuccess=()=>ok(request.result);request.onerror=()=>bad(request.error)})}
 async function previews(){for(const img of root.querySelectorAll('[data-preview]')){try{const file=await readFile(img.dataset.preview);if(file){const u=URL.createObjectURL(file);img.src=u;img.hidden=false;img.onload=()=>URL.revokeObjectURL(u)}}catch(_){}}}
 function render(){
  const items=(get().content||[]).filter(x=>x.production).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
- root.innerHTML=items.map(x=>{
+ const chooser=document.getElementById('tiktokProductionDates');
+ if(chooser){const dates=[...new Set(items.map(i=>i.date))];if(!dates.includes(activeDate))activeDate=dates[0]||'';chooser.innerHTML=dates.map(date=>'<button type="button" data-date="'+escapeHtml(date)+'" class="'+(date===activeDate?'active':'secondary')+'" style="font-weight:700">'+new Date(date+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' · '+items.filter(x=>x.date===date).length+' konten</button>').join('')}
+ root.innerHTML=items.filter(x=>x.date===activeDate).map(x=>{
  const scenes=[1,2,3].map(i=>'<div><img data-preview="'+escapeHtml(x.id)+':scene'+i+'" hidden style="width:100%;max-height:200px;object-fit:contain"><h4>Scene '+i+'</h4><p>'+escapeHtml(x.scenes?.[i-1]||'')+'</p><label>Foto (opsional)<input type="file" accept="image/*" data-scene="'+i+'" data-id="'+escapeHtml(x.id)+'"></label></div>').join('');
  return '<article class="metric" style="margin-bottom:16px"><h3>'+escapeHtml(x.title)+'</h3><p>'+escapeHtml(x.date)+' · '+escapeHtml(x.status)+'</p><div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">'+scenes+'</div><h4>Prompt Google Flow</h4><textarea readonly rows="7">'+escapeHtml(x.prompt)+'</textarea><h4>Caption & Hashtag</h4><textarea readonly rows="3">'+escapeHtml(x.caption)+'</textarea><p>Link produk: '+escapeHtml(x.product||'—')+' · Link video: '+escapeHtml(x.url||'—')+'</p><label>Video (opsional)<input type="file" accept="video/*" data-video="'+escapeHtml(x.id)+'"></label></article>';
  }).join('')||'<p>Belum ada konten Production.</p>';previews();
