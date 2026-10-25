@@ -245,3 +245,10 @@ If a test shop ID is actually returned, `tts_open_toolkit sandbox product list -
 - Recover the per-video report using supported ungrouped queries with engagement/playback metrics and clear the failure flag after recovery. Missing metrics stay unknown instead of becoming zero; channel fallback records its actual video limit.
 - Preserve interaction metrics when merging the independent views-only daily report. Never compare Shorts totals against a channel-wide cutoff aggregate.
 - Validation: all 27 backend tests passed locally and GitHub backend CI passed. Railway deployment `2cd9bf3a-981a-4f7a-a2b0-c009b09e394f` reached SUCCESS. Live owner refresh at 25 Oct 2026 11:47:59 WIB returned per-video engaged views, likes, comments, subscriber changes and playback averages; recovered-video failure message is absent. Cutoff reconciliation confirms 1,160 views through 22 Oct with zero aggregate/daily delta. Data freshness remains governed by Google processing; this fix does not fabricate recent days.
+
+
+## Shopee production desk — 25 October 2026
+
+Implemented owner-only persistent drafts and private source uploads, three-scene storyboards, 24-second portrait MP4 rendering with burned captions and optional voice/music, revision-aware review, approved export package, manual publication records and manually entered performance. No paid AI generation or automatic publishing occurs. The researched tumbler seed separates Shopee Video commission (10%) from social media (11.5%).
+
+Account verification: Affiliate Open API access is unavailable; Seller Centre is inactive. Upload and product tagging remain manual in Shopee app. Publication dates are planning fields, not an automatic scheduler. Source product photos/clips and any licensed audio must be supplied before rendering.

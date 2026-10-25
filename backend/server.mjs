@@ -1,4 +1,5 @@
 import http from "node:http";
+import {createShopeeStudio,SHOPEE_STUDIO_VERSION} from "./shopee-studio.mjs";
 import { ANALYTICS_SCOPE, TARGET_CHANNEL, fetchAnalytics, reportRange } from "./youtube-analytics.mjs";
 import { randomBytes, createHash, createCipheriv, createDecipheriv, timingSafeEqual } from "node:crypto";
 import { createReadStream, createWriteStream, existsSync, promises as fs } from "node:fs";
@@ -41,6 +42,7 @@ const THUMBNAIL_MAX_UPLOAD = 12 * 1024 * 1024;
 const THUMBNAIL_START = "2026-10-19";
 const ENABLE_THUMBNAIL_UPLOADS = process.env.ENABLE_THUMBNAIL_UPLOADS === "true";
 let shortsConversionBusy = false;
+let shopeeStudio;
 const ENABLE_PUBLIC_SCHEDULING = process.env.ENABLE_PUBLIC_SCHEDULING === "true";
 const EXPECTED_CHANNEL_ID = process.env.EXPECTED_YOUTUBE_CHANNEL_ID || "";
 
@@ -270,7 +272,7 @@ async function handler(req,res){
     res.setHeader("Access-Control-Allow-Origin",ORIGIN);
     res.setHeader("Vary","Origin");
     res.setHeader("Access-Control-Allow-Headers","Authorization,Content-Type");
-    res.setHeader("Access-Control-Allow-Methods","GET,POST,PUT,OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods","GET,POST,PUT,DELETE,OPTIONS");
   }
   if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}
 
@@ -392,7 +394,7 @@ async function handler(req,res){
       connected:Boolean(db.tiktokSandbox?.openId),shopAffiliateConnected:false,postingConnected:false});
   }
   if(req.method==="GET"&&u.pathname==="/health")return respond(res,200,{
-    service:"bima-content-studio-api",status:"online",analyticsAvailable:true,oauthConfigured:HAVE_OAUTH,
+    service:"bima-content-studio-api",status:"online",analyticsAvailable:true,shopeeStudioVersion:SHOPEE_STUDIO_VERSION,oauthConfigured:HAVE_OAUTH,
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
     channelVerified:activeOauth()&&Boolean(EXPECTED_CHANNEL_ID)&&db.oauth.channelId===EXPECTED_CHANNEL_ID,
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING,
@@ -463,6 +465,7 @@ async function handler(req,res){
   }
   if(!u.pathname.startsWith("/api/"))return error(res,404,"not_found");
   if(!access(req))return error(res,401,"authentication_required");
+  if(await shopeeStudio.handle(req,res,u))return;
   if(req.method==="GET"&&u.pathname==="/api/production/plan"){
     return respond(res,200,{mode:"editorial_only",providerGenerationEnabled:false,publishEnabled:false,
       note:"Alternating daily release proposal; no video generated, source verified, or upload initiated.",
@@ -973,6 +976,7 @@ async function handler(req,res){
   return error(res,405,"method_not_allowed");
 }
 await init();
+shopeeStudio=createShopeeStudio({db,persist,mediaDir:MEDIA_DIR,respond,error,readJSON});
 tiktokGoogleWorker=createGoogleAffiliateWorker({db,persist,mediaDir:MEDIA_DIR});
 await persist();
 setInterval(()=>void tiktokGoogleWorker.tick().catch(()=>console.warn('tiktok_google_worker_failed')),15000).unref();
