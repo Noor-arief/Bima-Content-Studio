@@ -522,7 +522,7 @@ body[data-channel="tiktok"] #futureWorkspace,body[data-channel="shopee"] #future
 body[data-view="analytics"] [data-panel]:not([data-panel="analytics"]){display:none!important}
 body:not([data-view="analytics"]) [data-panel="analytics"]{display:none!important}
 body[data-view="analytics"] .content-grid{display:none!important}
-body:not([data-channel="youtube"]) [data-go="analytics"]{display:none!important}
+body:not([data-channel="youtube"]):not([data-channel="shopee"]) [data-go="analytics"]{display:none!important}
 .analytics-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
 .analytics-cards article{padding:18px;background:var(--panel2);border:1px solid var(--line);border-radius:14px}
 .analytics-cards small{display:block;color:var(--muted)}.analytics-cards strong{font-size:27px;display:block;margin-top:8px}
@@ -1242,7 +1242,7 @@ render();
 <script src="bima-public-status.js?v=20261014-sync1" defer></script>
 <script src="episode-workflow.js?v=20261014-sync1" defer></script>
 <script src="auto-thumbnails.js?v=20261019-frame-recovery-v3" defer></script>
-<script src="affiliate-workspace.js?v=20261014-split1" defer></script>
+<script src="affiliate-workspace.js?v=20261025-shopee-analytics1" defer></script>
 <script src="tiktok-affiliate.js?v=20261014-first-sale1" defer></script>
 <script src="tiktok-connection.js?v=20261016-settings" defer></script>
 <script src="tiktok-quick-import.js?v=20261014-quick-import1" defer></script>
@@ -1250,9 +1250,10 @@ render();
 <script src="tiktok-google-review.js?v=20261015-simple3" defer></script>
 <script src="tiktok-showcase.js?v=20261016-review1" defer></script>
 <script src="shopee-affiliate.js?v=20261014-split1" defer></script>
-<script src="shopee-studio.js?v=20261025-bank1" defer></script>
+<script src="shopee-analytics.js?v=20261025-analytics1" defer></script>
+<script src="shopee-studio.js?v=20261025-analytics1" defer></script>
 <script src="youtube-analytics.js?v=20261023-independent-views6" defer></script>
-<script src="channel-navigation.js?v=20261025-shopee-simple1" defer></script>
+<script src="channel-navigation.js?v=20261025-shopee-analytics1" defer></script>
 <script src="autonomous-planner.js?v=20261014-sync1" defer></script>
 <script src="mixed-calendar-sync.js?v=20261013-idea-bank-cleanup1" defer></script>
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>

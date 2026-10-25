@@ -269,7 +269,7 @@ function mount(cfg) {
   function go(next, skipCollect) {
     if (!skipCollect) collect();
     save();
-    sec = SECTIONS.includes(next) ? next : 'ringkasan';
+    sec = P === 'shopee' && next === 'analytics' ? 'analytics' : SECTIONS.includes(next) ? next : 'ringkasan';
     paintAll();
     if (!skipCollect) say('Perubahan tersimpan otomatis di browser ini.');
     document.dispatchEvent(new CustomEvent('bima:channel-section', { detail: sec }));

@@ -269,3 +269,14 @@ Owner endpoints: bank/products (evidence upsert), bank/settings (niche/time), ba
 Daily morning research task configured in Asia/Jakarta to investigate up to three evidence-backed new candidates using official Shopee sources and the GitHub seed, with explicit unknowns and access-block reporting. It never invents affiliate URLs, auto-verifies catalog maxima, approves or uploads video.
 
 Validation: 38 backend tests passed, including WIB midnight rollover, no-repeat allocation, incomplete/old commission evidence, listing deduplication, resuming approved work, actual publication goal counting, and niche changes preserving started work.
+
+
+## Shopee analytics and daily posting records — 25 October 2026
+
+Added a separate Analytics Shopee menu with 7/28/90-day periods, daily charts, video performance/commission tables, daily report detail, and the one-video-per-WIB-day posting target. Estimated, approved and paid commissions are separate stages, never added into one earnings figure. Missing report metrics remain unknown; explicit reported zero stays zero. Main totals prefer account-level rows over video-level rows for the same date to avoid double counting. Video tables use only per-video records and disclose coverage.
+
+Data access remains owner-only. The current Shopee plugin exposes product search, not Affiliate report APIs; this panel uses explicit manual daily reports or CSV imports. It is not an embedded Shopee page or a live sync. CSV preview/apply supports the BIMA template and documented Indonesian/English column aliases, not all native report layouts. XLSX must be exported to a daily CSV first. Transaction-level exports must be aggregated before import. Re-importing a date/video replaces reported fields without duplicating counts; blank fields retain earlier known metrics. Per-video legacy snapshots without dates are kept separate from period totals.
+
+Added manual publication records for videos uploaded in the Shopee app, including external production tools. Goals use the actual owner-confirmed publication date, deduplicate the same canonical URL, and do not infer upload from rendering/approval. The existing production publication form also records the true date. Goal counts are shared with the product-bank daily card. No automatic upload, new account permissions, paid generation, or invented account analytics added.
+
+Validation: 45 backend tests passed, including report coverage, account/video overlap, locale-aware CSV, preview without writes, idempotent and atomic import, preserving known metrics during partial updates, safe dates/URLs, actual publication dates and goal deduplication. Frontend navigation, period/metric changes, populated simulated tables and empty states are checked in the local preview; simulation is not account data.

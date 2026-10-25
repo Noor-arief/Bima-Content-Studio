@@ -1,5 +1,6 @@
 import http from "node:http";
 import {createShopeeStudio,SHOPEE_STUDIO_VERSION} from "./shopee-studio.mjs";
+import {SHOPEE_ANALYTICS_VERSION} from './shopee-analytics.mjs';
 import { ANALYTICS_SCOPE, TARGET_CHANNEL, fetchAnalytics, reportRange } from "./youtube-analytics.mjs";
 import { randomBytes, createHash, createCipheriv, createDecipheriv, timingSafeEqual } from "node:crypto";
 import { createReadStream, createWriteStream, existsSync, promises as fs } from "node:fs";
@@ -394,7 +395,7 @@ async function handler(req,res){
       connected:Boolean(db.tiktokSandbox?.openId),shopAffiliateConnected:false,postingConnected:false});
   }
   if(req.method==="GET"&&u.pathname==="/health")return respond(res,200,{
-    service:"bima-content-studio-api",status:"online",analyticsAvailable:true,shopeeStudioVersion:SHOPEE_STUDIO_VERSION,oauthConfigured:HAVE_OAUTH,
+    service:"bima-content-studio-api",status:"online",analyticsAvailable:true,shopeeStudioVersion:SHOPEE_STUDIO_VERSION,shopeeAnalyticsVersion:SHOPEE_ANALYTICS_VERSION,oauthConfigured:HAVE_OAUTH,
     youtubeConnected:activeOauth(),channelLocked:Boolean(EXPECTED_CHANNEL_ID),
     channelVerified:activeOauth()&&Boolean(EXPECTED_CHANNEL_ID)&&db.oauth.channelId===EXPECTED_CHANNEL_ID,
     uploadsEnabled:ENABLE_UPLOADS,publicSchedulingEnabled:ENABLE_PUBLIC_SCHEDULING,

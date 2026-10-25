@@ -3,7 +3,8 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import ffmpeg from 'ffmpeg-static';
-import {createProductBank} from './shopee-bank.mjs';
+import {createProductBank,wibDate,validDate} from './shopee-bank.mjs';
+import {createShopeeAnalytics} from './shopee-analytics.mjs';
 
 const SLOTS=['scene1','scene2','scene3','voice','music'];
 const TYPES={'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp','video/mp4':'.mp4','audio/mpeg':'.mp3','audio/wav':'.wav','audio/x-wav':'.wav','audio/mp4':'.m4a','audio/aac':'.aac'};
@@ -62,7 +63,8 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
  const publicDraft=d=>{const {outputFile,...safe}=d;return {...safe,assets:Object.fromEntries(Object.entries(d.assets||{}).map(([key,{file,...asset}])=>[key,asset])),render:d.render?{...d.render,available:!!d.outputFile}:null};};
  const invalidate=d=>{d.revision=(d.revision||0)+1;d.review=null;d.stage='draft';d.render=null;d.outputFile=null;d.updatedAt=new Date().toISOString();};
  const saveDraft=async input=>{const id=input.id||'shopee-'+randomUUID();if(!ID.test(id))throw fail('invalid_draft_id');let d=state().drafts[id];if(d?.stage==='rendering')throw fail('render_in_progress',409);const valid=validateDraft(input);if(!d)d=state().drafts[id]={id,revision:0,assets:{}};Object.assign(d,valid);invalidate(d);await persist();return d;};
- const bank=createProductBank({state,persist,saveDraft,publicDraft});
+ const analytics=createShopeeAnalytics({state,persist});
+ const bank=createProductBank({state,persist,saveDraft,publicDraft,publications:analytics.publications});
  async function handle(req,res,u){
   if(!u.pathname.startsWith('/api/shopee/studio'))return false;
   try{
@@ -72,6 +74,10 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
     await bank.tick();
     respond(res,200,{bank:bank.snapshot(),version:SHOPEE_STUDIO_VERSION,capabilities:{render:true,autoUpload:false,affiliateApi:false,publishMode:'shopee_app'},drafts:Object.values(state().drafts).map(publicDraft)});return true;
    }
+   if(u.pathname==='/api/shopee/studio/analytics'&&req.method==='GET'){respond(res,200,analytics.snapshot(u.searchParams.get('days')||28));return true;}
+   if(u.pathname==='/api/shopee/studio/analytics/rows'&&req.method==='POST'){await analytics.saveRow(await readJSON(req,6000));respond(res,200,{saved:true});return true;}
+   if(u.pathname==='/api/shopee/studio/analytics/import'&&req.method==='POST'){respond(res,200,await analytics.importCSV(await readJSON(req,1100000)));return true;}
+   if(u.pathname==='/api/shopee/studio/analytics/publications'&&req.method==='POST'){respond(res,200,{publication:await analytics.logPublication(await readJSON(req,4000))});return true;}
    if(u.pathname==='/api/shopee/studio/bank/products'&&req.method==='POST'){respond(res,200,{bank:await bank.upsert(await readJSON(req,12000))});return true;}
    if(u.pathname==='/api/shopee/studio/bank/settings'&&req.method==='POST'){respond(res,200,{bank:await bank.settings(await readJSON(req,1000))});return true;}
    if(u.pathname==='/api/shopee/studio/bank/refresh'&&req.method==='POST'){await bank.tick();respond(res,200,{bank:bank.snapshot()});return true;}
@@ -116,7 +122,8 @@ export function createShopeeStudio({db,persist,mediaDir,respond,error,readJSON})
    if(action==='publication'&&req.method==='POST'){
     const b=await readJSON(req,2000);if(d.stage!=='approved'||d.render?.revision!==d.revision)throw fail('approve_before_publication_record',409);
     let link;try{link=new URL(b.url);}catch{throw fail('invalid_publication_url');}if(link.protocol!=='https:'||!['shopee.co.id','s.shopee.co.id','shp.ee'].includes(link.hostname)||b.tagChecked!==true)throw fail('confirm_shopee_video_and_product_tag');
-    d.publication={url:link.href,confirmedAt:new Date().toISOString(),revision:d.revision,verification:'owner_confirmed'};d.stage='published';await persist();respond(res,200,{draft:publicDraft(d)});return true;
+    const publishedDate=b.publishedDate||wibDate();if(!validDate(publishedDate)||publishedDate>wibDate()||publishedDate<'2020-01-01')throw fail('invalid_publication_date');
+    d.publication={publishedDate,url:link.href,confirmedAt:new Date().toISOString(),revision:d.revision,verification:'owner_confirmed'};d.stage='published';await persist();respond(res,200,{draft:publicDraft(d)});return true;
    }
    if(action==='performance'&&req.method==='POST'){
     const b=await readJSON(req,1000),metrics={};for(const k of ['views','clicks','orders','earned']){if(b[k]==null||b[k]===''){metrics[k]=null;continue;}const n=Number(b[k]);if(!Number.isFinite(n)||n<0)throw fail('invalid_performance');metrics[k]=n;}

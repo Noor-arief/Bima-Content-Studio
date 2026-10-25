@@ -10,7 +10,7 @@ sidebar.insertBefore(channelLabel,menuLabel);sidebar.insertBefore(channels,menuL
 const context=document.createElement('div');context.className='channel-menu-context';context.setAttribute('aria-live','polite');
 context.innerHTML='<span class="channel-menu-dot" aria-hidden="true"></span><div><strong></strong><small></small></div>';
 sidebar.insertBefore(context,menuLabel);
-const names={youtube:{analytics:'Analytics YouTube',ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'TikTok Production 2',desk:'TikTok Production 1',kalender:'Owner Section',publishing:'Pengaturan'},shopee:{ringkasan:'1 · Pilih produk',desk:'2 · Buat video',publishing:'3 · Review & unduh'}};
+const names={youtube:{analytics:'Analytics YouTube',ringkasan:'Ringkasan YouTube',kalender:'Kalender YouTube',desk:'Produksi Shorts',publishing:'Publishing YouTube'},tiktok:{ringkasan:'TikTok Production 2',desk:'TikTok Production 1',kalender:'Owner Section',publishing:'Pengaturan'},shopee:{ringkasan:'1 · Pilih produk',desk:'2 · Buat video',publishing:'3 · Review & unduh',analytics:'Analytics Shopee'}};
 let tiktokSection='ringkasan',shopeeSection='ringkasan';
 for(const button of menu.querySelectorAll('[data-go]')){
  const icon=button.querySelector('.ico');const text=document.createElement('span');text.className='channel-menu-name';
@@ -20,7 +20,7 @@ const originalItems=[...menu.querySelectorAll('[data-go]')];
 const calendarButton=document.createElement('button');calendarButton.type='button';calendarButton.className='menu-item tt-calendar-menu';calendarButton.dataset.tiktokCalendar='true';calendarButton.innerHTML='<span class="ico" aria-hidden="true">04</span><span class="channel-menu-name">TikTok Calendar &amp; Live</span>';
 calendarButton.hidden=true;calendarButton.addEventListener('click',()=>{tiktokSection='tt-calendar';const root=document.getElementById('tiktokWorkspace');if(root){root.dataset.sec='tt-calendar';document.dispatchEvent(new CustomEvent('bima:channel-section',{detail:'tt-calendar'}));}sync();});
 function orderMenus(channel){
- const target=channel==='tiktok'?['desk','ringkasan','kalender','publishing']:originalItems.map(b=>b.dataset.go);
+ const target=channel==='tiktok'?['desk','ringkasan','kalender','publishing']:channel==='shopee'?['ringkasan','desk','publishing','analytics','kalender']:originalItems.map(b=>b.dataset.go);
  for(const id of target){const b=originalItems.find(n=>n.dataset.go===id);if(b)menu.appendChild(b);}
  if(channel==='tiktok')for(const [id,label] of Object.entries({desk:'01',ringkasan:'02',kalender:'03',publishing:'05'})){const b=originalItems.find(n=>n.dataset.go===id);const icon=b?.querySelector('.ico');if(icon)icon.textContent=label;}
  else for(const b of originalItems){const icon=b.querySelector('.ico');if(icon&&icon.dataset.originalIcon!==undefined)icon.textContent=icon.dataset.originalIcon;}
@@ -38,7 +38,7 @@ function sync(){
  menuLabel.hidden=!known;menu.hidden=!known;
  menu.setAttribute('aria-label','Menu '+(PLATFORM_COPY[ch]?.name||ch));
  for(const b of menu.querySelectorAll('[data-go]')){
-  b.hidden=ch==='shopee'&&['kalender','analytics'].includes(b.dataset.go);
+  b.hidden=ch==='shopee'&&['kalender'].includes(b.dataset.go);
   b.querySelector('.channel-menu-name').textContent=names[ch]?.[b.dataset.go]||b.dataset.go;
   const active=known&&b.dataset.go===(yt?document.body.dataset.view:ch==='shopee'?shopeeSection:tiktokSection);
   b.classList.toggle('active',active);
@@ -59,7 +59,7 @@ const style=document.createElement('style');style.textContent=`
 `;document.head.append(style);
 channels.addEventListener('click',()=>queueMicrotask(sync));
 document.addEventListener('bima:episode-selected',()=>queueMicrotask(sync));
-document.addEventListener('bima:shopee-step',e=>{shopeeSection={research:'ringkasan',production:'desk',review:'publishing'}[e.detail]||'ringkasan';sync();});
+document.addEventListener('bima:shopee-step',e=>{shopeeSection={research:'ringkasan',production:'desk',review:'publishing',analytics:'analytics'}[e.detail]||'ringkasan';sync();});
 document.addEventListener('bima:channel-section',e=>{if(state.active==='shopee')shopeeSection=e.detail;else tiktokSection=e.detail;sync();});
 document.addEventListener('click',e=>{if(e.target.closest('[data-go]'))queueMicrotask(sync);});
 window.addEventListener('popstate',()=>queueMicrotask(sync));
