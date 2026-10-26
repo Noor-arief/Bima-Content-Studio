@@ -5,6 +5,7 @@
   const $=id=>document.getElementById(id);
   const stateKey='bima_public_upload_summary_v1';
   let latest=null;
+  let lastRenderSignature='';
   function apply(data,{cached=false}={}){
     if(!data||!Number.isInteger(data.uploaded)||!Number.isInteger(data.scheduled)||
       !Number.isInteger(data.published)||!Array.isArray(data.uploadIndicators))return;
@@ -21,8 +22,12 @@
       info.textContent='Scheduled: '+data.scheduled+' · Public: '+data.published+stamp;
       info.style.color='#9deecb';
     }
-    if(typeof renderQueue==='function')renderQueue();
-    if(typeof renderCalendar==='function')renderCalendar();
+    const signature=JSON.stringify(window.BIMA_PUBLIC_UPLOADS);
+    if(signature!==lastRenderSignature){
+      lastRenderSignature=signature;
+      if(typeof renderQueue==='function')renderQueue();
+      if(typeof renderCalendar==='function')renderCalendar();
+    }
   }
   function restore(){
     try{
