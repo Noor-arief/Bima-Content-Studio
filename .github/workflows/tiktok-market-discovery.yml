@@ -25,9 +25,9 @@ jobs:
         run: python3 scripts/tiktok_market_discovery.py
       - name: Update dashboard signals
         run: |
-          if git diff --quiet -- tiktok-market-signals.json; then exit 0; fi
+          git add tiktok-market-signals.json
+          if git diff --cached --quiet -- tiktok-market-signals.json; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tiktok-market-signals.json
           git commit -m "data: refresh TikTok public market signals"
           git push
