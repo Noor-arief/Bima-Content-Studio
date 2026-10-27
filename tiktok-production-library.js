@@ -19,7 +19,7 @@ if(cardsPanel){
  root.before(chooser);
  chooser.addEventListener('change',e=>{if(e.target.matches('input[data-tt-date]')){if(e.target.value){activeDate=e.target.value;render()}}});
 }
-let activeDate='2026-10-25';
+let activeDate='2026-10-29';
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open(DB,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE))request.result.createObjectStore(STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
 async function storeFile(key,file){const db=await dbPromise;return new Promise((ok,bad)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(file,key);tx.oncomplete=ok;tx.onerror=()=>bad(tx.error)})}
 async function readFile(key){const db=await dbPromise;return new Promise((ok,bad)=>{const request=db.transaction(STORE).objectStore(STORE).get(key);request.onsuccess=()=>ok(request.result);request.onerror=()=>bad(request.error)})}
