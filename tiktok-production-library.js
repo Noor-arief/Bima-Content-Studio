@@ -8,6 +8,17 @@ const get=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{retu
 const save=d=>{localStorage.setItem(KEY,JSON.stringify(d));window.dispatchEvent(new Event('storage'));document.dispatchEvent(new CustomEvent('bima:tiktok:production-saved'))};
 let d=get();d.content||=[];let changed=false;
 for(const seed of seeds){const existing=d.content.find(x=>x.id===seed.id);if(!existing){d.content.push({...seed,notes:'Detail konten tersedia di Production.'});changed=true}else if(existing.id==='tt-owner-20261027-blue-pajama'&&existing.date!=='2026-10-28'){existing.date='2026-10-28';changed=true}else if(/Foto scene masih di ChatGPT|Link dan video kosong/.test(existing.notes||'')){existing.notes='Detail konten tersedia di Production.';changed=true}}
+// Migrate the existing Fuelin draft in browser storage to the approved v47 prompt.
+// Scoped to this single campaign; preserves media, publish state, URL and other user fields.
+const fuelinSeed=seeds.find(x=>x.id==='tt-owner-20261030-1230-fuelin-gym');
+const fuelinExisting=d.content.find(x=>x.id==='tt-owner-20261030-1230-fuelin-gym');
+if(fuelinSeed&&fuelinExisting&&fuelinExisting.promptRevision!=='fuelin-reference-lock-v47'){
+ fuelinExisting.prompt=fuelinSeed.prompt;
+ fuelinExisting.scenes=[...fuelinSeed.scenes];
+ fuelinExisting.promptRevision='fuelin-reference-lock-v47';
+ fuelinExisting.notes=(fuelinExisting.notes||'')+' | Flow reference-lock v47 applied to dashboard.';
+ changed=true;
+}
 if(changed)save(d);
 const cardsPanel=root.closest('.panel'),formPanel=form.closest('.panel');
 if(formPanel)formPanel.hidden=true; // Hide duplicate blank creation form, keep existing data.
