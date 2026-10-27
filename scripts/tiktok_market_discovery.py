@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Public news references for TikTok ideas; not TikTok Shop analytics."""
+"""Public news references for TikTok ideas; not TikTok Shop analytics or sales."""
 import datetime
 import json
 import sys
