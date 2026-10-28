@@ -37,7 +37,17 @@ function boot(){
  const extra=document.createElement('style');extra.textContent='button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #71dfd4;outline-offset:3px}body.bima-tiktok-unified .content{height:auto!important;overflow:visible!important}#bimaTikTokUnifiedFrame{min-height:720px!important;height:calc(100dvh - 55px)!important}#bimaTikTokUnifiedNav{margin:8px 0}#bimaTikTokUnifiedNav .menu-item{min-height:44px}@media(max-width:900px){.sidebar{position:relative!important}#bimaTikTokUnifiedNav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#bimaTikTokUnifiedNav>div{grid-column:1/-1}#bimaTikTokUnifiedNav .menu-item{margin:0!important;font-size:12px}#bimaTikTokUnifiedFrame{min-height:680px!important}}';document.head.append(extra);
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tt-page]');if(b)setTab(b.dataset.ttPage)});
  panel.querySelector('iframe').addEventListener('load',()=>setTab(nav.querySelector('.active')?.dataset.ttPage||'production',false));
- const obs=new MutationObserver(sync);obs.observe(channels,{subtree:true,attributes:true,attributeFilter:['class','aria-pressed'],childList:true});channels.addEventListener('click',()=>queueMicrotask(sync));sync();restoreTab();if(new URLSearchParams(location.hash.slice(1)).get('channel')==='tiktok')channels.querySelector('[data-channel="tiktok"]')?.click();
+ const obs=new MutationObserver(sync);obs.observe(channels,{subtree:true,attributes:true,attributeFilter:['class','aria-pressed'],childList:true});channels.addEventListener('click',e=>{
+ const channel=e.target.closest('[data-channel]')?.dataset.channel;if(!channel)return;
+ queueMicrotask(()=>{
+  sync();
+  if(channel==='tiktok')setTab(nav.querySelector('[aria-current="page"]')?.dataset.ttPage||'production');
+  else if(new URLSearchParams(location.hash.slice(1)).get('channel')==='tiktok'){
+   const params=channel==='youtube'?new URLSearchParams({view:document.body.dataset.view||'ringkasan'}):new URLSearchParams({channel});
+   history.pushState(null,'','#'+params);
+  }
+ });
+});sync();restoreTab();if(new URLSearchParams(location.hash.slice(1)).get('channel')==='tiktok')channels.querySelector('[data-channel="tiktok"]')?.click();
 }
 if(document.getElementById('channelBar'))boot();else document.addEventListener('DOMContentLoaded',boot,{once:true});
 })();
