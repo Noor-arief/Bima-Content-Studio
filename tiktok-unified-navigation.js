@@ -1,18 +1,18 @@
 (()=>{'use strict';
 function boot(){
  const channels=document.getElementById('channelBar'),side=document.querySelector('.sidebar'),main=document.querySelector('.content');
- if(!channels||!side||!main)return;
+ if(!channels||!side||!main||document.getElementById('bimaTikTokUnifiedPanel'))return;
  document.getElementById('bimaTikTokInsightsLink')?.remove();
  const nav=document.createElement('nav');nav.id='bimaTikTokUnifiedNav';nav.setAttribute('aria-label','TikTok workspace');
  nav.innerHTML='<div style="font-size:12px;color:#80e7db;font-weight:800;margin:9px 0">TIKTOK STUDIO</div>'+[['research','01 · Research'],['production','02 · Production'],['calendar','03 · Calendar'],['analytics','04 · Analytics']].map(([k,v])=>'<button type="button" class="menu-item" data-tt-page="'+k+'" style="display:block;width:100%;margin:5px 0;text-align:left">'+v+'</button>').join('');
  channels.insertAdjacentElement('afterend',nav);
  const panel=document.createElement('section');panel.id='bimaTikTokUnifiedPanel';panel.style.cssText='width:100%;min-width:0;';
- panel.innerHTML='<iframe id="bimaTikTokUnifiedFrame" title="TikTok BIMA Production and Analytics" src="./tiktok-insights.html?v=20261030-whitteker-1900-v49" style="display:block;width:100%;min-height:900px;height:calc(100vh - 90px);border:1px solid #294b59;border-radius:14px;background:#080e20"></iframe>';
+ panel.innerHTML='<iframe id="bimaTikTokUnifiedFrame" title="TikTok BIMA Production and Analytics" loading="eager" src="./tiktok-insights.html?v=20261030-ui-boot-v50" style="display:block;width:100%;min-height:900px;height:calc(100vh - 90px);border:1px solid #294b59;border-radius:14px;background:#080e20"></iframe>';
  main.appendChild(panel);
  const style=document.createElement('style');style.textContent='body.bima-tiktok-unified .content > :not(#bimaTikTokUnifiedPanel){display:none!important}body:not(.bima-tiktok-unified) #bimaTikTokUnifiedPanel,body:not(.bima-tiktok-unified) #bimaTikTokUnifiedNav{display:none!important}body.bima-tiktok-unified #bimaTikTokUnifiedPanel{display:block!important}body.bima-tiktok-unified .sidebar nav.menu,body.bima-tiktok-unified .sidebar .tt-calendar-menu{display:none!important}#bimaTikTokUnifiedNav .menu-item.active{background:#18777a;border-color:#59ccc6;color:white}';document.head.appendChild(style);
- const isTikTok=()=>!!channels.querySelector('[data-channel="tiktok"][aria-pressed="true"],[data-channel="tiktok"].active');
+ const isTikTok=()=>channels.querySelector('[data-channel].active')?.dataset.channel==='tiktok';
  let wasTikTok=false;
- function sync(){const active=isTikTok();document.body.classList.toggle('bima-tiktok-unified',active);if(active&&!wasTikTok)restoreTab();wasTikTok=active}
+ function sync(){const active=isTikTok();document.body.classList.toggle('bima-tiktok-unified',active);document.documentElement.removeAttribute('data-bima-start-channel');if(active&&!wasTikTok)restoreTab();wasTikTok=active}
  function restoreTab(){const p=new URLSearchParams(location.hash.slice(1));setTab(p.get('channel')==='tiktok'?p.get('tab')||'production':sessionStorage.getItem('bimaTikTokTab')||'production',false)}
  function setTab(tab,write=true){
  if(!['research','production','calendar','analytics','report'].includes(tab))tab='production';
@@ -23,7 +23,11 @@ function boot(){
  }
  window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==panel.querySelector('iframe').contentWindow||e.data?.type!=='bima:tiktok:tab-changed')return;setTab(e.data.tab,false)});
  window.addEventListener('popstate',()=>{const p=new URLSearchParams(location.hash.slice(1));if(p.get('channel')==='tiktok'){if(!isTikTok())channels.querySelector('[data-channel="tiktok"]')?.click();restoreTab()}});
- const frame=panel.querySelector('iframe');frame.setAttribute('loading','lazy');
+ const frame=panel.querySelector('iframe');
+ const loading=document.createElement('p');loading.setAttribute('role','status');loading.textContent='Memuat TikTok Studio…';panel.prepend(loading);
+ frame.style.visibility='hidden';
+ frame.addEventListener('load',()=>{loading.hidden=true;frame.style.visibility='visible';});
+ frame.addEventListener('error',()=>{loading.textContent='TikTok Studio gagal dimuat. Muat ulang halaman untuk mencoba lagi.';});
  frame.addEventListener('load',()=>{try{
  const doc=frame.contentDocument;if(!doc)return;
  const css=doc.createElement('style');css.textContent='html{overflow-x:hidden}body{padding:18px;max-width:none}body>.head{display:none}.tabs{margin:0 0 16px}.panel{min-width:0}.grid>*{min-width:0}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #7ff2e2;outline-offset:3px}@media(max-width:600px){body{padding:10px}.panel{padding:14px}h2{font-size:19px}.grid{grid-template-columns:minmax(0,1fr)}.tabs button{flex:1;min-height:44px}#ttMonthGrid button{padding:6px 2px;font-size:11px;overflow-wrap:anywhere}}';doc.head.append(css);
@@ -35,5 +39,5 @@ function boot(){
  panel.querySelector('iframe').addEventListener('load',()=>setTab(nav.querySelector('.active')?.dataset.ttPage||'production',false));
  const obs=new MutationObserver(sync);obs.observe(channels,{subtree:true,attributes:true,attributeFilter:['class','aria-pressed'],childList:true});channels.addEventListener('click',()=>queueMicrotask(sync));sync();restoreTab();if(new URLSearchParams(location.hash.slice(1)).get('channel')==='tiktok')channels.querySelector('[data-channel="tiktok"]')?.click();
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+if(document.getElementById('channelBar'))boot();else document.addEventListener('DOMContentLoaded',boot,{once:true});
 })();
