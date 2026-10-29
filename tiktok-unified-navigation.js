@@ -4,10 +4,10 @@ function boot(){
  if(!channels||!side||!main||document.getElementById('bimaTikTokUnifiedPanel'))return;
  document.getElementById('bimaTikTokInsightsLink')?.remove();
  const nav=document.createElement('nav');nav.id='bimaTikTokUnifiedNav';nav.setAttribute('aria-label','TikTok workspace');
- nav.innerHTML='<div style="font-size:12px;color:#80e7db;font-weight:800;margin:9px 0">TIKTOK STUDIO</div>'+[['research','01 · Research'],['production','02 · Production'],['calendar','03 · Calendar'],['analytics','04 · Analytics']].map(([k,v])=>'<button type="button" class="menu-item" data-tt-page="'+k+'" style="display:block;width:100%;margin:5px 0;text-align:left">'+v+'</button>').join('');
+ nav.innerHTML='<div style="font-size:12px;color:#80e7db;font-weight:800;margin:9px 0">TIKTOK STUDIO</div>'+[['research','01 · Research'],['production','02 · Production'],['bank','Bank Konten'],['calendar','03 · Calendar'],['analytics','04 · Analytics']].map(([k,v])=>'<button type="button" class="menu-item" data-tt-page="'+k+'" style="display:block;width:100%;margin:5px 0;text-align:left">'+v+'</button>').join('');
  channels.insertAdjacentElement('afterend',nav);
  const panel=document.createElement('section');panel.id='bimaTikTokUnifiedPanel';panel.style.cssText='width:100%;min-width:0;';
- panel.innerHTML='<iframe id="bimaTikTokUnifiedFrame" title="TikTok BIMA Production and Analytics" loading="eager" src="./tiktok-insights.html?v=20261031-nsport2-1930-v53" style="display:block;width:100%;min-height:900px;height:calc(100vh - 90px);border:1px solid #294b59;border-radius:14px;background:#080e20"></iframe>';
+ panel.innerHTML='<iframe id="bimaTikTokUnifiedFrame" title="TikTok BIMA Production and Analytics" loading="eager" src="./tiktok-insights.html?v=20261029-bank1" style="display:block;width:100%;min-height:900px;height:calc(100vh - 90px);border:1px solid #294b59;border-radius:14px;background:#080e20"></iframe>';
  main.appendChild(panel);
  const style=document.createElement('style');style.textContent='body.bima-tiktok-unified .content > :not(#bimaTikTokUnifiedPanel){display:none!important}body:not(.bima-tiktok-unified) #bimaTikTokUnifiedPanel,body:not(.bima-tiktok-unified) #bimaTikTokUnifiedNav{display:none!important}body.bima-tiktok-unified #bimaTikTokUnifiedPanel{display:block!important}body.bima-tiktok-unified .sidebar nav.menu,body.bima-tiktok-unified .sidebar .tt-calendar-menu{display:none!important}#bimaTikTokUnifiedNav .menu-item.active{background:#18777a;border-color:#59ccc6;color:white}';document.head.appendChild(style);
  const isTikTok=()=>channels.querySelector('[data-channel].active')?.dataset.channel==='tiktok';
@@ -15,7 +15,7 @@ function boot(){
  function sync(){const active=isTikTok();document.body.classList.toggle('bima-tiktok-unified',active);document.documentElement.removeAttribute('data-bima-start-channel');if(active&&!wasTikTok)restoreTab();wasTikTok=active}
  function restoreTab(){const p=new URLSearchParams(location.hash.slice(1));setTab(p.get('channel')==='tiktok'?p.get('tab')||'production':sessionStorage.getItem('bimaTikTokTab')||'production',false)}
  function setTab(tab,write=true){
- if(!['research','production','calendar','analytics','report'].includes(tab))tab='production';
+ if(!['research','production','bank','calendar','analytics','report'].includes(tab))tab='production';
  nav.querySelectorAll('[data-tt-page]').forEach(b=>{const on=b.dataset.ttPage===tab;b.classList.toggle('active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
  try{sessionStorage.setItem('bimaTikTokTab',tab)}catch(_){}
  if(write&&isTikTok()){const hash='#'+new URLSearchParams({channel:'tiktok',tab});if(location.hash!==hash)history.pushState(null,'',hash)}
@@ -51,3 +51,4 @@ function boot(){
 }
 if(document.getElementById('channelBar'))boot();else document.addEventListener('DOMContentLoaded',boot,{once:true});
 })();
+
