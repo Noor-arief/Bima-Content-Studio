@@ -1079,7 +1079,7 @@ $('removeVideo').addEventListener('click',removeSelectedVideo);
  byId("apiGoogle").addEventListener("click",safeRun(async()=>{
     const r=await fetch(base()+"/health");const v=await r.json();
     if(!v.oauthConfigured)throw Error("Set backend OAuth variables in Railway first. Do not paste secrets here.");
-    location.href=base()+"/auth/google/start";
+    location.href=base()+"/auth/google/start?frontend="+encodeURIComponent(location.origin);
  }));
  byId("apiSend").addEventListener("click",safeRun(async()=>{
     const item=getSelected();
@@ -1276,4 +1276,5 @@ render();
 <script src="auto-video-pipeline.js?v=20261012-autonomous1" defer></script>
 <script src="piapi-pilot.js?v=20261013-episode-scoped-review" defer></script>
 </body></html>
+
 

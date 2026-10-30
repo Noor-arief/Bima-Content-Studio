@@ -37,8 +37,9 @@ async function refresh(){if(busy)return;const token=sessionStorage.getItem('bima
  finally{busy=false;el('yaRefresh').disabled=false;el('yaPeriod').disabled=false;}
 }
 el('yaRefresh').addEventListener('click',refresh);el('yaPeriod').addEventListener('change',refresh);
-el('yaConnect').addEventListener('click',()=>{try{sessionStorage.setItem('bimaView','analytics');location.href=base()+'/auth/google/start?analytics=1';}catch{el('yaStatus').textContent='Alamat backend tidak valid.';}});
+el('yaConnect').addEventListener('click',()=>{try{sessionStorage.setItem('bimaView','analytics');location.href=base()+'/auth/google/start?analytics=1&frontend='+encodeURIComponent(location.origin);}catch{el('yaStatus').textContent='Alamat backend tidak valid.';}});
 const observer=new MutationObserver(()=>{if(document.body.dataset.view==='analytics'&&(document.body.dataset.channel||'youtube')==='youtube'&&!loaded&&!busy)refresh();});observer.observe(document.body,{attributes:true,attributeFilter:['data-view','data-channel']});
 document.addEventListener('bima:owner-session',e=>{if(!e.detail?.signedIn){loaded=false;serial++;el('yaResults').hidden=true;el('yaStatus').textContent='Masuk sebagai pemilik channel untuk melihat analytics.';}});
 if(document.body.dataset.view==='analytics')refresh();
 })();
+
