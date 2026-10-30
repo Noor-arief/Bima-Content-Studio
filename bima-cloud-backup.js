@@ -1,5 +1,6 @@
 (()=>{'use strict';
 const core=window.BimaBackupCore;if(!core)return;
+let returnedOwner=false;if(document.body.dataset.backupPage==='true'&&location.hash){const session=new URLSearchParams(location.hash.slice(1)).get('bima_session');if(session&&/^[A-Za-z0-9_-]{16,}$/.test(session)){sessionStorage.setItem('bima_content_server_session',session);history.replaceState(null,'',location.pathname+location.search);returnedOwner=true}}
 const DEFAULT='https://content-studio-api-production-3fe2.up.railway.app',DEVICE='bima_cloud_backup_device_v1',REVISION='bima_cloud_backup_revision_v1';
 let running=false,lastSignature='',lastFull=0,lastStatus=null,nextAttempt=0;
 const token=()=>sessionStorage.getItem('bima_content_server_session')||'';
@@ -43,7 +44,7 @@ window.BimaCloudBackup={backup,restoreLatest,status:()=>lastStatus,refresh:async
 document.getElementById('cloudBackupNow')?.addEventListener('click',()=>backup({manual:true}));
 document.getElementById('cloudBackupRestore')?.addEventListener('click',restoreLatest);
 document.getElementById('cloudBackupRefresh')?.addEventListener('click',()=>window.BimaCloudBackup.refresh());
-document.getElementById('cloudBackupLogin')?.addEventListener('click',()=>{location.href=base()+'/auth/google/start?frontend='+encodeURIComponent(location.origin)});
+document.getElementById('cloudBackupLogin')?.addEventListener('click',()=>{location.href=base()+'/auth/google/start?backup=1&frontend='+encodeURIComponent(location.origin)});
 function tick(){if(!token()||running||document.hidden||Date.now()<nextAttempt)return;const sig=signature();if(sig!==lastSignature||Date.now()-lastFull>5*60*1000)void backup()}
-if(document.body.dataset.backupPage==='true')void window.BimaCloudBackup.refresh();else{setTimeout(tick,15000);setInterval(tick,30000)}
+if(document.body.dataset.backupPage==='true'){if(returnedOwner)void backup({manual:true});else void window.BimaCloudBackup.refresh();}else{setTimeout(tick,15000);setInterval(tick,30000)}
 })();

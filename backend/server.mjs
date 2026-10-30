@@ -434,7 +434,7 @@ async function handler(req,res){
     const state=random(),verifier=random();
     const challenge=createHash("sha256").update(verifier).digest("base64url");
     const analytics=u.searchParams.get("analytics")==="1";
-    db.oauthStates[sha(state)]={verifier,created:Date.now(),analytics,frontendURL:frontendReturnURL(u.searchParams.get("frontend"))};await persist();
+    db.oauthStates[sha(state)]={verifier,created:Date.now(),analytics,backup:u.searchParams.get("backup")==="1",frontendURL:frontendReturnURL(u.searchParams.get("frontend"))};await persist();
     const q=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:REDIRECT,response_type:"code",scope:ACCESS_SCOPE+(analytics?" "+ANALYTICS_SCOPE:""),include_granted_scopes:"true",access_type:"offline",
       prompt:"consent select_account",state,code_challenge:challenge,code_challenge_method:"S256"});
     return redirect(res,"https://accounts.google.com/o/oauth2/v2/auth?"+q);
@@ -462,7 +462,7 @@ async function handler(req,res){
       const session=random();db.sessions[sha(session)]={email:OWNER,expires:Date.now()+12*3600000};
       logEvent("youtube_oauth_connected","owner",{channel:ch.id});await persist();
       // Fragment never travels to Github Pages server; frontend removes it immediately.
-      return redirect(res,frontendReturnURL(entry.frontendURL?new URL(entry.frontendURL).origin:null)+"#bima_session="+session);
+      return redirect(res,frontendReturnURL(entry.frontendURL?new URL(entry.frontendURL).origin:null)+(entry.backup?"cloud-backup.html":"")+"#bima_session="+session);
     }catch(e){return error(res,403,String(e.message||e).slice(0,150));}
   }
   if(req.method==="GET"&&u.pathname==="/public/tiktok/google/status"){
