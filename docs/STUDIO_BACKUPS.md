@@ -10,7 +10,7 @@ All `/api/backups/*` routes use the existing owner authorization and frontend or
 
 Every committed version retains a manifest and, when available, a private copy of backend `state.json`. Media are deduplicated by SHA-256. The current pointer is atomically replaced only after all media exist. Existing versions remain available on disk. Incomplete transfers do not become committed backups. Uploads can resume at the server's recorded byte offset.
 
-The existing Railway volume is 1 GiB. The backup service reserves 128 MiB and returns `backup_storage_full` rather than consuming the remaining space. It does not automatically increase storage or billing. A failed backup leaves local content intact and does not advance the latest pointer. Monitor the backup status page before relying on a backup.
+The existing Railway volume was expanded in place to 5000 MB on 30 October 2026. Capacity planning counts each unique media hash once and subtracts bytes already present in incomplete uploads. The backup service reserves 128 MiB and returns `backup_storage_full` rather than consuming the remaining space. It does not automatically increase storage or billing. A failed backup leaves local content intact and does not advance the latest pointer. Monitor the backup status page before relying on a backup.
 
 These copies are on the existing Railway volume, not an independent offsite disaster-recovery copy or Railway platform volume snapshot. They survive ordinary application redeploys but do not protect against deletion/loss of that same volume. Keep the verified local `.bimabackup` as an additional independent copy.
 
