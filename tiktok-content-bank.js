@@ -11,7 +11,7 @@ function videoUrl(value){if(!value)return '';try{const u=new URL(value);if(u.pro
 function markPublished(id,date,url){if(!validDate(date))throw Error('Tanggal tayang tidak valid.');if(date>today())throw Error('Tanggal tayang tidak boleh di masa depan.');const checked=videoUrl(url.trim());return update(id,x=>{if(!isPublished(x))x.statusBeforePublished=x.status||'Production Draft';x.publishedManually=true;x.publishedDate=date;x.publishedAt=new Date().toISOString();x.publicationConfirmedAt=new Date().toISOString();x.status='Published manually';x.url=checked;});}
 function undoPublished(id){return update(id,x=>{x.publishedManually=false;x.publishedAt='';x.publishedDate='';x.publicationConfirmedAt='';x.status=x.videoReady?'Video Ready':(x.statusBeforePublished&&x.statusBeforePublished!=='Published manually'?x.statusBeforePublished:'Production Draft');});}
 function reschedule(id,date){if(!validDate(date))throw Error('Tanggal rencana tidak valid.');return update(id,x=>{x.date=date;});}
-const store={read,update,isPublished,publishedDate,calendarDate:x=>isPublished(x)?publishedDate(x):x.date||'',markPublished,undoPublished,reschedule,today};
+const store={read,update,isPublished,publishedDate,calendarDate:x=>isPublished(x)?publishedDate(x):(x.date>=today()?x.date:''),markPublished,undoPublished,reschedule,today};
 window.BimaTikTokContentStore=store;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function tab(name){document.querySelector('#tabs [data-tab="'+name+'"]')?.click();}
