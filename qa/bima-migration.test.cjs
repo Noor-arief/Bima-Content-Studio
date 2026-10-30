@@ -20,6 +20,11 @@ test('complete backup preserves YouTube/TikTok publication state, media and thum
  const pack={manifest:{format:'bima-complete-v1',origin:'https://noor-arief.github.io',local,session:{bimaView:'calendar'},counts:a.counts(local),databases:[{name:'bima-video-matched-thumbnail-v1',store:'covers',version:1,rows:[{key:await a.encode('yt',blobs),value:encoded}]}],media:[{offset:0,size:media.size,sha256:await a.sha(media)}]},blobs};
  const archive=a.archive(pack),roundtrip=await a.readArchive(archive);
  assert.equal(roundtrip.manifest.local['bima-content-studio-v3'],local['bima-content-studio-v3']);assert.equal(roundtrip.manifest.counts.youtubeLive,1);assert.equal(roundtrip.manifest.counts.tiktokLive,1);assert.equal(await roundtrip.blobs[0].text(),'video bytes');
+ pack.manifest.origin='https://mycontentstudio.site';
+ assert.equal((await a.readArchive(a.archive(pack))).manifest.counts.tiktokLive,1);
+ pack.manifest.origin='https://untrusted.example';
+ await assert.rejects(a.readArchive(a.archive(pack)),/Sumber/);
+ pack.manifest.origin='https://noor-arief.github.io';
  const corrupt=new Blob([archive.slice(0,archive.size-1),'X']);await assert.rejects(a.readArchive(corrupt),/rusak/);
  await assert.rejects(a.readArchive(new Blob(['old tiktok json'])),/backup lengkap/);
 });
