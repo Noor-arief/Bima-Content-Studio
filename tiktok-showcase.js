@@ -27,7 +27,7 @@ async function status(){
   label.textContent=!ready?messages.tiktok_shop_creator_not_enabled:connected?'Creator terotorisasi. Sinkronkan untuk memeriksa produk terbaru.':'Server siap. Hubungkan akun Creator yang diizinkan TikTok.';
  }catch(e){failure(e);}finally{busy=false;buttons();}
 }
-q('[data-creator-login]').onclick=()=>location.assign(base+'/auth/google/start');
+q('[data-creator-login]').onclick=()=>location.assign(base+'/auth/google/start?frontend='+encodeURIComponent(location.origin));
 q('[data-creator-refresh]').onclick=status;
 q('[data-creator-connect]').onclick=async()=>{
  if(busy)return;busy=true;buttons();

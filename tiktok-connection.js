@@ -49,7 +49,7 @@ connect.addEventListener('click',async()=>{
  }catch(e){label.textContent=e.message;connect.disabled=false;}
 });
 check.addEventListener('click',status);
-ownerLogin.addEventListener('click',()=>{location.assign(api+'/auth/google/start');});
+ownerLogin.addEventListener('click',()=>{location.assign(api+'/auth/google/start?frontend='+encodeURIComponent(location.origin));});
 status();
 document.addEventListener('bima:owner-session',()=>status());
 })();

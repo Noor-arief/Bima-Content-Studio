@@ -41,7 +41,7 @@ function syncView(){
 document.addEventListener('bima:channel-section',syncView);syncView();
 const calendarToggle=card.querySelector('[data-calendar-toggle]');calendarToggle.onclick=()=>document.querySelector('.sidebar [data-tiktok-calendar]')?.click();
 const actions=card.querySelector('[data-legacy-toggle]');actions.onclick=()=>{const open=root.dataset.advancedMode!=='true';root.dataset.advancedMode=String(open);root.classList.toggle('tt-owner-mode',!open);document.querySelector('.sidebar')?.classList.toggle('tt-advanced-nav',open);actions.setAttribute('aria-expanded',String(open));actions.textContent=open?'Tutup alat lanjutan':'Buka alat lanjutan';if(open)card.querySelector('[data-sec-go="ringkasan"]').click();};
-card.querySelector('[data-login]').onclick=()=>location.assign(base+'/auth/google/start');
+card.querySelector('[data-login]').onclick=()=>location.assign(base+'/auth/google/start?frontend='+encodeURIComponent(location.origin));
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
 async function request(url,body){
  const r=await fetch(base+url,{cache:'no-store',...(body?{method:'POST',body:JSON.stringify(body)}:{}),headers:{...(token()?{Authorization:'Bearer '+token()}:{}),'Content-Type':'application/json'}});

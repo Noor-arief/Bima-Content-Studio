@@ -101,7 +101,7 @@ async function action(name,button){
  if(name==='saveBankSettings'){bank=(await json('/bank/settings','POST',{niche:el('bank-niche').value,time:el('bank-time').value})).bank;cache();draw();message('Fokus disimpan. Rencana yang belum mulai disesuaikan; produksi berjalan tetap dipertahankan.');return;}
 
  if(['seed','new'].includes(name)&&dirty)await save();
- if(name==='signin'){collect();location.href=base()+'/auth/google/start';return;}
+ if(name==='signin'){collect();location.href=base()+'/auth/google/start?frontend='+encodeURIComponent(location.origin);return;}
  if(name==='sync'){collect();if(dirty)await save();await load();return;}
  if(name==='backup'){download(JSON.stringify({drafts,exportedAt:new Date().toISOString()},null,2),'bima-shopee-drafts.json','application/json');return;}
  if(name==='seed'){
