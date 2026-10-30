@@ -46,5 +46,5 @@ document.getElementById('cloudBackupRestore')?.addEventListener('click',restoreL
 document.getElementById('cloudBackupRefresh')?.addEventListener('click',()=>window.BimaCloudBackup.refresh());
 document.getElementById('cloudBackupLogin')?.addEventListener('click',()=>{location.href=base()+'/auth/google/start?backup=1&frontend='+encodeURIComponent(location.origin)});
 function tick(){if(!token()||running||document.hidden||Date.now()<nextAttempt)return;const sig=signature();if(sig!==lastSignature||Date.now()-lastFull>5*60*1000)void backup()}
-if(document.body.dataset.backupPage==='true'){if(returnedOwner)void backup({manual:true});else void window.BimaCloudBackup.refresh();}else{setTimeout(tick,15000);setInterval(tick,30000)}
+if(document.body.dataset.backupPage==='true'){if(returnedOwner)void backup();else void window.BimaCloudBackup.refresh();}else{setTimeout(tick,15000);setInterval(tick,30000)}
 })();
