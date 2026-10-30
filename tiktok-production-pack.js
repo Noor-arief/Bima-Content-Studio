@@ -167,25 +167,25 @@ const make=(d)=>{
  const facts=clean(d.facts);
  const factual=Boolean(facts);
  const scripts=factual?[
-  `Ini ${name}. Yuk lihat detail produknya.`,
+  `Coba lihat detail ${name} ini.`,
   `Menurut informasi produk: ${facts.slice(0,90)}.`,
   'Cek informasi, varian, dan harga terbaru lewat keranjang kuning.'
  ]:[
-  `Lagi cari ${name}? Yuk lihat produknya.`,
+  `Coba lihat detail ${name} ini.`,
   `Perhatikan detail dan pilihan ${name} sebelum membeli.`,
   'Buka keranjang kuning untuk cek deskripsi, varian, dan harga terbaru.'
  ];
  const scenes=[
-  {start:0,end:8,visual:`Close-up produk ${name} memakai foto referensi asli seller. Tampilkan hanya bentuk dan warna yang terbukti, jangan buat desain sendiri.`,voice:scripts[0]},
-  {start:8,end:16,visual:factual?`Sorot bagian produk yang sesuai sumber listing: ${facts.slice(0,120)}. Jangan buat klaim fungsi baru.`:'Perlihatkan sudut atau foto produk lain yang benar-benar disediakan seller. Jangan mendemonstrasikan fungsi yang belum terbukti.',voice:scripts[1]},
-  {start:16,end:24,visual:'Tutup dengan close-up produk asli, akhir mulus. CTA cukup melalui voice-over; jangan membuat grafis keranjang kuning palsu.',voice:scripts[2]}
+  {start:0,end:8,visual:`HOOK 0–2 detik sejak frame pertama: tampilkan momen terkuat produk ${name} secara langsung (atau ketika digunakan jika terverifikasi), visual bergerak natural, narasi Indonesia mulai di detik 0. Hindari intro, kemasan diam dan static slideshow. Lanjut detik 2–8: close-up detail produk sesuai foto referensi asli seller, reframe tiap 1–2 detik. Bentuk, warna dan logo tidak boleh diubah.`,voice:scripts[0]},
+  {start:8,end:16,visual:factual?`DETAIL: Sorot tekstur, potongan, logo atau bagian produk yang sesuai sumber listing: ${facts.slice(0,120)}. Jaga ritme setiap 1–2 detik; jangan buat klaim fungsi baru.`:'DETAIL: Perlihatkan sudut atau foto produk lain yang benar-benar disediakan seller dengan gerak kamera natural. Jangan mendemonstrasikan fungsi yang belum terbukti.',voice:scripts[1]},
+  {start:16,end:24,visual:'PAYOFF: tampilkan produk atau hasil look keseluruhan secara natural, lalu penutup yang mulus dan terasa loopable. CTA singkat melalui voice-over Bahasa Indonesia; jangan membuat grafis keranjang kuning palsu.',voice:scripts[2]}
  ];
  const stamp=s=>`00:00:${String(s).padStart(2,'0')},000`;
  const srt=scenes.map((s,i)=>`${i+1}\n${stamp(s.start)} --> ${stamp(s.end)}\n${s.voice}\n`).join('\n');
  const genre=(()=>{const txt=(name+' '+facts).toLowerCase();if(/skincare|serum|parfum|perfume|makeup|kosmetik|beauty/.test(txt))return {mood:'clean, soft, chic',bpm:[85,110]};if(/fashion|baju|hijab|sepatu|tas|ootd|dress/.test(txt))return {mood:'stylish, upbeat',bpm:[105,125]};if(/kipas|charger|gadget|headset|powerbank|elektronik|lampu/.test(txt))return {mood:'sleek, modern, punchy',bpm:[100,120]};if(/dapur|rumah|organizer|storage|kitchen/.test(txt))return {mood:'cozy, satisfying',bpm:[85,105]};return {mood:'light, rhythmic, product-focused',bpm:[90,115]};})();
  const music={mode:'hybrid-vo-first',mood:genre.mood,bpmRange:genre.bpm,source:'Approved commercial-use audio only; no track automatically licensed or downloaded',licenseVerified:false,trackSelected:false,plan:[{from:0,to:2,musicGainDb:-17},{from:2,to:21,musicGainDb:-25,voicePriority:true},{from:21,to:24,musicGainDb:-27,voicePriority:true,fadeOut:true}],qualityChecks:['No lyrics competing with speech','Music follows edit pace','Voice remains clear through CTA','Commercial-use rights verified before final export','No unauthorized trending sound baked into MP4']};
  const caption=`Kenali ${name}. Cek detail produk, pilihan varian, dan harga terbaru di keranjang kuning. Konten affiliate; saya dapat memperoleh komisi dari pembelian. ${factual?'Informasi produk wajib dicocokkan dengan listing. ':''}#TikTokShop #Affiliate`;
- return {id:d.id,product:name,source:d.productUrl,verifiedFacts:factual,missing:factual?['Review kecocokan aset produk','Review narasi dan visual']:['Fakta produk belum diverifikasi','Foto referensi seller belum dikonfirmasi','Review kecocokan aset produk'],durationSeconds:24,aspectRatio:'9:16',scenes,voice:scripts.join(' '),srt,caption,music,rendered:false};
+ return {id:d.id,product:name,source:d.productUrl,verifiedFacts:factual,missing:factual?['Review kecocokan aset produk','Review narasi dan visual']:['Fakta produk belum diverifikasi','Foto referensi seller belum dikonfirmasi','Review kecocokan aset produk'],durationSeconds:24,aspectRatio:'9:16',scenes,voice:scripts.join(' '),voiceLanguage:'id-ID',creativeStandard:'TIKTOK_CREATIVE_STANDARD.md · hook 0–2s, detail, payoff; Indonesian VO only unless owner explicitly requests another language; no auto-subtitles with VO',srt,caption,music,rendered:false};
 };
 const download=(name,content,type)=>{const u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
 const build=()=>{
