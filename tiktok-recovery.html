@@ -1,0 +1,31 @@
+<!doctype html><html lang="id"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Pemulihan TikTok BIMA</title><style>body{background:#0b1528;color:#e9f3ff;font:16px system-ui;max-width:740px;margin:40px auto;padding:24px}button,input{padding:14px;margin:12px 12px 12px 0}button{background:#147b80;color:white;border:0;border-radius:8px}pre{white-space:pre-wrap;background:#182840;padding:20px}a{color:#70e6dc}</style><h1>Pemulihan data TikTok</h1><p>Backup mencakup konten, tanggal, status tayang serta foto dan video yang tersimpan di browser ini. File backup berisi data pribadi; simpan sendiri. Data asal tidak dihapus.</p><p>Ekspor dari browser dan alamat lama, lalu impor pada domain baru menggunakan browser yang sama atau browser lain.</p><pre id="status">Memeriksa penyimpanan…</pre><button id="export">Unduh backup lengkap</button><hr><h2>Pulihkan ke domain ini</h2><p>Konten dengan ID sama akan memakai data backup. Konten lain tetap disimpan. Media dengan kunci sama yang sudah ada di domain tujuan tidak ditimpa. Backup tujuan otomatis diunduh sebelum impor.</p><input id="file" type="file" accept=".json,application/json"><button id="restore" disabled>Pulihkan backup terpilih</button><p><a href="./">Kembali ke BIMA</a></p><script>
+'use strict';
+const KEY='bima-tiktok-market-intel-v1',DB='bima-tiktok-production-media-v1',STORE='files';
+const status=document.getElementById('status'),exp=document.getElementById('export'),restore=document.getElementById('restore'),input=document.getElementById('file');
+function openDB(){return new Promise((ok,bad)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error)})}
+function entries(db){return new Promise((ok,bad)=>{const list=[],r=db.transaction(STORE).objectStore(STORE).openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return ok(list);list.push([c.key,c.value]);c.continue()};r.onerror=()=>bad(r.error)})}
+function dataURL(blob){return new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>bad(r.error);r.readAsDataURL(blob)})}
+function download(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000)}
+async function snapshot(){const db=await openDB();try{const media=[];for(const [key,b] of await entries(db)){if(!(b instanceof Blob))throw Error('Format media tidak dikenali: '+key);media.push({key,name:b.name||'',type:b.type,size:b.size,data:await dataURL(b)})}return {format:'bima-tiktok-backup-v1',origin:location.origin,createdAt:new Date().toISOString(),state:JSON.parse(localStorage.getItem(KEY)||'{"content":[]}'),media}}finally{db.close()}}
+async function info(){const db=await openDB();try{const list=await entries(db);status.textContent='Alamat: '+location.origin+'\nKonten: '+(JSON.parse(localStorage.getItem(KEY)||'{}').content||[]).length+'\nMedia tersimpan: '+list.length+' file\nTotal media: '+(list.reduce((n,x)=>n+(x[1].size||0),0)/1048576).toFixed(1)+' MB'}finally{db.close()}}
+function busy(on){exp.disabled=on;restore.disabled=on||!input.files.length;input.disabled=on}
+exp.onclick=async()=>{busy(true);try{status.textContent='Menyiapkan backup, termasuk video. Tunggu sampai file terunduh…';download(await snapshot(),'bima-tiktok-backup-'+Date.now()+'.json');await info();status.textContent+='\nBackup selesai dibuat. Pastikan file unduhan tersimpan.'}catch(e){status.textContent='Gagal: '+e.message}finally{busy(false)}};
+input.onchange=()=>{restore.disabled=!input.files.length};
+restore.onclick=async()=>{busy(true);let added=[];let db;try{
+status.textContent='Memeriksa file backup…';
+const backup=JSON.parse(await input.files[0].text());
+if(backup.format!=='bima-tiktok-backup-v1'||!Array.isArray(backup.state?.content)||!Array.isArray(backup.media))throw Error('Format backup tidak valid');
+for(const x of backup.state.content)if(!x||typeof x.id!=='string')throw Error('ID konten tidak valid');
+const decoded=[];
+for(const m of backup.media){if(typeof m.key!=='string'||!m.key.match(/:((scene\d+)|video)$/)||typeof m.data!=='string'||!m.data.startsWith('data:'))throw Error('Format media tidak valid');const blob=await (await fetch(m.data)).blob();if(blob.size!==m.size)throw Error('Ukuran media tidak cocok');decoded.push([m.key,m.name?new File([blob],m.name,{type:m.type}):blob])}
+status.textContent='Menyimpan backup tujuan sebelum pemulihan…';
+download(await snapshot(),'bima-sebelum-pemulihan-'+Date.now()+'.json');
+const current=JSON.parse(localStorage.getItem(KEY)||'{}'),merged={...current};
+for(const field of ['content','research','analytics']){if(!Array.isArray(backup.state[field]))continue;const rows=new Map((current[field]||[]).map((x,i)=>[x.id||JSON.stringify(x),x]));for(const x of backup.state[field])rows.set(x.id||JSON.stringify(x),x);merged[field]=[...rows.values()]}
+db=await openDB();const existing=new Set((await entries(db)).map(x=>x[0]));
+await new Promise((ok,bad)=>{const tx=db.transaction(STORE,'readwrite'),s=tx.objectStore(STORE);for(const [key,blob] of decoded)if(!existing.has(key)){s.add(blob,key);added.push(key)}tx.oncomplete=ok;tx.onerror=()=>bad(tx.error);tx.onabort=()=>bad(tx.error||Error('Transaksi dibatalkan'))});
+try{localStorage.setItem(KEY,JSON.stringify(merged))}catch(e){await new Promise((ok,bad)=>{const tx=db.transaction(STORE,'readwrite');for(const key of added)tx.objectStore(STORE).delete(key);tx.oncomplete=ok;tx.onerror=()=>bad(tx.error)});throw e}
+status.textContent='Pemulihan selesai. '+merged.content.length+' konten; '+added.length+' media dipulihkan. Buka kembali BIMA. Data asal tidak dihapus.';
+}catch(e){status.textContent='Pemulihan gagal: '+e.message+'. Backup asal tetap tersedia.'}finally{db?.close();busy(false)}};
+info().catch(e=>status.textContent=e.message);
+</script></html>
