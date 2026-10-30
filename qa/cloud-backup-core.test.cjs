@@ -1,0 +1,35 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm');
+const {webcrypto}=require('node:crypto');
+const elements=new Map();
+const document={getElementById:id=>{if(!elements.has(id))elements.set(id,{});return elements.get(id)}};
+const empty={length:0,getItem:()=>null};
+const window={dispatchEvent(){}};
+const context=vm.createContext({window,document,localStorage:empty,sessionStorage:empty,location:{origin:'https://noor-arief.github.io'},Blob,File,TextEncoder,DataView,Uint8Array,crypto:webcrypto,setTimeout,URL,console});
+const src=fs.readFileSync(__dirname+'/../bima-backup-core.js','utf8');
+vm.runInContext(src,context);
+const a=window.BimaBackupCore;
+test('complete backup preserves YouTube/TikTok publication state, media and thumbnail objects',async()=>{
+ const media=new File(['video bytes'],'video.mp4',{type:'video/mp4',lastModified:123});
+ context.sampleMedia=media;
+ const value=vm.runInContext('({file:sampleMedia,caption:"thumbnail",at:new Date("2026-10-30T01:00:00Z"),optional:undefined})',context);
+ const blobs=[],encoded=await a.encode(value,blobs);
+ const decoded=a.decode(encoded,blobs);
+ assert.equal(await decoded.file.text(),'video bytes');assert.equal(decoded.file.name,'video.mp4');assert.equal(decoded.file.lastModified,123);assert.equal(decoded.at.toISOString(),'2026-10-30T01:00:00.000Z');assert.equal(decoded.optional,undefined);
+ const local={'bima-content-studio-v3':JSON.stringify({items:{youtube:[{id:'yt',status:'Published',date:'2026-10-25'},{id:'draft',status:'Draft'}]}}),'bima-tiktok-market-intel-v1':JSON.stringify({content:[{id:'tt',publishedManually:true,publishedDate:'2026-10-28'}]})};
+ const pack={manifest:{format:'bima-complete-v1',origin:'https://noor-arief.github.io',local,session:{bimaView:'calendar'},counts:a.counts(local),databases:[{name:'bima-video-matched-thumbnail-v1',store:'covers',version:1,rows:[{key:await a.encode('yt',blobs),value:encoded}]}],media:[{offset:0,size:media.size,sha256:await a.sha(media)}]},blobs};
+ const archive=a.archive(pack),roundtrip=await a.readArchive(archive);
+ assert.equal(roundtrip.manifest.local['bima-content-studio-v3'],local['bima-content-studio-v3']);assert.equal(roundtrip.manifest.counts.youtubeLive,1);assert.equal(roundtrip.manifest.counts.tiktokLive,1);assert.equal(await roundtrip.blobs[0].text(),'video bytes');
+ pack.manifest.origin='https://mycontentstudio.site';
+ assert.equal((await a.readArchive(a.archive(pack))).manifest.counts.tiktokLive,1);
+ pack.manifest.origin='https://untrusted.example';
+ await assert.rejects(a.readArchive(a.archive(pack)),/Sumber/);
+ pack.manifest.origin='https://noor-arief.github.io';
+ const corrupt=new Blob([archive.slice(0,archive.size-1),'X']);await assert.rejects(a.readArchive(corrupt),/rusak/);
+ await assert.rejects(a.readArchive(new Blob(['old tiktok json'])),/backup lengkap/);
+});
+test('backup excludes auth credentials and unrelated applications',()=>{
+ assert.equal(a.keyAllowed('bima_content_server_session'),false);assert.equal(a.sessionAllowed('bima_content_server_session'),false);assert.equal(a.keyAllowed('other-app'),false);
+ for(const k of ['bima-content-studio-v3','bima-tiktok-market-intel-v1','bima-shopee-affiliate-v1','bima_content_server_url','bima_affiliate_campaigns_v1'])assert.equal(a.keyAllowed(k),true);
+});

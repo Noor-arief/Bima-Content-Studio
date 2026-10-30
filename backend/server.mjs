@@ -1,4 +1,5 @@
 import http from "node:http";
+import {createStudioBackups} from "./studio-backups.mjs";
 import {createShopeeStudio,SHOPEE_STUDIO_VERSION} from "./shopee-studio.mjs";
 import {SHOPEE_ANALYTICS_VERSION} from './shopee-analytics.mjs';
 import { ANALYTICS_SCOPE, TARGET_CHANNEL, fetchAnalytics, reportRange } from "./youtube-analytics.mjs";
@@ -265,6 +266,8 @@ async function inspectVideo(item){
   if(entry.status?.privacyStatus==="public"){item.status="published";logEvent("youtube_confirmed_public",item.id);}
   await persist();
 }
+const backupDirectory=process.env.RAILWAY_VOLUME_MOUNT_PATH?path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH,"studio-backups"):(process.env.NODE_ENV==="production"?null:path.join(DATA_DIR,"studio-backups"));
+const studioBackups=createStudioBackups({directory:backupDirectory,access,stateFile:STATE_PATH});
 async function handler(req,res){
   const u=new URL(req.url||"/","http://localhost");
   const origin=req.headers.origin;
@@ -276,6 +279,8 @@ async function handler(req,res){
     res.setHeader("Access-Control-Allow-Methods","GET,POST,PUT,DELETE,OPTIONS");
   }
   if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}
+
+  if(await studioBackups(req,res,u))return;
 
   // TikTok Shop Creator consent is separate from TikTok Login Kit and YouTube OAuth.
   // Explicit deployment opt-in prevents triggering unauthorized live consent before approval.
